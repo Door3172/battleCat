@@ -2,8 +2,8 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ "main" ]   # 你主要開發分支是 main 就填 main
-  workflow_dispatch:        # 也可以手動觸發
+    branches: [ "main" ]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -25,14 +25,12 @@ jobs:
           node-version: 20
           cache: npm
 
-      # 若你 repo 裡沒有 package-lock.json，'npm ci' 會失敗；改用 npm install 最穩
       - name: Install deps
-  	run: npm install --include=dev
+        run: npm install --include=dev
 
       - name: Build
-  	run: npm run build
+        run: npm run build
 
-      # SPA 刷新不 404
       - name: SPA 404 fallback
         run: cp dist/index.html dist/404.html
 
