@@ -1,0 +1,30 @@
+export const SKIN = {
+  color: {
+    ink: '#0f172a',
+    inkSub: '#334155',
+    mute: '#64748b',
+    line: '#e5e7eb',
+    bgTop: '#f8fafc',
+    bgBottom: '#ecf0f6',
+    cardTop: 'rgba(255,255,255,.92)',
+    cardBottom: 'rgba(248,250,252,.78)',
+    accentA: '#f59e0b',
+    accentB: '#f97316',
+    ok: '#22c55e',
+    warn: '#f59e0b',
+    danger: '#ef4444',
+    white: '#ffffff',
+    black: '#0b1224',
+  },
+  size: { touch: 40, gapSm: 6, gapMd: 10, gapLg: 16, gapXl: 24, padSm: 8, padMd: 12, padLg: 16 },
+  radius: { sm: 10, md: 14, lg: 20, xl: 24, pill: 999 },
+  shadow: {
+    soft: 'var(--shadow-soft, 0 6px 16px rgba(2,6,23,.06), 0 2px 6px rgba(2,6,23,.06))',
+    card: 'var(--shadow-card, 0 14px 36px rgba(2,6,23,.10), 0 4px 14px rgba(2,6,23,.06))',
+    lift: 'var(--shadow-lift, 0 10px 18px rgba(2,6,23,.08))',
+  },
+  grad: {
+    hero: (a,b)=>`linear-gradient(180deg, ${a} 0%, ${b} 62%, #ffd87a 100%)`,
+    card: (a,b)=>`linear-gradient(180deg, ${a}, ${b})`,
+  },
+};
