@@ -25,12 +25,15 @@ jobs:
           node-version: 20
           cache: npm
 
+      # 1) 安裝含 devDependencies（確保 vite 會裝到）
       - name: Install deps
-        run: npm install --include=dev
+        run: npm ci || npm install --include=dev
 
+      # 2) 直接用 npx 執行 vite（不靠 PATH）
       - name: Build
-        run: npm run build
+        run: npx vite build
 
+      # 3) SPA 刷新不 404
       - name: SPA 404 fallback
         run: cp dist/index.html dist/404.html
 
