@@ -27,10 +27,10 @@ jobs:
 
       # 若你 repo 裡沒有 package-lock.json，'npm ci' 會失敗；改用 npm install 最穩
       - name: Install deps
-        run: npm install
+  	run: npm install --include=dev
 
       - name: Build
-        run: npm run build
+  	run: npm run build
 
       # SPA 刷新不 404
       - name: SPA 404 fallback
