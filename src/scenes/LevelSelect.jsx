@@ -9,7 +9,7 @@ export default function LevelSelect({ highestUnlocked, onBack, onChoose }){
   const audio = useAudio();
 
   useEffect(() => {
-    audio.crossfadeMusic('bgm_lobby', { fade: 600 });
+    audio.playMusic('bgm_lobby');
   }, []);
 
   return (

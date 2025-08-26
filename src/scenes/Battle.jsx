@@ -56,8 +56,8 @@ export default function Battle({
 
   // ✅ 進入戰鬥 → 切戰鬥 BGM；離開 → 切回大廳 BGM（crossfade，避免互蓋）
   useEffect(() => {
-    audio.crossfadeMusic('bgm_battle', { fade: 600 });
-    return () => { audio.crossfadeMusic('bgm_lobby', { fade: 600 }); };
+    audio.playMusic('bgm_battle');
+    return () => { audio.playMusic('bgm_lobby'); };
   }, []);
 
   useEffect(() => {
