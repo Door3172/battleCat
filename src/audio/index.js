@@ -1,22 +1,26 @@
-// src/audio/index.js
 class AudioManager {
   constructor() {
-    this.ctx = null;               // AudioContext（第一次用戶互動才建立）
+    this.ctx = null;
     this.masterGain = null;
-    // Music channel
     this.musicGain = null;
-    this.musicSrcA = null;
-    this.musicSrcB = null;
-    this.musicUsingA = true;       // 交替用 A/B 來 crossfade
-    // SFX channel
     this.sfxGain = null;
 
-    this.buffers = new Map();      // key -> AudioBuffer
-    this.preloads = new Map();     // key -> Promise (避免重複載入)
-    this.cooldown = new Map();     // key -> timestamp (SFX 限流)
+    this.musicSrcA = null;
+    this.musicSrcB = null;
+    this.musicUsingA = true;
+    this._tempMusic = null;     // ← crossfade 的臨時來源
+
+    this.buffers = new Map();
+    this.preloads = new Map();
+    this.cooldown = new Map();
 
     this.musicVolume = 0.8;
     this.sfxVolume = 0.9;
+
+    // ★ 競態控制：每次播放遞增 token，只有最後一次請求會生效
+    this._reqCounter = 0;
+    this._activeReq = 0;
+    this._currentKey = null;
   }
 
   // ---- 基礎 ----
@@ -71,109 +75,116 @@ class AudioManager {
     return buf;
   }
   _stopAllMusic() {
-  try { this.musicSrcA && this.musicSrcA.stop(); } catch {}
-  try { this.musicSrcB && this.musicSrcB.stop(); } catch {}
-  try { this._tempMusic && this._tempMusic.stop(); } catch {}
-  this.musicSrcA = null;
-  this.musicSrcB = null;
-  this._tempMusic = null;
-  if (this.musicGain) this.musicGain.gain.value = this.musicVolume;
+    try { this.musicSrcA && this.musicSrcA.stop(); } catch {}
+    try { this.musicSrcB && this.musicSrcB.stop(); } catch {}
+    try { this._tempMusic && this._tempMusic.stop(); } catch {}
+    this.musicSrcA = null;
+    this.musicSrcB = null;
+    this._tempMusic = null;
+    if (this.musicGain) this.musicGain.gain.value = this.musicVolume;
   }
-  // ---- Music ----
+
+  // ---------- 工具：產生新的請求 token ----------
+  _nextToken() {
+    this._activeReq = ++this._reqCounter;
+    return this._activeReq;
+  }
+  _isLatest(token) { return token === this._activeReq; }
+
+  // ---------- 硬切播放（最後呼叫者贏） ----------
   async playMusic(key, { loop = true } = {}) {
-  await this.resume();
-  const buf = await this._getBuffer(key);
+    await this.resume();
+    const token = this._nextToken();       // 這次請求的身份
+    const buf = await this._getBuffer(key);
+    if (!this._isLatest(token)) return;    // 若途中被更新，直接放棄
 
-  this._stopAllMusic(); // <-- 關鍵：把所有來源（包含臨時來源）都停掉
+    this._stopAllMusic();                  // 關掉任何舊來源（含臨時）
 
-  const src = this.ctx.createBufferSource();
-  src.buffer = buf;
-  src.loop = loop;
-  src.connect(this.musicGain);
-  src.start();
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = loop;
+    src.connect(this.musicGain);
+    src.start();
 
-  // 用 A 作為目前曲源（其實誰都行，反正只留一個）
-  this.musicSrcA = src;
-  this.musicUsingA = true;
+    this.musicSrcA = src;
+    this.musicUsingA = true;
+    this._currentKey = key;
   }
 
+  // ---------- 淡入淡出播放（最後呼叫者贏） ----------
   async crossfadeMusic(key, { loop = true, fade = 600 } = {}) {
-  await this.resume();
-  const buf = await this._getBuffer(key);
+    await this.resume();
+    const token = this._nextToken();
+    const buf = await this._getBuffer(key);
+    if (!this._isLatest(token)) return;
 
-  const now = this.ctx.currentTime;
-
-  // 新曲先接一個臨時 gain，做淡入
-  const toGain = this.ctx.createGain();
-  toGain.gain.setValueAtTime(0, now);
-  toGain.connect(this.masterGain);
-
-  const src = this.ctx.createBufferSource();
-  src.buffer = buf;
-  src.loop = loop;
-  src.connect(toGain);
-  src.start();
-
-  // 🔴 記住臨時來源，若中途再切歌，可以被 _stopAllMusic() 關掉
-  this._tempMusic = src;
-
-  // 舊曲淡出
-  const fromGain = this.musicGain;
-  const toVol = this.musicVolume;
-  toGain.gain.linearRampToValueAtTime(toVol, now + fade / 1000);
-
-  if (fromGain) {
-    const startVol = fromGain.gain.value;
-    fromGain.gain.cancelScheduledValues(now);
-    fromGain.gain.setValueAtTime(startVol, now);
-    fromGain.gain.linearRampToValueAtTime(0, now + fade / 1000);
-    // 舊的 source（A 或 B）讓它在淡出完成後停掉
-    setTimeout(() => {
-      try { this.musicSrcA && this.musicSrcA.stop(); } catch {}
-      try { this.musicSrcB && this.musicSrcB.stop(); } catch {}
-      this.musicSrcA = null;
-      this.musicSrcB = null;
-    }, fade + 50);
-  }
-
-  // 淡入完成 → 轉接回正式的 musicGain，並清掉臨時節點
-  setTimeout(() => {
-    try {
-      src.disconnect();
-      toGain.disconnect();
-      src.connect(this.musicGain);
-      this.musicGain.gain.value = toVol;
-      this.musicSrcA = src;          // 收編為正式來源
-      this._tempMusic = null;        // 🔵 清掉臨時引用
-    } catch {}
-  }, fade + 60);
-  }
-
-  async fadeOutMusic(ms = 400) {
-    if (!this.ctx) return;
     const now = this.ctx.currentTime;
-    if (!this.musicGain) return;
+
+    // 新曲先接臨時 gain 做淡入
+    const toGain = this.ctx.createGain();
+    toGain.gain.setValueAtTime(0, now);
+    toGain.connect(this.masterGain);
+
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = loop;
+    src.connect(toGain);
+    src.start();
+
+    // 記住臨時來源：若中途又被要求切歌，可被 _stopAllMusic 關掉
+    this._tempMusic = src;
+
+    // 舊曲淡出
+    const toVol = this.musicVolume;
+    toGain.gain.linearRampToValueAtTime(toVol, now + fade / 1000);
+
+    const fromGain = this.musicGain;
+    if (fromGain) {
+      const startVol = fromGain.gain.value;
+      fromGain.gain.cancelScheduledValues(now);
+      fromGain.gain.setValueAtTime(startVol, now);
+      fromGain.gain.linearRampToValueAtTime(0, now + fade / 1000);
+
+      // 淡出完停掉舊來源
+      setTimeout(() => {
+        if (!this._isLatest(token)) return;
+        try { this.musicSrcA && this.musicSrcA.stop(); } catch {}
+        try { this.musicSrcB && this.musicSrcB.stop(); } catch {}
+        this.musicSrcA = null;
+        this.musicSrcB = null;
+      }, fade + 40);
+    }
+
+    // 淡入完把臨時來源接回正式通道
+    setTimeout(() => {
+      if (!this._isLatest(token)) { try { src.stop(); } catch {} return; }
+      try {
+        src.disconnect(); toGain.disconnect();
+        src.connect(this.musicGain);
+        this.musicGain.gain.value = toVol;
+        this.musicSrcA = src;
+        this._tempMusic = null;
+        this._currentKey = key;
+      } catch {}
+    }, fade + 60);
+  }
+
+  async fadeOutMusic(ms = 300) {
+    if (!this.ctx || !this.musicGain) return;
+    const now = this.ctx.currentTime;
     const start = this.musicGain.gain.value;
     this.musicGain.gain.cancelScheduledValues(now);
     this.musicGain.gain.setValueAtTime(start, now);
     this.musicGain.gain.linearRampToValueAtTime(0, now + ms / 1000);
-    setTimeout(() => this._stopCurrentMusic(), ms + 40);
+    setTimeout(() => this._stopAllMusic(), ms + 30);
   }
 
-  _stopCurrentMusic() {
-    try { this.musicSrcA && this.musicSrcA.stop(); } catch {}
-    try { this.musicSrcB && this.musicSrcB.stop(); } catch {}
-    this.musicSrcA = null;
-    this.musicSrcB = null;
-    if (this.musicGain) this.musicGain.gain.value = this.musicVolume;
-  }
-
-  // ---- SFX（可重疊/冷卻） ----
+  // ---------- SFX 保持不變 ----------
   async playSfx(key, { cooldown = 80, detune = 0 } = {}) {
     await this.resume();
     const nowMs = performance.now();
     const last = this.cooldown.get(key) || 0;
-    if (nowMs - last < cooldown) return; // 限流，避免狂點爆音
+    if (nowMs - last < cooldown) return;
     this.cooldown.set(key, nowMs);
 
     const buf = await this._getBuffer(key);
