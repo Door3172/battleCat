@@ -132,7 +132,7 @@ export default function Battle({
     const w = ensureWorld();
     if (w.state !== 'running') return;
     if (w.fish < w.incomeCost) return;
-    w.fish -= w.incomeCost; w.income += 4; w.incomeLv += 1; w.incomeCost = Math.round(w.incomeCost * 1.7);
+    w.fish -= w.incomeCost; w.income += 4.8; w.incomeLv += 1; w.incomeCost = Math.round(w.incomeCost * 1.7);
     setUi(s => ({ ...s, fish: Math.floor(w.fish), incomeLv: w.incomeLv }));
   };
 

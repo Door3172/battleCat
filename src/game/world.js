@@ -20,7 +20,7 @@ export function createWorld(currentStage, unlocks) {
     w: 900, h: 400,
     units: [],
     leftHp: 1000, rightHp: 1000,
-    fish: 150, income: 9, incomeLv: 1, incomeCost: 100,
+    fish: 150, income: 10.0, incomeLv: 1, incomeCost: 100,
     last: 0, time: 0, state: 'ready',
     hudTick: 0, cannonCd: 0,
     enemyClock: cfg.firstDelay,
