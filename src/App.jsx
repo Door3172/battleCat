@@ -104,7 +104,7 @@ export default function App() {
         lineup={lineup}
         unlocks={unlocks}
         addEnemyName={addEnemyName}
-        audio={audio}  {/* 👈 傳下去給 Battle 用 */}
+        audio={audio}   // ✅ 傳 audio
       />
     ),
   };
