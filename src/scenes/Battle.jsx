@@ -140,7 +140,7 @@ export default function Battle({ coins, setCoins, currentStage, setScene, highes
     w.enemyClock -= dt;
     if (w.enemyClock <= 0) {
       spawnEnemy(w, getCanvasWidth, getCanvasHeight, addEnemyName);
-      const jitter = 0.95 + Math.random() * 0.2; w.enemyClock = clamp(w.cfg.spawnRate * jitter, 2.4, 9.2);
+      w.enemyClock = w.cfg.spawnRate; // 固定頻率（每一關一致）
     }
     const bountyGain = stepUnits(w, getCanvasWidth, getCanvasHeight, dt);
     if (bountyGain > 0) w.fish += bountyGain;
