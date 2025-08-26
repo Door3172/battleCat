@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Lobby from './scenes/Lobby.jsx';
 import LevelSelect from './scenes/LevelSelect.jsx';
 import Shop from './scenes/Shop.jsx';
 import Codex from './scenes/Codex.jsx';
 import Lineup from './scenes/Lineup.jsx';
 import Battle from './scenes/Battle.jsx';
-
-// 👇 新增
 import { useAudio } from './audio/useAudio.js';
 
 export default function App() {
@@ -19,29 +17,31 @@ export default function App() {
   const [currentStage, setCurrentStage] = useState(1);
   const [highestUnlocked, setHighestUnlocked] = useState(1);
 
-  // 👇 新增：全域 audio
   const audio = useAudio();
 
-  // 第一次點進 app 時，確保有 resume()
+  // ✅ 一次性自動解鎖音訊（任意互動就解鎖）
+  useEffect(() => {
+    const unlock = async () => {
+      await audio.resume();
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+      window.removeEventListener('touchstart', unlock);
+    };
+    window.addEventListener('pointerdown', unlock);
+    window.addEventListener('keydown', unlock);
+    window.addEventListener('touchstart', unlock);
+    return () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+      window.removeEventListener('touchstart', unlock);
+    };
+  }, [audio]);
+
+  // ⚠️ 不要在這裡主動播 bgm_lobby，讓各場景自己播
   const handleEnter = async () => {
     await audio.resume();
-    audio.playMusic('bgm_lobby'); // 預設進來先播大廳 BGM
     setScene('lobby');
   };
-
-  if (!scene) {
-    // 一開始顯示一個「開始」按鈕來解鎖音訊
-    return (
-      <div className="w-full h-full flex items-center justify-center">
-        <button
-          className="px-4 py-2 bg-indigo-600 text-white rounded-xl"
-          onClick={handleEnter}
-        >
-          ▶️ 開始遊戲
-        </button>
-      </div>
-    );
-  }
 
   const addCatName = (name) => setCodexCats(prev => prev.includes(name) ? prev : [...prev, name]);
   const addEnemyName = (name) => setCodexEnemies(prev => prev.includes(name) ? prev : [...prev, name]);
@@ -104,7 +104,6 @@ export default function App() {
         lineup={lineup}
         unlocks={unlocks}
         addEnemyName={addEnemyName}
-        audio={audio}   // ✅ 傳 audio
       />
     ),
   };

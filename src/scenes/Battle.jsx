@@ -12,8 +12,6 @@ import { createWorld } from '../game/world.js';
 import { spawnEnemy, stepUnits, groundY, makeUnit } from '../game/ai.js';
 import { drawAll } from '../game/draw.js';
 import { clamp, rand } from '../utils/math.js';
-
-// ✅ 新增：音效 hook
 import { useAudio } from '../audio/useAudio.js';
 
 export default function Battle({
@@ -27,7 +25,6 @@ export default function Battle({
   const worldRef = useRef(null);
   const [ui, setUi] = useState({ fish: 0, incomeLv: 1, cannonCd: 0, leftHp: 1000, rightHp: 1000, state: 'ready', time: 0 });
 
-  // ✅ 新增：audio 實例
   const audio = useAudio();
 
   const getCanvasWidth = () => { const dpr = Math.min(window.devicePixelRatio || 1, 2); const c = canvasRef.current; return c ? c.width / dpr : 900; };
@@ -57,10 +54,10 @@ export default function Battle({
     }
   }, []);
 
-  // ✅ 新增：進入戰鬥切戰鬥 BGM，離開淡出
+  // ✅ 進入戰鬥 → 切戰鬥 BGM；離開 → 切回大廳 BGM（crossfade，避免互蓋）
   useEffect(() => {
     audio.crossfadeMusic('bgm_battle', { fade: 600 });
-    return () => { audio.fadeOutMusic(300); };
+    return () => { audio.crossfadeMusic('bgm_lobby', { fade: 600 }); };
   }, []);
 
   useEffect(() => {
@@ -128,10 +125,9 @@ export default function Battle({
     w.fish -= tpl.cost; w.summonCd[key] = tpl.cd;
     const y = groundY(getCanvasHeight) - 8 + rand(-3, 3);
     w.units.push(makeUnit(1, 80 + rand(-6, 6), y, tpl));
-
-    // ✅ 新增：召喚叮一聲
-    audio.playSfx('sfx_summon');
+    audio.playSfx('sfx_summon'); // 召喚叮一聲
   };
+
   const upgradeIncome = () => {
     const w = ensureWorld();
     if (w.state !== 'running') return;
@@ -139,13 +135,14 @@ export default function Battle({
     w.fish -= w.incomeCost; w.income += 4; w.incomeLv += 1; w.incomeCost = Math.round(w.incomeCost * 1.7);
     setUi(s => ({ ...s, fish: Math.floor(w.fish), incomeLv: w.incomeLv }));
   };
+
   const fireCannon = () => {
     const w = ensureWorld();
     if (w.state !== 'running' || w.cannonCd > 0) return;
     const dmg = 58 * w.cfg.difficulty; const knock = 70;
     w.units.forEach(u => { if (u.team === -1) { u.hp -= dmg; u.x += knock; } });
     w.cannonCd = 14;
-    draw(); // visual refresh immediately
+    draw();
   };
 
   const loop = (now) => {
@@ -158,12 +155,12 @@ export default function Battle({
     w.enemyClock -= dt;
     if (w.enemyClock <= 0) {
       spawnEnemy(w, getCanvasWidth, getCanvasHeight, addEnemyName);
-      w.enemyClock = w.cfg.spawnRate; // 固定頻率（每一關一致）
+      w.enemyClock = w.cfg.spawnRate; // 固定頻率
     }
     const bountyGain = stepUnits(w, getCanvasWidth, getCanvasHeight, dt);
     if (bountyGain > 0) w.fish += bountyGain;
     if (w.rightHp <= 0) { w.state = 'win'; awardWin(); }
-    else if (w.leftHp <= 0) { w.state = 'lose'; handleLose(); }  // ✅ 新增：播放失敗音效
+    else if (w.leftHp <= 0) { w.state = 'lose'; handleLose(); }
     w.hudTick += dt;
     if (w.hudTick > 0.12 || w.state !== 'running') {
       w.hudTick = 0;
@@ -174,20 +171,18 @@ export default function Battle({
   };
 
   const awardWin = async () => {
-    // ✅ 新增：勝利音效（先淡出 BGM 再播）
     await audio.fadeOutMusic(300);
     audio.playSfx('sfx_win');
-
     setCoins(c => c + 120);
     const next = Math.min(30, Math.max(highestUnlocked, currentStage + 1));
     setHighestUnlocked(next);
     setTimeout(() => setScene('lobby'), 300);
   };
 
-  // ✅ 新增：失敗音效
   const handleLose = async () => {
     await audio.fadeOutMusic(300);
     audio.playSfx('sfx_lose');
+    setTimeout(() => setScene('lobby'), 300);
   };
 
   const draw = () => {
@@ -203,7 +198,8 @@ export default function Battle({
       <>
         <SlotTray>
           {lineup.map((k, i) => {
-            const cd = w.summonCd[k] || 0; const disabled = cd > 0 || ui.state !== 'running'; return (
+            const cd = w.summonCd[k] || 0; const disabled = cd > 0 || ui.state !== 'running';
+            return (
               <div key={k} className="flex flex-col rounded-2xl border bg-white px-2 py-2" style={{ borderColor: SKIN.color.line, minHeight: 92 }}>
                 <div className="flex items-center justify-between gap-2">
                   <div className="font-semibold text-[13px] leading-tight text-slate-800 break-words">
