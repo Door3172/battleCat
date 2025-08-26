@@ -170,11 +170,17 @@ class AudioManager {
 // ---- 單例 + 快捷介面 ----
 export const audio = new AudioManager();
 
-// 預註冊音檔（對應 public/audio/ 檔名）
-export function registerDefaultAudios() {
-  audio.register('bgm_lobby',  '/audio/bgm_lobby.mp3');
-  audio.register('bgm_battle', '/audio/bgm_battle.mp3');
-  audio.register('sfx_summon', '/audio/sfx_summon.mp3');
-  audio.register('sfx_win',    '/audio/sfx_win.mp3');
-  audio.register('sfx_lose',   '/audio/sfx_lose.mp3');
+// 把音檔路徑加上 BASE_URL，支援 GitHub Pages 子路徑
+function asset(p) {
+  // 會組成 /battleCat/audio/xxx.mp3（dev 環境則是 /audio/xxx.mp3）
+  return `${import.meta.env.BASE_URL}audio/${p}`;
 }
+
+export function registerDefaultAudios() {
+  audio.register('bgm_lobby',  asset('bgm_lobby.mp3'));
+  audio.register('bgm_battle', asset('bgm_battle.mp3'));
+  audio.register('sfx_summon', asset('sfx_summon.mp3'));
+  audio.register('sfx_win',    asset('sfx_win.mp3'));
+  audio.register('sfx_lose',   asset('sfx_lose.mp3'));
+}
+
