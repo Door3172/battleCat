@@ -70,65 +70,83 @@ class AudioManager {
     this.buffers.set(key, buf);
     return buf;
   }
-
+  _stopAllMusic() {
+  try { this.musicSrcA && this.musicSrcA.stop(); } catch {}
+  try { this.musicSrcB && this.musicSrcB.stop(); } catch {}
+  try { this._tempMusic && this._tempMusic.stop(); } catch {}
+  this.musicSrcA = null;
+  this.musicSrcB = null;
+  this._tempMusic = null;
+  if (this.musicGain) this.musicGain.gain.value = this.musicVolume;
+  }
   // ---- Music ----
   async playMusic(key, { loop = true } = {}) {
-    await this.resume();
-    const buf = await this._getBuffer(key);
-    // 直接切歌（不淡入淡出）
-    this._stopCurrentMusic();
-    const src = this.ctx.createBufferSource();
-    src.buffer = buf;
-    src.loop = loop;
-    src.connect(this.musicGain);
-    src.start();
-    this.musicSrcA = src;
-    this.musicUsingA = true;
+  await this.resume();
+  const buf = await this._getBuffer(key);
+
+  this._stopAllMusic(); // <-- 關鍵：把所有來源（包含臨時來源）都停掉
+
+  const src = this.ctx.createBufferSource();
+  src.buffer = buf;
+  src.loop = loop;
+  src.connect(this.musicGain);
+  src.start();
+
+  // 用 A 作為目前曲源（其實誰都行，反正只留一個）
+  this.musicSrcA = src;
+  this.musicUsingA = true;
   }
 
   async crossfadeMusic(key, { loop = true, fade = 600 } = {}) {
-    await this.resume();
-    const buf = await this._getBuffer(key);
+  await this.resume();
+  const buf = await this._getBuffer(key);
 
-    const now = this.ctx.currentTime;
-    const toGain = this.ctx.createGain();
-    toGain.gain.setValueAtTime(0, now);
-    toGain.connect(this.masterGain); // 直接到 master，避免與舊曲共享一個 gain
+  const now = this.ctx.currentTime;
 
-    const src = this.ctx.createBufferSource();
-    src.buffer = buf;
-    src.loop = loop;
-    src.connect(toGain);
-    src.start();
+  // 新曲先接一個臨時 gain，做淡入
+  const toGain = this.ctx.createGain();
+  toGain.gain.setValueAtTime(0, now);
+  toGain.connect(this.masterGain);
 
-    // 舊曲音量拉下，新曲拉上
-    const from = this.musicUsingA ? this.musicSrcA : this.musicSrcB;
-    const fromGainNode = this.musicGain; // 舊版音樂都走 musicGain
-    const toVol = this.musicVolume;
-    toGain.gain.linearRampToValueAtTime(toVol, now + fade / 1000);
+  const src = this.ctx.createBufferSource();
+  src.buffer = buf;
+  src.loop = loop;
+  src.connect(toGain);
+  src.start();
 
-    if (from && fromGainNode) {
-      const startVol = fromGainNode.gain.value;
-      fromGainNode.gain.cancelScheduledValues(now);
-      fromGainNode.gain.setValueAtTime(startVol, now);
-      fromGainNode.gain.linearRampToValueAtTime(0, now + fade / 1000);
-      setTimeout(() => {
-        try { from.stop(); } catch {}
-      }, fade + 50);
-    }
+  // 🔴 記住臨時來源，若中途再切歌，可以被 _stopAllMusic() 關掉
+  this._tempMusic = src;
 
-    // 把新曲收編回主通道
+  // 舊曲淡出
+  const fromGain = this.musicGain;
+  const toVol = this.musicVolume;
+  toGain.gain.linearRampToValueAtTime(toVol, now + fade / 1000);
+
+  if (fromGain) {
+    const startVol = fromGain.gain.value;
+    fromGain.gain.cancelScheduledValues(now);
+    fromGain.gain.setValueAtTime(startVol, now);
+    fromGain.gain.linearRampToValueAtTime(0, now + fade / 1000);
+    // 舊的 source（A 或 B）讓它在淡出完成後停掉
     setTimeout(() => {
-      // 轉接到 musicGain，並釋放 toGain
-      try {
-        src.disconnect();
-        toGain.disconnect();
-        src.connect(this.musicGain);
-        this.musicGain.gain.value = toVol;
-        if (this.musicUsingA) this.musicSrcB = src; else this.musicSrcA = src;
-        this.musicUsingA = !this.musicUsingA;
-      } catch {}
-    }, fade + 60);
+      try { this.musicSrcA && this.musicSrcA.stop(); } catch {}
+      try { this.musicSrcB && this.musicSrcB.stop(); } catch {}
+      this.musicSrcA = null;
+      this.musicSrcB = null;
+    }, fade + 50);
+  }
+
+  // 淡入完成 → 轉接回正式的 musicGain，並清掉臨時節點
+  setTimeout(() => {
+    try {
+      src.disconnect();
+      toGain.disconnect();
+      src.connect(this.musicGain);
+      this.musicGain.gain.value = toVol;
+      this.musicSrcA = src;          // 收編為正式來源
+      this._tempMusic = null;        // 🔵 清掉臨時引用
+    } catch {}
+  }, fade + 60);
   }
 
   async fadeOutMusic(ms = 400) {
