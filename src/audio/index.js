@@ -206,8 +206,8 @@ function asset(p) {
 }
 
 export function registerDefaultAudios() {
-  audio.register('bgm_lobby',  asset('bgm_lobby.mp3'));
-  audio.register('bgm_battle', asset('bgm_battle.mp3'));
+  audio.register('bgm_lobby',  asset('bgm_lobby_v2.mp3'));
+  audio.register('bgm_battle', asset('bgm_battle_v2.mp3'));
   audio.register('sfx_summon', asset('sfx_summon.mp3'));
   audio.register('sfx_win',    asset('sfx_win.mp3'));
   audio.register('sfx_lose',   asset('sfx_lose.mp3'));
