@@ -6,6 +6,9 @@ import Codex from './scenes/Codex.jsx';
 import Lineup from './scenes/Lineup.jsx';
 import Battle from './scenes/Battle.jsx';
 
+// 👇 新增
+import { useAudio } from './audio/useAudio.js';
+
 export default function App() {
   const [scene, setScene] = useState('lobby');
   const [coins, setCoins] = useState(300);
@@ -15,6 +18,30 @@ export default function App() {
   const [lineup, setLineup] = useState(['white','tank','archer']);
   const [currentStage, setCurrentStage] = useState(1);
   const [highestUnlocked, setHighestUnlocked] = useState(1);
+
+  // 👇 新增：全域 audio
+  const audio = useAudio();
+
+  // 第一次點進 app 時，確保有 resume()
+  const handleEnter = async () => {
+    await audio.resume();
+    audio.playMusic('bgm_lobby'); // 預設進來先播大廳 BGM
+    setScene('lobby');
+  };
+
+  if (!scene) {
+    // 一開始顯示一個「開始」按鈕來解鎖音訊
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <button
+          className="px-4 py-2 bg-indigo-600 text-white rounded-xl"
+          onClick={handleEnter}
+        >
+          ▶️ 開始遊戲
+        </button>
+      </div>
+    );
+  }
 
   const addCatName = (name) => setCodexCats(prev => prev.includes(name) ? prev : [...prev, name]);
   const addEnemyName = (name) => setCodexEnemies(prev => prev.includes(name) ? prev : [...prev, name]);
@@ -61,12 +88,7 @@ export default function App() {
       <Lineup
         unlocks={unlocks}
         lineup={lineup}
-        setLineup={(arr)=>{
-          arr.forEach(k=>{
-            // names will be added inside Lineup via buildCatsTpl
-          });
-          setLineup(arr);
-        }}
+        setLineup={(arr)=>{ setLineup(arr); }}
         addCatName={addCatName}
         onBack={()=>setScene('lobby')}
       />
@@ -82,6 +104,7 @@ export default function App() {
         lineup={lineup}
         unlocks={unlocks}
         addEnemyName={addEnemyName}
+        audio={audio}  {/* 👈 傳下去給 Battle 用 */}
       />
     ),
   };

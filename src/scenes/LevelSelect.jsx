@@ -1,10 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';   // 👈 加 useEffect
 import HeroBanner from '../ui/HeroBanner.jsx';
 import Card from '../ui/Card.jsx';
 import Button from '../ui/Button.jsx';
 import { MAX_STAGE } from '../data/stages.js';
+import { useAudio } from '../audio/useAudio.js'; // 👈 加
 
 export default function LevelSelect({ highestUnlocked, onBack, onChoose }){
+  const audio = useAudio();
+
+  useEffect(() => {
+    audio.crossfadeMusic('bgm_lobby', { fade: 600 });
+  }, []);
+
   return (
     <div className="space-y-3">
       <HeroBanner title="貓咪大戰爭" subtitle="選擇關卡" right={<Button onClick={onBack}>⬅️ 返回</Button>} />

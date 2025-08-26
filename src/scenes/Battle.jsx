@@ -13,13 +13,22 @@ import { spawnEnemy, stepUnits, groundY, makeUnit } from '../game/ai.js';
 import { drawAll } from '../game/draw.js';
 import { clamp, rand } from '../utils/math.js';
 
-export default function Battle({ coins, setCoins, currentStage, setScene, highestUnlocked, setHighestUnlocked, lineup, unlocks, addEnemyName }) {
+// ✅ 新增：音效 hook
+import { useAudio } from '../audio/useAudio.js';
+
+export default function Battle({
+  coins, setCoins, currentStage, setScene, highestUnlocked, setHighestUnlocked,
+  lineup, unlocks, addEnemyName
+}) {
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
   const rafRef = useRef(0);
   const [timeScale, setTimeScale] = useState(1);
   const worldRef = useRef(null);
   const [ui, setUi] = useState({ fish: 0, incomeLv: 1, cannonCd: 0, leftHp: 1000, rightHp: 1000, state: 'ready', time: 0 });
+
+  // ✅ 新增：audio 實例
+  const audio = useAudio();
 
   const getCanvasWidth = () => { const dpr = Math.min(window.devicePixelRatio || 1, 2); const c = canvasRef.current; return c ? c.width / dpr : 900; };
   const getCanvasHeight = () => { const dpr = Math.min(window.devicePixelRatio || 1, 2); const c = canvasRef.current; return c ? c.height / dpr : 400; };
@@ -46,6 +55,12 @@ export default function Battle({ coins, setCoins, currentStage, setScene, highes
       window.removeEventListener('orientationchange', onResize);
       document.removeEventListener('fullscreenchange', onResize);
     }
+  }, []);
+
+  // ✅ 新增：進入戰鬥切戰鬥 BGM，離開淡出
+  useEffect(() => {
+    audio.crossfadeMusic('bgm_battle', { fade: 600 });
+    return () => { audio.fadeOutMusic(300); };
   }, []);
 
   useEffect(() => {
@@ -113,6 +128,9 @@ export default function Battle({ coins, setCoins, currentStage, setScene, highes
     w.fish -= tpl.cost; w.summonCd[key] = tpl.cd;
     const y = groundY(getCanvasHeight) - 8 + rand(-3, 3);
     w.units.push(makeUnit(1, 80 + rand(-6, 6), y, tpl));
+
+    // ✅ 新增：召喚叮一聲
+    audio.playSfx('sfx_summon');
   };
   const upgradeIncome = () => {
     const w = ensureWorld();
@@ -145,7 +163,7 @@ export default function Battle({ coins, setCoins, currentStage, setScene, highes
     const bountyGain = stepUnits(w, getCanvasWidth, getCanvasHeight, dt);
     if (bountyGain > 0) w.fish += bountyGain;
     if (w.rightHp <= 0) { w.state = 'win'; awardWin(); }
-    else if (w.leftHp <= 0) { w.state = 'lose'; }
+    else if (w.leftHp <= 0) { w.state = 'lose'; handleLose(); }  // ✅ 新增：播放失敗音效
     w.hudTick += dt;
     if (w.hudTick > 0.12 || w.state !== 'running') {
       w.hudTick = 0;
@@ -155,11 +173,21 @@ export default function Battle({ coins, setCoins, currentStage, setScene, highes
     if (w.state === 'running') rafRef.current = requestAnimationFrame(loop);
   };
 
-  const awardWin = () => {
+  const awardWin = async () => {
+    // ✅ 新增：勝利音效（先淡出 BGM 再播）
+    await audio.fadeOutMusic(300);
+    audio.playSfx('sfx_win');
+
     setCoins(c => c + 120);
     const next = Math.min(30, Math.max(highestUnlocked, currentStage + 1));
     setHighestUnlocked(next);
     setTimeout(() => setScene('lobby'), 300);
+  };
+
+  // ✅ 新增：失敗音效
+  const handleLose = async () => {
+    await audio.fadeOutMusic(300);
+    audio.playSfx('sfx_lose');
   };
 
   const draw = () => {
@@ -215,7 +243,22 @@ export default function Battle({ coins, setCoins, currentStage, setScene, highes
           {ui.state === 'lose' && <div className="text-lg font-semibold">😿 戰敗… 試著升級研究力或調整編成</div>}
         </Dialog>
       </div>
-      <Toolbar left={<BattleControls />} right={<HudInfo fish={ui.fish} incomeLv={ui.incomeLv} cannonCd={ui.cannonCd} leftHp={ui.leftHp} rightHp={ui.rightHp} incomeCost={ensureWorld().incomeCost} onUpgrade={upgradeIncome} onSpeed={toggleSpeed} speedLabel={`${timeScale}x`} />} />
+      <Toolbar
+        left={<BattleControls />}
+        right={
+          <HudInfo
+            fish={ui.fish}
+            incomeLv={ui.incomeLv}
+            cannonCd={ui.cannonCd}
+            leftHp={ui.leftHp}
+            rightHp={ui.rightHp}
+            incomeCost={ensureWorld().incomeCost}
+            onUpgrade={upgradeIncome}
+            onSpeed={toggleSpeed}
+            speedLabel={`${timeScale}x`}
+          />
+        }
+      />
     </>
   );
 }
