@@ -10,7 +10,7 @@ export default function LevelSelect({ highestUnlocked, onBack, onChoose }){
 
   useEffect(() => {
     audio.playMusic('bgm_lobby');
-  }, []);
+  }, [audio]);
 
   return (
     <div className="space-y-3">

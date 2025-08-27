@@ -1,7 +1,5 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { SKIN } from '../data/skin.js';
-
-let __btnLock = false;
 
 export default function Button({ onClick, disabled, children, size='md', tone='default', block=false, className='', title }){
   const sizes = { sm:{f:13,px:12,py:8}, md:{f:14,px:14,py:10}, lg:{f:16,px:16,py:12} };
@@ -13,13 +11,14 @@ export default function Button({ onClick, disabled, children, size='md', tone='d
     accent:{bg:SKIN.color.accentA,fg:'#111827',br:SKIN.color.accentB, hov:SKIN.color.accentB}
   };
   const t = tones[tone] || tones.default;
+  const btnLock = useRef(false);
 
   const handler = (e)=>{
     if(disabled) return;
-    if(__btnLock) return;
-    __btnLock = true;
+    if(btnLock.current) return;
+    btnLock.current = true;
     try{ onClick && onClick(e); }
-    finally{ setTimeout(()=>(__btnLock=false), 120); }
+    finally{ setTimeout(()=>(btnLock.current=false), 120); }
   };
 
   return (

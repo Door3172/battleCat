@@ -11,7 +11,7 @@ import { fmt } from '../utils/number.js';
 import { createWorld } from '../game/world.js';
 import { spawnEnemy, stepUnits, groundY, makeUnit } from '../game/ai.js';
 import { drawAll } from '../game/draw.js';
-import { clamp, rand } from '../utils/math.js';
+import { rand } from '../utils/math.js';
 import { useAudio } from '../audio/useAudio.js';
 
 export default function Battle({
@@ -58,7 +58,7 @@ export default function Battle({
   useEffect(() => {
     audio.playMusic('bgm_battle');
     return () => { audio.playMusic('bgm_lobby'); };
-  }, []);
+  }, [audio]);
 
   useEffect(() => {
     const onKey = (e) => {

@@ -55,9 +55,9 @@ class AudioManager {
   }
 
   // ---- 資源 ----
-  async register(key, url) {
-    // 可先呼叫一次 register，再需要時 lazy decode
-    this.preloads.set(key, this._loadBuffer(url));
+  register(key, url) {
+    // 儲存 URL，待需要時再載入
+    this.preloads.set(key, url);
   }
   async _loadBuffer(url) {
     const res = await fetch(url);
@@ -68,9 +68,17 @@ class AudioManager {
   async _getBuffer(key) {
     if (!this.ctx) throw new Error('AudioContext not ready. Call audio.resume() after user gesture.');
     if (this.buffers.has(key)) return this.buffers.get(key);
-    const p = this.preloads.get(key);
-    if (!p) throw new Error(`Audio key not registered: ${key}`);
-    const buf = await p;
+
+    let entry = this.preloads.get(key);
+    if (!entry) throw new Error(`Audio key not registered: ${key}`);
+
+    // 若儲存的是 URL，建立載入 Promise 並快取
+    if (typeof entry === 'string') {
+      entry = this._loadBuffer(entry);
+      this.preloads.set(key, entry);
+    }
+
+    const buf = await entry;
     this.buffers.set(key, buf);
     return buf;
   }

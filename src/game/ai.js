@@ -1,6 +1,5 @@
 import { ENEMIES, BOSSES } from '../data/enemies.js';
 import { BODY_W } from './world.js';
-import { clamp } from '../utils/math.js';
 
 export function groundY(getCanvasHeight){
   return getCanvasHeight()*0.72;
