@@ -11,6 +11,8 @@ export function buildCatsTpl(unlocks) {
     ...(unlocks.sumo ? { sumo: SHOP_UNLOCKS.sumo.tpl } : {}),
     ...(unlocks.viking ? { viking: SHOP_UNLOCKS.viking.tpl } : {}),
     ...(unlocks.cow ? { cow: SHOP_UNLOCKS.cow.tpl } : {}),
+    ...(unlocks.jaycat ? { jaycat: SHOP_UNLOCKS.jaycat.tpl } : {}),
+    ...(unlocks.jay ? { jay: SHOP_UNLOCKS.jay.tpl } : {}),
   };
 }
 
