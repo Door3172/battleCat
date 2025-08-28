@@ -42,11 +42,10 @@ export function drawUnit(ctx,u){
   ctx.restore();
 }
 
-export function drawAll(ctx, world, getCanvasWidth, getCanvasHeight, currentStage, timeScale, zoom = 1, viewX = 0){
+export function drawAll(ctx, world, getCanvasWidth, getCanvasHeight, currentStage, timeScale, viewX = 0){
   ctx.save();
   ctx.translate(-viewX, 0);
-  ctx.scale(zoom, zoom);
-  const W = getCanvasWidth()/zoom, H = getCanvasHeight()/zoom;
+  const W = getCanvasWidth(), H = getCanvasHeight();
   const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,SKIN.color.bgTop); g.addColorStop(1,SKIN.color.bgBottom);
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
   const ground= H*0.72;

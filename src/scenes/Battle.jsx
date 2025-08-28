@@ -22,7 +22,6 @@ export default function Battle({
   const wrapRef = useRef(null);
   const rafRef = useRef(0);
   const [timeScale, setTimeScale] = useState(1);
-  const [zoom, setZoom] = useState(1);
   const worldRef = useRef(null);
   const [ui, setUi] = useState({ fish: 0, incomeLv: 1, cannonCd: 0, leftHp: 1000, rightHp: 1000, state: 'ready', time: 0 });
 
@@ -30,8 +29,8 @@ export default function Battle({
 
   const getCanvasWidth = () => { const dpr = Math.min(window.devicePixelRatio || 1, 2); const c = canvasRef.current; return c ? c.width / dpr : 900; };
   const getCanvasHeight = () => { const dpr = Math.min(window.devicePixelRatio || 1, 2); const c = canvasRef.current; return c ? c.height / dpr : 400; };
-  const getWorldWidth = () => getCanvasWidth() / zoom;
-  const getWorldHeight = () => getCanvasHeight() / zoom;
+  const getWorldWidth = () => getCanvasWidth();
+  const getWorldHeight = () => getCanvasHeight();
   const forceResize = () => {
     const el = wrapRef.current, c = canvasRef.current; if (!el || !c) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -62,20 +61,6 @@ export default function Battle({
     audio.playMusic('bgm_battle');
     return () => { audio.playMusic('bgm_lobby'); };
   }, [audio]);
-
-  useEffect(() => {
-    const el = wrapRef.current || canvasRef.current;
-    if (!el) return;
-    const onWheel = (e) => {
-      e.preventDefault();
-      setZoom(z => {
-        const next = Math.min(2, Math.max(0.5, z - e.deltaY * 0.001));
-        return next;
-      });
-    };
-    el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
-  }, []);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -246,10 +231,9 @@ export default function Battle({
   const draw = () => {
     const c = canvasRef.current; if (!c) return;
     const ctx = c.getContext('2d'); const w = ensureWorld();
-    drawAll(ctx, w, getWorldWidth, getWorldHeight, currentStage, timeScale, zoom);
+    drawAll(ctx, w, getWorldWidth, getWorldHeight, currentStage, timeScale);
   };
 
-  useEffect(() => { draw(); }, [zoom]);
 
   const BattleControls = () => {
     const w = ensureWorld();
@@ -297,10 +281,6 @@ export default function Battle({
       <HeroBanner title="貓咪大戰爭" subtitle="1~5 召喚、Space 大砲、X 1x/2x、P 暫停、R 重開" />
       <div ref={wrapRef} className="relative w-full overflow-hidden">
         <canvas ref={canvasRef} className="rounded-2xl border shadow w-full block mx-auto" />
-        <div className="absolute top-2 right-2 flex flex-col">
-          <Button size="sm" onClick={() => { setZoom(z => Math.min(2, z + 0.1)); }}>＋</Button>
-          <Button size="sm" onClick={() => { setZoom(z => Math.max(0.5, z - 0.1)); }} className="mt-1">－</Button>
-        </div>
         <Dialog show={ui.state !== 'running'}>
           {ui.state === 'ready' && <div className="text-lg font-semibold">按下 1~5 任一鍵或點下方按鈕開始</div>}
           {ui.state === 'paused' && <div className="text-lg font-semibold">已暫停（按 P 繼續）</div>}

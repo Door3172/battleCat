@@ -70,8 +70,13 @@ export function stageConfig(stage){
 
   const enemyBaseHp   = stageSpawn?.enemyBaseHp ?? (1000 + stageIndex * 50);
   const towerDistance = stageSpawn?.towerDistance ?? (800 + stageIndex * 20);
-  const schedule      = Array.isArray(stageSpawn) ? stageSpawn :
+  const rawSchedule   = Array.isArray(stageSpawn) ? stageSpawn :
                         stageSpawn?.schedule;
+  const schedule      = rawSchedule?.map(spawn =>
+                        JSON.parse(JSON.stringify(
+                          spawn,
+                          (k, v) => k.startsWith('_') ? undefined : v
+                        )));
 
   // BOSS 與固定時間（只有 10/20/30… 才有）
   const isBoss = stageIndex % 10 === 0;
