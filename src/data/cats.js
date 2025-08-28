@@ -1,6 +1,6 @@
 export const BASE_CATS = {
-  white: { name: '白喵', cost: 50, hp: 75, speed: 52, attack: 7, range: 20, atkRate: 0.8, color: '#ffffff', cd: 1.9, aoe: false },
-  tank: { name: '坦喵', cost: 110, hp: 500, speed: 30, attack: 10, range: 24, atkRate: 1.6, color: '#d9f99d', cd: 2.4, aoe: true, aoeRadius: 24, maxTargets: 3 },
+  white: { name: '白喵', cost: 50, hp: 150, speed: 10, attack: 12, range: 20, atkRate: 1.23, color: '#ffffff', cd: 4.3, aoe: false },
+  tank: { name: '坦喵', cost: 100, hp: 600, speed: 8, attack: 3, range: 24, atkRate: 2.23, color: '#d9f99d', cd: 7.3, aoe: true, aoeRadius: 24, maxTargets: 5 },
   archer: { name: '射喵', cost: 130, hp: 105, speed: 48, attack: 7, range: 105, atkRate: 0.42, color: '#bae6fd', cd: 4.0, aoe: false },
   giant: { name: '巨人喵', cost: 750, hp: 1725, speed: 20, attack: 81, range: 38, atkRate: 1.7, color: '#ddd6fe', cd: 20.0, aoe: true, aoeRadius: 38, maxTargets: 3 },
   bird: { name: '鳥喵', cost: 200, hp: 150, speed: 75, attack: 28, range: 75, atkRate: 0.72, color: '#fef9c3', cd: 3.6, aoe: true, aoeRadius: 75, maxTargets: 2 },

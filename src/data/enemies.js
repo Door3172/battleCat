@@ -1,5 +1,5 @@
 export const ENEMIES = {
-  dog: { name: '小狗', hp: 85, speed: 52, attack: 9, range: 18, atkRate: 1.2, color: '#e3e5ebff', bounty: 16, aoe: false },
+  dog: { name: '小狗', hp: 90, speed: 5, attack: 8, range: 18, atkRate: 1.57, color: '#e3e5ebff', bounty: 15, aoe: false },
   red: { name: '紅色怪', hp: 180, speed: 50, attack: 16, range: 18, atkRate: 1.2, color: '#ef4444', bounty: 36, aoe: false },
   boar: { name: '野豬', hp: 240, speed: 44, attack: 8, range: 18, atkRate: 0.7, color: '#795e47ff', bounty: 36, aoe: false },
   black: { name: '黑影怪', hp: 100, speed: 84, attack: 30, range: 18, atkRate: 1.5, color: '#0f172a', bounty: 80, aoe: false },
