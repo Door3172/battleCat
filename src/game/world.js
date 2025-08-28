@@ -26,6 +26,7 @@ export function createWorld(currentStage, unlocks) {
     last: 0, time: 0, state: 'ready',
     hudTick: 0, cannonCd: 0,
     enemyClock: cfg.firstDelay,
+    nextEnemyIdx: 0,
     cfg, catsTpl: buildCatsTpl(unlocks),
     bossSpawned: false, summonCd: {},
   };

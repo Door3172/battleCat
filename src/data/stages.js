@@ -1,6 +1,8 @@
 // src/data/stages.js
 export const MAX_STAGE = 30;
 
+import { SPAWNS } from './spawns.js';
+
 const ALL_TYPES = ['dog','red','boar','black','alien','metal'];
 
 // 這裡決定每關解鎖到哪種敵人（同你的原本邏輯）
@@ -78,6 +80,11 @@ export function stageConfig(stage){
     firstDelay,
     maxEnemies,
     sequence,      // 👈 固定出怪種類序列（依此循環）
+<<<<<<< ours
+    schedule: SPAWNS[stageIndex], // 👈 自訂時間表
+=======
+    schedule: SPAWNS[stageIndex] ? SPAWNS[stageIndex].map(e => ({ ...e })) : undefined, // 👈 自訂時間表（複製避免汙染原資料）
+>>>>>>> theirs
     // 下列字段保留給現有程式用
     pool: enemyPoolByStage(stageIndex), // 仍提供 pool（舊碼可能會用）
     isBoss,

@@ -9,7 +9,7 @@ import Pill from '../ui/Pill.jsx';
 import { SKIN } from '../data/skin.js';
 import { fmt } from '../utils/number.js';
 import { createWorld } from '../game/world.js';
-import { spawnEnemy, stepUnits, groundY, makeUnit } from '../game/ai.js';
+import { spawnEnemy, stepUnits, groundY, makeUnit, spawnBossIfNeeded } from '../game/ai.js';
 import { drawAll } from '../game/draw.js';
 import { rand } from '../utils/math.js';
 import { useAudio } from '../audio/useAudio.js';
@@ -152,10 +152,36 @@ export default function Battle({
     w.time += dt; w.fish += w.income * dt;
     if (w.cannonCd > 0) w.cannonCd = Math.max(0, w.cannonCd - dt);
     for (const k in w.summonCd) w.summonCd[k] = Math.max(0, (w.summonCd[k] || 0) - dt);
-    w.enemyClock -= dt;
-    if (w.enemyClock <= 0) {
-      spawnEnemy(w, getCanvasWidth, getCanvasHeight, addEnemyName);
-      w.enemyClock = w.cfg.spawnRate; // 固定頻率
+    spawnBossIfNeeded(w, getCanvasWidth, getCanvasHeight, addEnemyName);
+    if (Array.isArray(w.cfg.schedule)) {
+
+      while (w.nextEnemyIdx < w.cfg.schedule.length && w.time >= w.cfg.schedule[w.nextEnemyIdx].time) {
+        const entry = w.cfg.schedule[w.nextEnemyIdx];
+        spawnEnemy(w, getCanvasWidth, getCanvasHeight, addEnemyName, entry.type);
+        w.nextEnemyIdx += 1;
+
+      for (const e of w.cfg.schedule) {
+        // hp 條件（敵方城堡血量）
+        if (typeof e.hp === 'number' && w.rightHp > e.hp) continue;
+        const start = e.start ?? e.time ?? 0;
+        const end = e.until ?? Infinity;
+        const interval = e.interval;
+        const maxSpawn = e.count ?? (interval ? Infinity : 1);
+        if (e._next == null) e._next = start;
+        if (e._spawned == null) e._spawned = 0;
+        if (w.time >= e._next && w.time <= end && e._spawned < maxSpawn) {
+          spawnEnemy(w, getCanvasWidth, getCanvasHeight, addEnemyName, e.type);
+          e._spawned += 1;
+          if (interval && w.time + interval <= end && e._spawned < maxSpawn) e._next += interval; else e._next = Infinity;
+        }
+
+      }
+    } else {
+      w.enemyClock -= dt;
+      if (w.enemyClock <= 0) {
+        spawnEnemy(w, getCanvasWidth, getCanvasHeight, addEnemyName);
+        w.enemyClock = w.cfg.spawnRate; // 固定頻率
+      }
     }
     const bountyGain = stepUnits(w, getCanvasWidth, getCanvasHeight, dt);
     if (bountyGain > 0) w.fish += bountyGain;
