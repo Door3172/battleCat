@@ -19,9 +19,11 @@ export function buildCatsTpl(unlocks) {
 export function createWorld(currentStage, unlocks) {
   const cfg = stageConfig(currentStage);
   return {
-    w: 900, h: 400,
+    w: 50 + cfg.towerDistance + 50, h: 400,
     units: [],
-    leftHp: 1000, rightHp: 1000,
+    leftHp: 1000, rightHp: cfg.enemyBaseHp,
+    leftMaxHp: 1000, rightMaxHp: cfg.enemyBaseHp,
+    towerDistance: cfg.towerDistance,
     fish: 150, income: 10.0, incomeLv: 1, incomeCost: 100,
     last: 0, time: 0, state: 'ready',
     hudTick: 0, cannonCd: 0,

@@ -66,6 +66,12 @@ export function stageConfig(stage){
 
   // 固定序列（無隨機）
   const sequence = buildSequence(stageIndex);
+  const stageSpawn = SPAWNS[stageIndex];
+
+  const enemyBaseHp   = stageSpawn?.enemyBaseHp ?? (1000 + stageIndex * 50);
+  const towerDistance = stageSpawn?.towerDistance ?? (800 + stageIndex * 20);
+  const schedule      = Array.isArray(stageSpawn) ? stageSpawn :
+                        stageSpawn?.schedule;
 
   // BOSS 與固定時間（只有 10/20/30… 才有）
   const isBoss = stageIndex % 10 === 0;
@@ -80,9 +86,9 @@ export function stageConfig(stage){
     firstDelay,
     maxEnemies,
     sequence,      // 👈 固定出怪種類序列（依此循環）
-    schedule: SPAWNS[stageIndex], // 👈 自訂時間表
-    schedule: SPAWNS[stageIndex] ? SPAWNS[stageIndex].map(e => ({ ...e })) : undefined, // 👈 自訂時間表（複製避免汙染原資料）
-    schedule: SPAWNS[stageIndex] ? SPAWNS[stageIndex].map(e => ({ ...e })) : undefined, // 👈 自訂時間表（複製避免汙染原資料）
+    enemyBaseHp,
+    towerDistance,
+    schedule,      // 👈 自訂時間表
     // 下列字段保留給現有程式用
     pool: enemyPoolByStage(stageIndex), // 仍提供 pool（舊碼可能會用）
     isBoss,

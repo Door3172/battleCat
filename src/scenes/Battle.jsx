@@ -88,8 +88,18 @@ export default function Battle({
   const ensureWorld = () => {
     if (worldRef.current) return worldRef.current;
     worldRef.current = createWorld(currentStage, unlocks);
-    setUi(s => ({ ...s, fish: Math.floor(worldRef.current.fish), incomeLv: worldRef.current.incomeLv, leftHp: 1000, rightHp: 1000, cannonCd: 0, state: 'ready', time: 0 }));
-    return worldRef.current;
+    const w = worldRef.current;
+    setUi(s => ({
+      ...s,
+      fish: Math.floor(w.fish),
+      incomeLv: w.incomeLv,
+      leftHp: w.leftHp,
+      rightHp: w.rightHp,
+      cannonCd: 0,
+      state: 'ready',
+      time: 0
+    }));
+    return w;
   };
 
   const startGame = () => {

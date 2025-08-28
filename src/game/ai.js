@@ -35,7 +35,8 @@ export function spawnEnemy(world, getCanvasWidth, getCanvasHeight, onEnemySeen, 
   if (cur >= cfg.maxEnemies) return;
 
   const gy = groundY(getCanvasHeight);
-  const cw = getCanvasWidth();
+  const leftX = 50;
+  const rightX = leftX + world.cfg.towerDistance;
 
   let key = forcedKey;
   if (!key) {
@@ -59,7 +60,7 @@ export function spawnEnemy(world, getCanvasWidth, getCanvasHeight, onEnemySeen, 
     attack: Math.round(base.attack * (0.9 + (sc - 1) * 0.5)) // 無隨機因子
   };
 
-  world.units.push(makeUnit(-1, cw - 80, gy - 8, tpl)); // 固定座標
+  world.units.push(makeUnit(-1, rightX - 30, gy - 8, tpl));
   onEnemySeen && onEnemySeen(base.name);
 }
 
@@ -72,7 +73,8 @@ export function spawnBossIfNeeded(world, getCanvasWidth, getCanvasHeight, onEnem
   if (cur >= cfg.maxEnemies) return;
 
   const gy = groundY(getCanvasHeight);
-  const cw = getCanvasWidth();
+  const leftX = 50;
+  const rightX = leftX + world.cfg.towerDistance;
   const base = BOSSES[cfg.bossKey] || BOSSES.boarKing;
   const sc = computeScale(cfg, world);
   const scaled = {
@@ -81,13 +83,14 @@ export function spawnBossIfNeeded(world, getCanvasWidth, getCanvasHeight, onEnem
     maxHp: Math.round(base.hp * sc),
     attack: Math.round(base.attack * (1.0 + (sc - 1) * 0.6))
   };
-  world.units.push(makeUnit(-1, cw - 80, gy - 8, scaled));
+  world.units.push(makeUnit(-1, rightX - 30, gy - 8, scaled));
   world.bossSpawned = true;
   onEnemySeen && onEnemySeen(scaled.name);
 }
 
 export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt){
-  const leftX = 50, rightX = getCanvasWidth()-50;
+  const leftX = 50;
+  const rightX = leftX + world.cfg.towerDistance;
   let bounty = 0;
 
   for(let i=0;i<world.units.length;i++){
