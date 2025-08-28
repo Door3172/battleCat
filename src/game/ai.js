@@ -145,7 +145,7 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt){
       const d=Math.abs(target.x-u.x);
       const stop=d<=u.range*0.98;
       if(stop) move=0;
-      if(d<BODY_W*0.9) move=(u.team===1?-8:8)*dt;
+      if(d<BODY_W*0.9) move=0;
     }
     if((u.team===1&&u.x>=rightX-18)||(u.team===-1&&u.x<=leftX+18)) move=0;
     u.x += move;
