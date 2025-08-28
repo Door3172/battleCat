@@ -6,6 +6,8 @@ import Codex from './scenes/Codex.jsx';
 import Lineup from './scenes/Lineup.jsx';
 import Battle from './scenes/Battle.jsx';
 import { useAudio } from './audio/useAudio.js';
+import SettingsDialog from './ui/SettingsDialog.jsx';
+import { IconGear } from './ui/Icons.jsx';
 
 // 本地存檔版本，用於重大更新時清除舊資料
 const SAVE_VERSION = '1';
@@ -49,6 +51,11 @@ export default function App() {
     const saved = localStorage.getItem('highestUnlocked');
     return saved ? Number(saved) : 1;
   });
+  const [showSettings, setShowSettings] = useState(false);
+  const [volume, setVolume] = useState(() => {
+    const saved = localStorage.getItem('volume');
+    return saved ? Number(saved) : 1;
+  });
 
   const audio = useAudio();
 
@@ -73,6 +80,12 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('highestUnlocked', String(highestUnlocked));
   }, [highestUnlocked]);
+  useEffect(() => {
+    localStorage.setItem('volume', String(volume));
+  }, [volume]);
+  useEffect(() => {
+    audio.setMasterVolume(volume);
+  }, [audio, volume]);
 
   // ✅ 一次性自動解鎖音訊（任意互動就解鎖）
   useEffect(() => {
@@ -177,8 +190,21 @@ export default function App() {
   };
 
   return (
-    <div className="w-full mx-auto max-w-5xl p-4 space-y-4">
+    <div className="relative w-full mx-auto max-w-5xl p-4 space-y-4">
+      <button
+        className="absolute top-4 right-4"
+        onClick={() => setShowSettings(true)}
+      >
+        <IconGear size={24} />
+      </button>
       {scenes[scene]}
+      <SettingsDialog
+        show={showSettings}
+        onClose={() => setShowSettings(false)}
+        audio={audio}
+        volume={volume}
+        setVolume={setVolume}
+      />
     </div>
   );
 }
