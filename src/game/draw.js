@@ -42,7 +42,6 @@ export function drawUnit(ctx,u){
   ctx.restore();
 }
 
-<<<<<<< ours
 export function drawAll(ctx, world, getWorldWidth, getWorldHeight, currentStage, timeScale, zoom){
   const W = getWorldWidth();
   const H = getWorldHeight();
@@ -54,7 +53,6 @@ export function drawAll(ctx, world, getWorldWidth, getWorldHeight, currentStage,
   const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,SKIN.color.bgTop); g.addColorStop(1,SKIN.color.bgBottom);
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
   const ground= getWorldHeight()*0.72;
-=======
 export function drawAll(ctx, world, getCanvasWidth, getCanvasHeight, currentStage, timeScale, zoom = 1, viewX = 0){
   ctx.save();
   ctx.scale(zoom, zoom);
@@ -63,7 +61,6 @@ export function drawAll(ctx, world, getCanvasWidth, getCanvasHeight, currentStag
   const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,SKIN.color.bgTop); g.addColorStop(1,SKIN.color.bgBottom);
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
   const ground= H*0.72;
->>>>>>> theirs
   ctx.fillStyle='#a3b2c6'; ctx.fillRect(0,ground+12,W,H-(ground+12));
   ctx.fillStyle='#d6dee9'; for(let x=0;x<W;x+=18) ctx.fillRect(x, ground+10+((x/18)%2)*2, 14,4);
   drawCatBase(ctx, 50,  ground, true,  world.leftHp / world.leftMaxHp);
