@@ -46,6 +46,17 @@ export default function App() {
   const addCatName = (name) => setCodexCats(prev => prev.includes(name) ? prev : [...prev, name]);
   const addEnemyName = (name) => setCodexEnemies(prev => prev.includes(name) ? prev : [...prev, name]);
 
+  const handleReset = () => {
+    localStorage.clear();
+    setCoins(300);
+    setUnlocks({ ninja:false, knight:false, mage:false, samurai:false, sumo:false, viking:false, cow:false });
+    setCodexCats(['白喵','坦喵','射喵']);
+    setCodexEnemies([]);
+    setLineup(['white','tank','archer']);
+    setCurrentStage(1);
+    setHighestUnlocked(1);
+  };
+
   const scenes = {
     lobby: (
       <Lobby
@@ -55,6 +66,7 @@ export default function App() {
         goLineup={()=>setScene('lineup')}
         goShop={()=>setScene('shop')}
         goCodex={()=>setScene('codex')}
+        onReset={handleReset}
       />
     ),
     level: (
