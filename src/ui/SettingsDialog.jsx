@@ -7,6 +7,7 @@ export default function SettingsDialog({ show, onClose, audio, volume, setVolume
     <Dialog show={show}>
       <div className="space-y-4">
         <div className="flex items-center space-x-2">
+          <span className="text-sm">音量</span>
           <input
             type="range"
             min="0"

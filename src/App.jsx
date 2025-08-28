@@ -195,7 +195,7 @@ export default function App() {
         className="absolute top-4 right-4"
         onClick={() => setShowSettings(true)}
       >
-        <IconGear size={24} />
+        <IconGear size={32} />
       </button>
       {scenes[scene]}
       <SettingsDialog
