@@ -1,0 +1,15 @@
+{
+  "name": "貓咪之戰",
+  "short_name": "BattleCat",
+  "description": "貓咪之戰 - 一款有趣的對戰遊戲",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "64x64",
+      "type": "image/svg+xml"
+    }
+  ]
+}

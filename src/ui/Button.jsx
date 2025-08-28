@@ -1,16 +1,41 @@
 import React, { useRef } from 'react';
 import { SKIN } from '../data/skin.js';
 
-export default function Button({ onClick, disabled, children, size='md', tone='default', block=false, className='', title }){
-  const sizes = { sm:{f:13,px:12,py:8}, md:{f:14,px:14,py:10}, lg:{f:16,px:16,py:12} };
-  const s = sizes[size] || sizes.md;
-  const tones = {
-    default:{bg:SKIN.color.white,fg:SKIN.color.ink,br:SKIN.color.line, hov:'#f8fafc'},
-    primary:{bg:SKIN.color.black,fg:SKIN.color.white,br:SKIN.color.black, hov:'#000'},
-    ghost:{bg:'rgba(255,255,255,.6)',fg:SKIN.color.ink,br:SKIN.color.line, hov:'rgba(255,255,255,.9)'},
-    accent:{bg:SKIN.color.accentA,fg:'#111827',br:SKIN.color.accentB, hov:SKIN.color.accentB}
+export default function Button({
+  onClick,
+  disabled,
+  children,
+  size = 'md',
+  tone = 'default',
+  block = false,
+  className = '',
+  title,
+  toneMap = {},
+  sizeMap = {},
+}) {
+  const defaultSizes = {
+    sm: { f: 13, px: 12, py: 8 },
+    md: { f: 14, px: 14, py: 10 },
+    lg: { f: 16, px: 16, py: 12 },
   };
-  const t = tones[tone] || tones.default;
+  const s = { ...defaultSizes, ...sizeMap }[size] || defaultSizes.md;
+  const defaultTones = {
+    default: { bg: SKIN.color.white, fg: SKIN.color.ink, br: SKIN.color.line, hov: '#f8fafc' },
+    primary: { bg: SKIN.color.black, fg: SKIN.color.white, br: SKIN.color.black, hov: '#000' },
+    ghost: {
+      bg: 'rgba(255,255,255,.6)',
+      fg: SKIN.color.ink,
+      br: SKIN.color.line,
+      hov: 'rgba(255,255,255,.9)',
+    },
+    accent: {
+      bg: SKIN.color.accentA,
+      fg: '#111827',
+      br: SKIN.color.accentB,
+      hov: SKIN.color.accentB,
+    },
+  };
+  const t = { ...defaultTones, ...toneMap }[tone] || defaultTones.default;
   const btnLock = useRef(false);
 
   const handler = (e)=>{
@@ -23,20 +48,26 @@ export default function Button({ onClick, disabled, children, size='md', tone='d
 
   return (
     <button
+      type="button"
       title={title}
       onPointerUp={handler}
-      onClick={(e)=>e.preventDefault()}
+      onClick={(e) => e.preventDefault()}
       disabled={disabled}
-      className={`border transition active:scale-[0.98] select-none ${block?'w-full':''} ${className}`}
+      aria-disabled={disabled}
+      className={`border transition active:scale-[0.98] select-none rounded-full bg-[var(--btn-bg)] [color:var(--btn-fg)] border-[var(--btn-br)] shadow-[var(--btn-shadow)] px-[var(--btn-px)] py-[var(--btn-py)] [font-size:var(--btn-fs)] min-h-[var(--btn-min-h)] leading-[1.15] [touch-action:manipulation] hover:bg-[var(--btn-hov)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--btn-br)] disabled:opacity-50 disabled:pointer-events-none ${block ? 'w-full' : ''} ${className}`}
       style={{
-        background:t.bg, color:t.fg, borderColor:t.br,
-        padding:`${s.py}px ${s.px}px`, fontSize:s.f, lineHeight:1.15,
-        minHeight:SKIN.size.touch, borderRadius:SKIN.radius.pill,
-        boxShadow: 'var(--shadow-soft, 0 6px 16px rgba(2,6,23,.06), 0 2px 6px rgba(2,6,23,.06))',
-        touchAction:'manipulation'
+        '--btn-bg': t.bg,
+        '--btn-fg': t.fg,
+        '--btn-br': t.br,
+        '--btn-hov': t.hov,
+        '--btn-py': `${s.py}px`,
+        '--btn-px': `${s.px}px`,
+        '--btn-fs': `${s.f}px`,
+        '--btn-min-h': `${SKIN.size.touch}px`,
+        '--btn-shadow': SKIN.shadow.soft,
       }}
-      onPointerEnter={(e)=> (e.currentTarget.style.background=t.hov)}
-      onPointerLeave={(e)=> (e.currentTarget.style.background=t.bg)}
-    >{children}</button>
+    >
+      {children}
+    </button>
   );
 }

@@ -2,6 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* 色彩變數 */
+  --color-bg: #f1f5f9;
+  --color-ink: #0f172a;
+  --color-ink-sub: #334155;
+  --color-mute: #64748b;
+  --color-line: #e5e7eb;
+  --color-card-top: rgba(255,255,255,.92);
+  --color-card-bottom: rgba(248,250,252,.78);
+  --color-accent-a: #f59e0b;
+  --color-accent-b: #f97316;
+  --color-ok: #22c55e;
+  --color-warn: #f59e0b;
+  --color-danger: #ef4444;
+  --color-white: #ffffff;
+  --color-black: #0b1224;
+
+  /* 間距變數 */
+  --space-touch: 40px;
+  --space-gap-sm: 6px;
+  --space-gap-md: 10px;
+  --space-gap-lg: 16px;
+  --space-gap-xl: 24px;
+  --space-pad-sm: 8px;
+  --space-pad-md: 12px;
+  --space-pad-lg: 16px;
+
+  /* 字體變數 */
+  --font-ui: ui-sans-serif, system-ui, Segoe UI, Noto Sans TC, Apple Color Emoji, Segoe UI Emoji;
+
+  /* 陰影與漸層 */
+  --shadow-soft: 0 6px 16px rgba(2,6,23,.06), 0 2px 6px rgba(2,6,23,.06);
+  --shadow-card: 0 14px 36px rgba(2,6,23,.10), 0 4px 14px rgba(2,6,23,.06);
+  --shadow-lift: 0 10px 18px rgba(2,6,23,.08);
+  --shadow-text: 0 2px 0 rgba(0,0,0,.18);
+  --gradient-hero: linear-gradient(180deg, var(--color-accent-a) 0%, var(--color-accent-b) 62%, #ffd87a 100%);
+}
+
 html, body, #root { height: 100%; }
-body { margin: 0; background: #f1f5f9; }
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: var(--space-gap-md);
+  line-height: 1.6;
+}
+
+button {
+  font-family: var(--font-ui);
+}
+
 canvas { display:block; }

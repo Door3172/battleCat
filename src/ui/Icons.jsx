@@ -1,31 +1,47 @@
 import React from 'react';
 import { SKIN } from '../data/skin.js';
 
-export function IconCat({ size=18 }){
+export function IconCat({ width = 18, height = 18, className = '' }) {
   return (
-    <span style={{ display:'inline-block', width:size, height:size, position:'relative' }}>
-      <span style={{ position:'absolute', inset:0, borderRadius:8, background:'#fff', border:`2px solid ${SKIN.color.ink}` }} />
-      <span style={{ position:'absolute', left:3, top:-3, width:6, height:8, borderLeft:`2px solid ${SKIN.color.ink}`, borderTop:`2px solid ${SKIN.color.ink}` }} />
-      <span style={{ position:'absolute', right:3, top:-3, width:6, height:8, borderRight:`2px solid ${SKIN.color.ink}`, borderTop:`2px solid ${SKIN.color.ink}` }} />
-    </span>
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 18 18"
+      fill="currentColor"
+      stroke="currentColor"
+      className={className}
+    >
+      <rect x="1" y="4" width="16" height="13" rx="6" />
+      <path d="M4 4V1l3 3" strokeWidth="2" fill="none" strokeLinejoin="round" />
+      <path d="M14 4V1l-3 3" strokeWidth="2" fill="none" strokeLinejoin="round" />
+    </svg>
   );
 }
 
-export function IconCoin({ size=14 }){
-  return <span style={{ display:'inline-block', width:size, height:size, borderRadius:999, background:SKIN.color.accentA, border:`1px solid ${SKIN.color.accentB}` }} />;
-}
-
-export function IconGear({ size = 32 }) {
+export function IconCoin({ width = 14, height = 14, className = '' }) {
   return (
     <svg
-      width={size}
-      height={size}
+      width={width}
+      height={height}
+      viewBox="0 0 14 14"
+      className={className}
+    >
+      <circle cx="7" cy="7" r="6" fill={SKIN.color.accentA} stroke={SKIN.color.accentB} />
+    </svg>
+  );
+}
+
+export function IconGear({ width = 32, height = 32, className = '' }) {
+  return (
+    <svg
+      width={width}
+      height={height}
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ display: 'inline-block' }}
       stroke={SKIN.color.ink}
       strokeWidth={1.5}
+      className={className}
     >
       <path
         strokeLinecap="round"

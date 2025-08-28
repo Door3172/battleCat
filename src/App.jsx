@@ -10,7 +10,7 @@ import SettingsDialog from './ui/SettingsDialog.jsx';
 import { IconGear } from './ui/Icons.jsx';
 
 // 本地存檔版本，用於重大更新時清除舊資料
-const SAVE_VERSION = '1';
+const SAVE_VERSION = '2';
 
 // 檢查存檔版本並在不一致時清除
 (function checkSaveVersion() {
@@ -190,12 +190,14 @@ export default function App() {
   };
 
   return (
-    <div className="relative w-full mx-auto max-w-5xl p-4 space-y-4">
+    <main className="relative w-full mx-auto max-w-5xl p-4 space-y-4">
       <button
-        className="absolute top-4 right-4"
+        type="button"
+        aria-label="開啟設定"
+        className="absolute top-4 right-4 p-1 rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
         onClick={() => setShowSettings(true)}
       >
-        <IconGear size={32} />
+        <IconGear width={32} height={32} />
       </button>
       {scenes[scene]}
       <SettingsDialog
@@ -205,6 +207,6 @@ export default function App() {
         volume={volume}
         setVolume={setVolume}
       />
-    </div>
+    </main>
   );
 }

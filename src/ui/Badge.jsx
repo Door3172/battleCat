@@ -1,12 +1,19 @@
 import React from 'react';
 import { SKIN } from '../data/skin.js';
 
-export default function Badge({ children, tone='ok' }){
-  const bg = tone==='ok'?SKIN.color.ok : (tone==='warn'?SKIN.color.warn:SKIN.color.danger);
+export default function Badge({ children, tone = 'ok', size = 'md', className = '' }) {
+  const toneClass = tone === 'ok' ? 'bg-ok' : tone === 'warn' ? 'bg-warn' : 'bg-danger';
+  const sizeMap = {
+    sm: { fontSize: 10, padding: '1px 6px' },
+    md: { fontSize: 11, padding: '2px 8px' },
+  };
+  const { fontSize, padding } = sizeMap[size] || sizeMap.md;
   return (
-    <span style={{
-      fontSize:11, borderRadius:SKIN.radius.pill, padding:'2px 8px',
-      background:bg, color:'#fff', boxShadow:'var(--shadow-soft, 0 6px 16px rgba(2,6,23,.06), 0 2px 6px rgba(2,6,23,.06))'
-    }}>{children}</span>
+    <span
+      className={`inline-flex items-center text-white shadow-soft ${toneClass} ${className}`}
+      style={{ fontSize, padding, borderRadius: SKIN.radius.pill }}
+    >
+      {children}
+    </span>
   );
 }

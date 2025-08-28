@@ -260,7 +260,12 @@ export default function Battle({
           {lineup.map((k, i) => {
             const cd = w.summonCd[k] || 0; const disabled = cd > 0 || ui.state !== 'running';
             return (
-              <div key={k} className="flex flex-col rounded-2xl border bg-white px-2 py-2" style={{ borderColor: SKIN.color.line, minHeight: 92 }}>
+              <div
+                key={k}
+                className="flex flex-col rounded-2xl border bg-white px-2 py-2 transition-transform hover:scale-105"
+                style={{ borderColor: SKIN.color.line, minHeight: 92 }}
+                role="listitem"
+              >
                 <div className="flex items-center justify-between gap-2">
                   <div className="font-semibold text-[13px] leading-tight text-slate-800 break-words">
                     <span className="mr-1">{i + 1}️⃣</span>
@@ -277,7 +282,7 @@ export default function Battle({
             );
           })}
         </SlotTray>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
+        <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 items-center gap-2" aria-label="戰鬥控制">
           <Button onClick={fireCannon} disabled={ui.cannonCd > 0 || ui.state !== 'running'} tone="primary">🧨 貓咪砲 {ui.cannonCd > 0 ? `(${ui.cannonCd.toFixed(1)}s)` : ''}</Button>
           <Button onClick={togglePause}>{ui.state === 'paused' ? '▶️ 繼續' : '⏸️ 暫停'}</Button>
           <Button onClick={resetWorld}>🔄 重開</Button>

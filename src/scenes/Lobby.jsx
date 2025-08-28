@@ -14,7 +14,7 @@ export default function Lobby({ coins, highestUnlocked, goLevel, goLineup, goSho
         <Card>
           <div className="text-slate-600 text-sm">狀態</div>
           <div className="text-3xl font-extrabold tabular-nums flex items-center gap-2"><IconCoin />{fmt(coins)}<span className="text-base font-medium ml-1">金幣</span></div>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2" aria-label="主要選單">
             <Button onClick={goLevel} tone="accent">▶️ 開始遊戲（選關）</Button>
             <Button onClick={goLineup}>🧩 隊伍編成</Button>
             <Button onClick={goShop}>🛒 商店</Button>
