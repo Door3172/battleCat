@@ -42,29 +42,45 @@ export function drawUnit(ctx,u){
   ctx.restore();
 }
 
-export function drawAll(ctx, world, getCanvasWidth, getCanvasHeight, currentStage, timeScale){
-  const scaleX = (getCanvasWidth() - 100) / world.cfg.towerDistance;
+<<<<<<< ours
+export function drawAll(ctx, world, getWorldWidth, getWorldHeight, currentStage, timeScale, zoom){
+  const W = getWorldWidth();
+  const H = getWorldHeight();
+  ctx.save();
+  ctx.scale(zoom, zoom);
+  const scaleX = (W - 100) / world.cfg.towerDistance;
   const baseX = 50;
   const toScreen = x => baseX + (x - baseX) * scaleX;
-  const W=getCanvasWidth(), H=getCanvasHeight();
   const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,SKIN.color.bgTop); g.addColorStop(1,SKIN.color.bgBottom);
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-  const ground= getCanvasHeight()*0.72;
+  const ground= getWorldHeight()*0.72;
+=======
+export function drawAll(ctx, world, getCanvasWidth, getCanvasHeight, currentStage, timeScale, zoom = 1, viewX = 0){
+  ctx.save();
+  ctx.scale(zoom, zoom);
+  ctx.translate(-viewX, 0);
+  const W = getCanvasWidth()/zoom, H = getCanvasHeight()/zoom;
+  const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,SKIN.color.bgTop); g.addColorStop(1,SKIN.color.bgBottom);
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  const ground= H*0.72;
+>>>>>>> theirs
   ctx.fillStyle='#a3b2c6'; ctx.fillRect(0,ground+12,W,H-(ground+12));
   ctx.fillStyle='#d6dee9'; for(let x=0;x<W;x+=18) ctx.fillRect(x, ground+10+((x/18)%2)*2, 14,4);
-  drawCatBase(ctx, baseX,  ground, true,  world.leftHp / world.leftMaxHp);
-  drawCatBase(ctx, toScreen(baseX + world.cfg.towerDistance), ground, false, world.rightHp / world.rightMaxHp);
+  drawCatBase(ctx, 50,  ground, true,  world.leftHp / world.leftMaxHp);
+  drawCatBase(ctx, 50 + world.cfg.towerDistance, ground, false, world.rightHp / world.rightMaxHp);
   for(const u of world.units){
-    const sx=toScreen(u.x);
-    drawUnit(ctx,{...u,x:sx});
+    drawUnit(ctx,u);
   }
+  ctx.restore();
+  const screenW=getCanvasWidth(), screenH=getCanvasHeight();
   ctx.fillStyle=SKIN.color.ink; ctx.font='bold 14px ui-sans-serif, system-ui';
   const bossFlag=world.cfg.isBoss?' (BOSS)':'';
   ctx.fillText(`Stage ${currentStage}${bossFlag}  Time ${world.time.toFixed(1)}s  ${timeScale}x`,10,18);
   ctx.fillText(`Units ${world.units.length}`,10,36);
   if(world.state==='win'||world.state==='lose'){
-    ctx.save(); ctx.globalAlpha=.75; ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); ctx.restore();
+    ctx.save(); ctx.globalAlpha=.75; ctx.fillStyle='#000'; ctx.fillRect(0,0,screenW,screenH); ctx.restore();
     ctx.fillStyle='#fff'; ctx.font='bold 32px ui-sans-serif, system-ui'; ctx.textAlign='center';
-    ctx.fillText(world.state==='win'?'勝利！+120 金幣':'戰敗…', W/2, H/2); ctx.font='14px ui-sans-serif, system-ui'; ctx.fillText('返回大廳中…', W/2, H/2+26); ctx.textAlign='left';
+    ctx.fillText(world.state==='win'?'勝利！+120 金幣':'戰敗…', screenW/2, screenH/2); ctx.font='14px ui-sans-serif, system-ui'; ctx.fillText('返回大廳中…', screenW/2, screenH/2+26); ctx.textAlign='left';
   }
+  ctx.restore();
 }

@@ -22,6 +22,7 @@ export default function Battle({
   const wrapRef = useRef(null);
   const rafRef = useRef(0);
   const [timeScale, setTimeScale] = useState(1);
+  const [zoom, setZoom] = useState(1);
   const worldRef = useRef(null);
   const [ui, setUi] = useState({ fish: 0, incomeLv: 1, cannonCd: 0, leftHp: 1000, rightHp: 1000, state: 'ready', time: 0 });
 
@@ -29,6 +30,8 @@ export default function Battle({
 
   const getCanvasWidth = () => { const dpr = Math.min(window.devicePixelRatio || 1, 2); const c = canvasRef.current; return c ? c.width / dpr : 900; };
   const getCanvasHeight = () => { const dpr = Math.min(window.devicePixelRatio || 1, 2); const c = canvasRef.current; return c ? c.height / dpr : 400; };
+  const getWorldWidth = () => getCanvasWidth() / zoom;
+  const getWorldHeight = () => getCanvasHeight() / zoom;
   const forceResize = () => {
     const el = wrapRef.current, c = canvasRef.current; if (!el || !c) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -59,6 +62,21 @@ export default function Battle({
     audio.playMusic('bgm_battle');
     return () => { audio.playMusic('bgm_lobby'); };
   }, [audio]);
+
+  useEffect(() => {
+    const el = wrapRef.current || canvasRef.current;
+    if (!el) return;
+    const onWheel = (e) => {
+      e.preventDefault();
+      setZoom(z => {
+        const next = Math.min(2, Math.max(0.5, z - e.deltaY * 0.001));
+        return next;
+      });
+      draw();
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -133,7 +151,7 @@ export default function Battle({
     if (w.fish < tpl.cost) return;
     if (w.units.filter(u => u.team === 1).length > 70) return;
     w.fish -= tpl.cost; w.summonCd[key] = tpl.cd;
-    const y = groundY(getCanvasHeight) - 8 + rand(-3, 3);
+    const y = groundY(getWorldHeight) - 8 + rand(-3, 3);
     w.units.push(makeUnit(1, 80 + rand(-6, 6), y, tpl));
     audio.playSfx('sfx_summon'); // 召喚叮一聲
   };
@@ -162,12 +180,12 @@ export default function Battle({
     w.time += dt; w.fish += w.income * dt;
     if (w.cannonCd > 0) w.cannonCd = Math.max(0, w.cannonCd - dt);
     for (const k in w.summonCd) w.summonCd[k] = Math.max(0, (w.summonCd[k] || 0) - dt);
-    spawnBossIfNeeded(w, getCanvasWidth, getCanvasHeight, addEnemyName);
+    spawnBossIfNeeded(w, getWorldWidth, getWorldHeight, addEnemyName);
     if (Array.isArray(w.cfg.schedule)) {
 
       while (w.nextEnemyIdx < w.cfg.schedule.length && w.time >= w.cfg.schedule[w.nextEnemyIdx].time) {
         const entry = w.cfg.schedule[w.nextEnemyIdx];
-        spawnEnemy(w, getCanvasWidth, getCanvasHeight, addEnemyName, entry.type);
+        spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, entry.type);
         w.nextEnemyIdx += 1;
 
 
@@ -182,7 +200,7 @@ export default function Battle({
         if (e._next == null) e._next = start;
         if (e._spawned == null) e._spawned = 0;
         if (w.time >= e._next && w.time <= end && e._spawned < maxSpawn) {
-          spawnEnemy(w, getCanvasWidth, getCanvasHeight, addEnemyName, e.type);
+          spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, e.type);
           e._spawned += 1;
 
           if (interval && w.time + interval <= end && e._spawned < maxSpawn) e._next += interval; else e._next = Infinity;
@@ -198,11 +216,11 @@ export default function Battle({
     } else {
       w.enemyClock -= dt;
       if (w.enemyClock <= 0) {
-        spawnEnemy(w, getCanvasWidth, getCanvasHeight, addEnemyName);
+        spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName);
         w.enemyClock = w.cfg.spawnRate; // 固定頻率
       }
     }
-    const bountyGain = stepUnits(w, getCanvasWidth, getCanvasHeight, dt);
+    const bountyGain = stepUnits(w, getWorldWidth, getWorldHeight, dt);
     if (bountyGain > 0) w.fish += bountyGain;
     if (w.rightHp <= 0) { w.state = 'win'; awardWin(); }
     else if (w.leftHp <= 0) { w.state = 'lose'; handleLose(); }
@@ -233,8 +251,10 @@ export default function Battle({
   const draw = () => {
     const c = canvasRef.current; if (!c) return;
     const ctx = c.getContext('2d'); const w = ensureWorld();
-    drawAll(ctx, w, getCanvasWidth, getCanvasHeight, currentStage, timeScale);
+    drawAll(ctx, w, getWorldWidth, getWorldHeight, currentStage, timeScale, zoom);
   };
+
+  useEffect(() => { draw(); }, [zoom]);
 
   const BattleControls = () => {
     const w = ensureWorld();
@@ -277,6 +297,10 @@ export default function Battle({
       <HeroBanner title="貓咪大戰爭" subtitle="1~5 召喚、Space 大砲、X 1x/2x、P 暫停、R 重開" />
       <div ref={wrapRef} className="relative w-full overflow-hidden">
         <canvas ref={canvasRef} className="rounded-2xl border shadow w-full block mx-auto" />
+        <div className="absolute top-2 right-2 flex flex-col">
+          <Button size="sm" onClick={() => { setZoom(z => Math.min(2, z + 0.1)); draw(); }}>＋</Button>
+          <Button size="sm" onClick={() => { setZoom(z => Math.max(0.5, z - 0.1)); draw(); }} className="mt-1">－</Button>
+        </div>
         <Dialog show={ui.state !== 'running'}>
           {ui.state === 'ready' && <div className="text-lg font-semibold">按下 1~5 任一鍵或點下方按鈕開始</div>}
           {ui.state === 'paused' && <div className="text-lg font-semibold">已暫停（按 P 繼續）</div>}
