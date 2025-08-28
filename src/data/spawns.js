@@ -38,7 +38,6 @@
   export const SPAWNS = {
     1: {
       enemyBaseHp: 500,
-      towerDistance: 100,
       schedule: [
         { start: 10, interval: 15, type: 'dog' },
       ],
