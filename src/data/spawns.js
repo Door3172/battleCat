@@ -41,7 +41,7 @@
     1: {
       enemyBaseHp: 500,
       schedule: [
-        { start: 10, interval: 15, type: 'dog', multiplier: 5000 },
+        { start: 10, interval: 15, type: 'dog', multiplier: 100 },
       ],
     },
   };

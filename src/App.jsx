@@ -9,15 +9,58 @@ import { useAudio } from './audio/useAudio.js';
 
 export default function App() {
   const [scene, setScene] = useState('lobby');
-  const [coins, setCoins] = useState(300);
-  const [unlocks, setUnlocks] = useState({ ninja:false, knight:false, mage:false, samurai:false, sumo:false, viking:false, cow:false });
-  const [codexCats, setCodexCats] = useState(['白喵','坦喵','射喵']);
-  const [codexEnemies, setCodexEnemies] = useState([]);
-  const [lineup, setLineup] = useState(['white','tank','archer']);
-  const [currentStage, setCurrentStage] = useState(1);
-  const [highestUnlocked, setHighestUnlocked] = useState(1);
+  const [coins, setCoins] = useState(() => {
+    const saved = localStorage.getItem('coins');
+    return saved ? JSON.parse(saved) : 300;
+  });
+  const [unlocks, setUnlocks] = useState(() => {
+    const saved = localStorage.getItem('unlocks');
+    return saved ? JSON.parse(saved) : { ninja:false, knight:false, mage:false, samurai:false, sumo:false, viking:false, cow:false };
+  });
+  const [codexCats, setCodexCats] = useState(() => {
+    const saved = localStorage.getItem('codexCats');
+    return saved ? JSON.parse(saved) : ['白喵','坦喵','射喵'];
+  });
+  const [codexEnemies, setCodexEnemies] = useState(() => {
+    const saved = localStorage.getItem('codexEnemies');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [lineup, setLineup] = useState(() => {
+    const saved = localStorage.getItem('lineup');
+    return saved ? JSON.parse(saved) : ['white','tank','archer'];
+  });
+  const [currentStage, setCurrentStage] = useState(() => {
+    const saved = localStorage.getItem('currentStage');
+    return saved ? Number(saved) : 1;
+  });
+  const [highestUnlocked, setHighestUnlocked] = useState(() => {
+    const saved = localStorage.getItem('highestUnlocked');
+    return saved ? Number(saved) : 1;
+  });
 
   const audio = useAudio();
+
+  useEffect(() => {
+    localStorage.setItem('coins', JSON.stringify(coins));
+  }, [coins]);
+  useEffect(() => {
+    localStorage.setItem('unlocks', JSON.stringify(unlocks));
+  }, [unlocks]);
+  useEffect(() => {
+    localStorage.setItem('codexCats', JSON.stringify(codexCats));
+  }, [codexCats]);
+  useEffect(() => {
+    localStorage.setItem('codexEnemies', JSON.stringify(codexEnemies));
+  }, [codexEnemies]);
+  useEffect(() => {
+    localStorage.setItem('lineup', JSON.stringify(lineup));
+  }, [lineup]);
+  useEffect(() => {
+    localStorage.setItem('currentStage', String(currentStage));
+  }, [currentStage]);
+  useEffect(() => {
+    localStorage.setItem('highestUnlocked', String(highestUnlocked));
+  }, [highestUnlocked]);
 
   // ✅ 一次性自動解鎖音訊（任意互動就解鎖）
   useEffect(() => {
