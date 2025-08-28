@@ -184,7 +184,7 @@ export default function Battle({
 
       while (w.nextEnemyIdx < w.cfg.schedule.length && w.time >= w.cfg.schedule[w.nextEnemyIdx].time) {
         const entry = w.cfg.schedule[w.nextEnemyIdx];
-        spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, entry.type);
+        spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, entry.type, entry.multiplier ?? 100);
         w.nextEnemyIdx += 1;
       }
 
@@ -198,7 +198,7 @@ export default function Battle({
         if (e._next == null) e._next = start;
         if (e._spawned == null) e._spawned = 0;
         if (w.time >= e._next && w.time <= end && e._spawned < maxSpawn) {
-          spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, e.type);
+          spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, e.type, e.multiplier ?? 100);
           e._spawned += 1;
 
           if (interval && w.time + interval <= end && e._spawned < maxSpawn) {
@@ -211,7 +211,7 @@ export default function Battle({
     } else {
       w.enemyClock -= dt;
       if (w.enemyClock <= 0) {
-        spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName);
+        spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, undefined, 100);
         w.enemyClock = w.cfg.spawnRate; // 固定頻率
       }
     }

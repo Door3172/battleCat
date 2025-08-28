@@ -29,7 +29,7 @@ function computeScale(cfg, world){
   return (cfg.difficulty||1) * stageFactor * timeFactor * spawnFactor;
 }
 
-export function spawnEnemy(world, getCanvasWidth, getCanvasHeight, onEnemySeen, forcedKey){
+export function spawnEnemy(world, getCanvasWidth, getCanvasHeight, onEnemySeen, forcedKey, statMultiplier = 100){
   const { cfg } = world;
   const cur = world.units.filter(u=>u.team===-1).length;
   if (cur >= cfg.maxEnemies) return;
@@ -55,9 +55,9 @@ export function spawnEnemy(world, getCanvasWidth, getCanvasHeight, onEnemySeen, 
   const sc = computeScale(cfg, world);
   const tpl = {
     ...base,
-    hp: Math.round(base.hp * sc),
-    maxHp: Math.round(base.hp * sc),
-    attack: Math.round(base.attack * (0.9 + (sc - 1) * 0.5)) // 無隨機因子
+    hp: Math.round(base.hp * sc * statMultiplier / 100),
+    maxHp: Math.round(base.hp * sc * statMultiplier / 100),
+    attack: Math.round(base.attack * (0.9 + (sc - 1) * 0.5) * statMultiplier / 100) // 無隨機因子
   };
 
   world.units.push(makeUnit(-1, rightX - 30, gy - 8, tpl));
