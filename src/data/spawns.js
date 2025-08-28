@@ -24,3 +24,8 @@ export const SPAWNS = {
     { hp: 500, interval: 6, type: 'dog' },
   ],
 };
+    { start: 40, interval: 7, until: 80, type: 'red' },
+    // 敵方城堡 HP ≤ 500 時開始每 6 秒出一隻狗（無限）
+    { hp: 500, interval: 6, type: 'dog' },
+  ],
+};

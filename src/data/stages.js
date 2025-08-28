@@ -81,7 +81,11 @@ export function stageConfig(stage){
     maxEnemies,
     sequence,      // 👈 固定出怪種類序列（依此循環）
 <<<<<<< ours
+<<<<<<< ours
     schedule: SPAWNS[stageIndex], // 👈 自訂時間表
+=======
+    schedule: SPAWNS[stageIndex] ? SPAWNS[stageIndex].map(e => ({ ...e })) : undefined, // 👈 自訂時間表（複製避免汙染原資料）
+>>>>>>> theirs
 =======
     schedule: SPAWNS[stageIndex] ? SPAWNS[stageIndex].map(e => ({ ...e })) : undefined, // 👈 自訂時間表（複製避免汙染原資料）
 >>>>>>> theirs
