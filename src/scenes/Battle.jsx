@@ -154,15 +154,14 @@ export default function Battle({
     for (const k in w.summonCd) w.summonCd[k] = Math.max(0, (w.summonCd[k] || 0) - dt);
     spawnBossIfNeeded(w, getCanvasWidth, getCanvasHeight, addEnemyName);
     if (Array.isArray(w.cfg.schedule)) {
-<<<<<<< ours
 
       while (w.nextEnemyIdx < w.cfg.schedule.length && w.time >= w.cfg.schedule[w.nextEnemyIdx].time) {
         const entry = w.cfg.schedule[w.nextEnemyIdx];
         spawnEnemy(w, getCanvasWidth, getCanvasHeight, addEnemyName, entry.type);
         w.nextEnemyIdx += 1;
 
-=======
->>>>>>> theirs
+
+
       for (const e of w.cfg.schedule) {
         // hp 條件（敵方城堡血量）
         if (typeof e.hp === 'number' && w.rightHp > e.hp) continue;
@@ -175,18 +174,16 @@ export default function Battle({
         if (w.time >= e._next && w.time <= end && e._spawned < maxSpawn) {
           spawnEnemy(w, getCanvasWidth, getCanvasHeight, addEnemyName, e.type);
           e._spawned += 1;
-<<<<<<< ours
+
           if (interval && w.time + interval <= end && e._spawned < maxSpawn) e._next += interval; else e._next = Infinity;
         }
 
-=======
           if (interval && w.time + interval <= end && e._spawned < maxSpawn) {
             e._next += interval;
           } else {
             e._next = Infinity;
           }
         }
->>>>>>> theirs
       }
     } else {
       w.enemyClock -= dt;
