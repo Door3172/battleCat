@@ -186,8 +186,7 @@ export default function Battle({
         const entry = w.cfg.schedule[w.nextEnemyIdx];
         spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, entry.type);
         w.nextEnemyIdx += 1;
-
-
+      }
 
       for (const e of w.cfg.schedule) {
         // hp 條件（敵方城堡血量）
@@ -201,9 +200,6 @@ export default function Battle({
         if (w.time >= e._next && w.time <= end && e._spawned < maxSpawn) {
           spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, e.type);
           e._spawned += 1;
-
-          if (interval && w.time + interval <= end && e._spawned < maxSpawn) e._next += interval; else e._next = Infinity;
-        }
 
           if (interval && w.time + interval <= end && e._spawned < maxSpawn) {
             e._next += interval;
