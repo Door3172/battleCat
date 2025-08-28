@@ -43,16 +43,21 @@ export function drawUnit(ctx,u){
 }
 
 export function drawAll(ctx, world, getCanvasWidth, getCanvasHeight, currentStage, timeScale){
+  const scaleX = (getCanvasWidth() - 100) / world.cfg.towerDistance;
+  const baseX = 50;
+  const toScreen = x => baseX + (x - baseX) * scaleX;
   const W=getCanvasWidth(), H=getCanvasHeight();
   const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,SKIN.color.bgTop); g.addColorStop(1,SKIN.color.bgBottom);
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
   const ground= getCanvasHeight()*0.72;
   ctx.fillStyle='#a3b2c6'; ctx.fillRect(0,ground+12,W,H-(ground+12));
   ctx.fillStyle='#d6dee9'; for(let x=0;x<W;x+=18) ctx.fillRect(x, ground+10+((x/18)%2)*2, 14,4);
-  const leftX = 50; const rightX = leftX + world.cfg.towerDistance;
-  drawCatBase(ctx, leftX,  ground, true,  world.leftHp / world.leftMaxHp);
-  drawCatBase(ctx, rightX, ground, false, world.rightHp / world.rightMaxHp);
-  for(const u of world.units) drawUnit(ctx,u);
+  drawCatBase(ctx, baseX,  ground, true,  world.leftHp / world.leftMaxHp);
+  drawCatBase(ctx, toScreen(baseX + world.cfg.towerDistance), ground, false, world.rightHp / world.rightMaxHp);
+  for(const u of world.units){
+    const sx=toScreen(u.x);
+    drawUnit(ctx,{...u,x:sx});
+  }
   ctx.fillStyle=SKIN.color.ink; ctx.font='bold 14px ui-sans-serif, system-ui';
   const bossFlag=world.cfg.isBoss?' (BOSS)':'';
   ctx.fillText(`Stage ${currentStage}${bossFlag}  Time ${world.time.toFixed(1)}s  ${timeScale}x`,10,18);
