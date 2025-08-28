@@ -42,17 +42,6 @@ export function drawUnit(ctx,u){
   ctx.restore();
 }
 
-export function drawAll(ctx, world, getWorldWidth, getWorldHeight, currentStage, timeScale, zoom){
-  const W = getWorldWidth();
-  const H = getWorldHeight();
-  ctx.save();
-  ctx.scale(zoom, zoom);
-  const scaleX = (W - 100) / world.cfg.towerDistance;
-  const baseX = 50;
-  const toScreen = x => baseX + (x - baseX) * scaleX;
-  const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,SKIN.color.bgTop); g.addColorStop(1,SKIN.color.bgBottom);
-  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-  const ground= getWorldHeight()*0.72;
 export function drawAll(ctx, world, getCanvasWidth, getCanvasHeight, currentStage, timeScale, zoom = 1, viewX = 0){
   ctx.save();
   ctx.scale(zoom, zoom);
@@ -79,5 +68,4 @@ export function drawAll(ctx, world, getCanvasWidth, getCanvasHeight, currentStag
     ctx.fillStyle='#fff'; ctx.font='bold 32px ui-sans-serif, system-ui'; ctx.textAlign='center';
     ctx.fillText(world.state==='win'?'勝利！+120 金幣':'戰敗…', screenW/2, screenH/2); ctx.font='14px ui-sans-serif, system-ui'; ctx.fillText('返回大廳中…', screenW/2, screenH/2+26); ctx.textAlign='left';
   }
-  ctx.restore();
 }
