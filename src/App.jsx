@@ -7,6 +7,18 @@ import Lineup from './scenes/Lineup.jsx';
 import Battle from './scenes/Battle.jsx';
 import { useAudio } from './audio/useAudio.js';
 
+// 本地存檔版本，用於重大更新時清除舊資料
+const SAVE_VERSION = '1';
+
+// 檢查存檔版本並在不一致時清除
+(function checkSaveVersion() {
+  const stored = localStorage.getItem('saveVersion');
+  if (stored !== SAVE_VERSION) {
+    localStorage.clear();
+    localStorage.setItem('saveVersion', SAVE_VERSION);
+  }
+})();
+
 export default function App() {
   const [scene, setScene] = useState('lobby');
   const [coins, setCoins] = useState(() => {
@@ -91,6 +103,7 @@ export default function App() {
 
   const handleReset = () => {
     localStorage.clear();
+    localStorage.setItem('saveVersion', SAVE_VERSION);
     setCoins(300);
     setUnlocks({ ninja:false, knight:false, mage:false, samurai:false, sumo:false, viking:false, cow:false });
     setCodexCats(['白喵','坦喵','射喵']);
