@@ -72,7 +72,6 @@ export default function Battle({
         const next = Math.min(2, Math.max(0.5, z - e.deltaY * 0.001));
         return next;
       });
-      draw();
     };
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
@@ -298,8 +297,8 @@ export default function Battle({
       <div ref={wrapRef} className="relative w-full overflow-hidden">
         <canvas ref={canvasRef} className="rounded-2xl border shadow w-full block mx-auto" />
         <div className="absolute top-2 right-2 flex flex-col">
-          <Button size="sm" onClick={() => { setZoom(z => Math.min(2, z + 0.1)); draw(); }}>＋</Button>
-          <Button size="sm" onClick={() => { setZoom(z => Math.max(0.5, z - 0.1)); draw(); }} className="mt-1">－</Button>
+          <Button size="sm" onClick={() => { setZoom(z => Math.min(2, z + 0.1)); }}>＋</Button>
+          <Button size="sm" onClick={() => { setZoom(z => Math.max(0.5, z - 0.1)); }} className="mt-1">－</Button>
         </div>
         <Dialog show={ui.state !== 'running'}>
           {ui.state === 'ready' && <div className="text-lg font-semibold">按下 1~5 任一鍵或點下方按鈕開始</div>}

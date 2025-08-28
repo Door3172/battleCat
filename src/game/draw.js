@@ -44,8 +44,8 @@ export function drawUnit(ctx,u){
 
 export function drawAll(ctx, world, getCanvasWidth, getCanvasHeight, currentStage, timeScale, zoom = 1, viewX = 0){
   ctx.save();
-  ctx.scale(zoom, zoom);
   ctx.translate(-viewX, 0);
+  ctx.scale(zoom, zoom);
   const W = getCanvasWidth()/zoom, H = getCanvasHeight()/zoom;
   const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,SKIN.color.bgTop); g.addColorStop(1,SKIN.color.bgBottom);
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
