@@ -163,7 +163,7 @@ export default function Battle({
     audio.playSfx('sfx_summon'); // 召喚叮一聲
   };
 
-  const calcIncomeIncrement = () => 4.8 + 0.1 * (researchLv - 1);
+  const calcIncomeIncrement = () => 4.8 + 0.15 * (researchLv - 1);
 
   const upgradeIncome = () => {
     const w = ensureWorld();
@@ -179,7 +179,7 @@ export default function Battle({
   const fireCannon = () => {
     const w = ensureWorld();
     if (w.state !== 'running' || w.cannonCd > 0) return;
-    const dmg = (58 + (cannonLv - 1) * 10) * (w.cfg.difficulty || 1); const knock = 70;
+    const dmg = (60 + (cannonLv - 1) * 10) * (w.cfg.difficulty || 1); const knock = 60;
     w.units.forEach(u => { if (u.team === -1) { u.hp -= dmg; u.x += knock; } });
     w.cannonCd = 14;
     draw();
