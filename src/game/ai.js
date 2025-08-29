@@ -29,7 +29,7 @@ function computeScale(cfg, world){
   return (cfg.difficulty||1) * stageFactor * timeFactor * spawnFactor;
 }
 
-export function spawnEnemy(world, getCanvasWidth, getCanvasHeight, onEnemySeen, forcedKey, statMultiplier = 100){
+export function spawnEnemy(world, getCanvasWidth, getCanvasHeight, onEnemySeen, forcedKey, statMultiplier = 100, applyScale = true){
   const { cfg } = world;
   const cur = world.units.filter(u=>u.team===-1).length;
   if (cur >= cfg.maxEnemies) return;
@@ -46,13 +46,13 @@ export function spawnEnemy(world, getCanvasWidth, getCanvasHeight, onEnemySeen, 
     key = 'dog';
     if (seq) key = seq[ world.enemyIndex % seq.length ];
     else if (pool) key = pool[ world.enemyIndex % pool.length ];
+    world.enemyIndex = (world.enemyIndex || 0) + 1;
   }
 
-  world.enemyIndex = (world.enemyIndex || 0) + 1;
-  world.totalSpawns = (world.totalSpawns || 0) + 1;
+  if (applyScale) world.totalSpawns = (world.totalSpawns || 0) + 1;
   if (BOSSES[key]) {
     const base = BOSSES[key];
-    const sc = computeScale(cfg, world);
+    const sc = applyScale ? computeScale(cfg, world) : 1;
     const tpl = {
       ...base,
       hp: Math.round(base.hp * sc),
@@ -66,12 +66,12 @@ export function spawnEnemy(world, getCanvasWidth, getCanvasHeight, onEnemySeen, 
   }
 
   const base = ENEMIES[key] || ENEMIES.dog;
-  const sc = computeScale(cfg, world);
+  const sc = applyScale ? computeScale(cfg, world) : 1;
   const tpl = {
     ...base,
     hp: Math.round(base.hp * sc * statMultiplier / 100),
     maxHp: Math.round(base.hp * sc * statMultiplier / 100),
-    attack: Math.round(base.attack * (0.9 + (sc - 1) * 0.5) * statMultiplier / 100) // 無隨機因子
+    attack: Math.round(base.attack * (applyScale ? (0.9 + (sc - 1) * 0.5) : 1) * statMultiplier / 100) // 無隨機因子
   };
 
   world.units.push(makeUnit(-1, rightX - 30, gy - 8, tpl));

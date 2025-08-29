@@ -201,7 +201,7 @@ export default function Battle({
         }
         if (w.time >= entry.time) {
           if (typeof entry.hp === 'number' && w.rightHp > entry.hp) break;
-          spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, entry.type, entry.multiplier ?? 100);
+          spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, entry.type, entry.multiplier ?? 100, false);
           w.nextEnemyIdx += 1;
           continue;
         }
@@ -217,7 +217,7 @@ export default function Battle({
         if (e._spawned == null) e._spawned = 0;
         if (w.time >= e._next && w.time <= end && e._spawned < maxSpawn) {
           if (typeof e.hp !== 'number' || w.rightHp <= e.hp) {
-            spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, e.type, e.multiplier ?? 100);
+            spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, e.type, e.multiplier ?? 100, false);
             e._spawned += 1;
             if (interval && w.time + interval <= end && e._spawned < maxSpawn) {
               e._next = w.time + interval;
