@@ -321,7 +321,11 @@ export default function Battle({
         <Dialog show={['ready', 'paused', 'win', 'lose'].includes(ui.state)}>
           {ui.state === 'ready' && <div className="text-lg font-semibold">戰鬥即將自動開始（亦可按下 1~5 任一鍵或點下方按鈕提前開始）</div>}
           {ui.state === 'paused' && <div className="text-lg font-semibold">已暫停（按 P 繼續）</div>}
-          {ui.state === 'win' && <div className="text-lg font-semibold">🎉 勝利！+120 金幣，已返回大廳</div>}
+          {ui.state === 'win' && (
+            <div className="text-lg font-semibold">
+              🎉 勝利！+{worldRef.current?.cfg.rewardCoins ?? 0} 金幣，已返回大廳
+            </div>
+          )}
           {ui.state === 'lose' && <div className="text-lg font-semibold">😿 戰敗… 試著升級研究力或調整編成</div>}
         </Dialog>
       </div>
