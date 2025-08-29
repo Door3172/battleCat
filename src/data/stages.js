@@ -1,7 +1,8 @@
 // src/data/stages.js
-export const MAX_STAGE = 30;
-
 import { SPAWNS } from './spawns.js';
+
+// 最大關卡數依據 SPAWNS 自動取得
+export const MAX_STAGE = Math.max(0, ...Object.keys(SPAWNS).map(Number));
 export function stageConfig(stage){
   const stageIndex = Math.max(1, stage|0);
   const stageSpawn = SPAWNS[stageIndex];
