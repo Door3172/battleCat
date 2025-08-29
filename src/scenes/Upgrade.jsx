@@ -10,7 +10,8 @@ import { fmt } from '../utils/number.js';
 
 export default function Upgrade({ coins, setCoins, unlocks, catLevels, setCatLevels, researchLv, setResearchLv, cannonLv, setCannonLv, onBack }) {
   const cats = buildCatsTpl(unlocks, catLevels);
-  const entries = Object.entries(catLevels);
+  // 以完整模板列出所有可升級單位，缺少等級資訊時預設為 1 級
+  const entries = Object.keys(cats).map(k => [k, catLevels[k] || 1]);
   const researchCost = upgradeCost(researchLv);
   const canUpgradeResearch = researchLv < 10 && coins >= researchCost;
   const cannonCost = upgradeCost(cannonLv);
