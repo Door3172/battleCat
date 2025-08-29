@@ -5,8 +5,13 @@ import Button from '../ui/Button.jsx';
 import Pill from '../ui/Pill.jsx';
 import { buildCatsTpl } from '../game/world.js';
 
-export default function Lineup({ unlocks, lineup, setLineup, addCatName, onBack }){
+<<<<<<< ours
+export default function Lineup({ unlocks, lineup, catLevels, setLineup, addCatName, onBack }){
+  const tplAll = buildCatsTpl(unlocks, catLevels);
+=======
+export default function Lineup({ unlocks, lineup, setLineup, addCatName, onBack, goShop, goUpgrade }) {
   const tplAll = buildCatsTpl(unlocks);
+>>>>>>> theirs
   const toggle=(key)=>{
     const idx = lineup.indexOf(key);
     let next;
@@ -20,8 +25,13 @@ export default function Lineup({ unlocks, lineup, setLineup, addCatName, onBack 
  };
 
   return (
-    <div className="space-y-3">
-      <HeroBanner title="貓咪大戰爭" subtitle="隊伍編成" right={<Button onClick={onBack}>⬅️ 返回</Button>} />
+    <div className="relative space-y-3">
+      <div className="absolute top-4 right-4 flex gap-2">
+        <Button onClick={onBack}>⬅️ 返回大廳</Button>
+        <Button onClick={goShop}>🛒 商店</Button>
+        <Button onClick={goUpgrade}>⬆️ 升級</Button>
+      </div>
+      <HeroBanner title="貓咪大戰爭" subtitle="隊伍編成" />
       <Card>
         <div className="font-semibold mb-2">可用單位（點擊加入/移除，最多 5 隻）</div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2" aria-label="可用單位列表">

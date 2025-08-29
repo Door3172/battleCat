@@ -6,10 +6,10 @@ import Pill from '../ui/Pill.jsx';
 import { fmt } from '../utils/number.js';
 import { IconCoin } from '../ui/Icons.jsx';
 
-export default function Lobby({ coins, highestUnlocked, goLevel, goLineup, goShop, goCodex, onReset }){
+export default function Lobby({ coins, highestUnlocked, goLevel, goLineup, goShop, goUpgrade, goCodex, onReset }){
   return (
     <div className="space-y-4">
-      <HeroBanner title="貓咪之戰(Beta)" subtitle="致敬貓咪大戰爭 — V5.0介面UI大型優化及腳色大幅度平衡" right={<Pill>最高解鎖 {highestUnlocked}</Pill>} />
+      <HeroBanner title="貓咪之戰(Beta)" subtitle="致敬貓咪大戰爭 — V5.5升級系統!" right={<Pill>最高解鎖 {highestUnlocked}</Pill>} />
       <div className="grid md:grid-cols-3 gap-3">
         <Card>
           <div className="text-slate-600 text-sm">狀態</div>
@@ -18,6 +18,7 @@ export default function Lobby({ coins, highestUnlocked, goLevel, goLineup, goSho
             <Button onClick={goLevel} tone="accent">▶️ 開始遊戲（選關）</Button>
             <Button onClick={goLineup}>🧩 隊伍編成</Button>
             <Button onClick={goShop}>🛒 商店</Button>
+            <Button onClick={goUpgrade}>⬆️ 升級</Button>
             <Button onClick={goCodex}>📚 圖鑑</Button>
             <Button
               onClick={() => {

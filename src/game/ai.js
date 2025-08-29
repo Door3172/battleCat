@@ -142,6 +142,10 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt){
               if(u.maxTargets && hits >= u.maxTargets) break;
             }
           }
+          const baseDist = Math.abs(target.x - enemyBaseX);
+          if(baseDist <= r){
+            if(u.team===1) world.rightHp -= u.atk; else world.leftHp -= u.atk;
+          }
           u.atkCd = u.atkRate;
         }else{
           target.hp -= u.atk;

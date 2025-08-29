@@ -4,13 +4,15 @@ import LevelSelect from './scenes/LevelSelect.jsx';
 import Shop from './scenes/Shop.jsx';
 import Codex from './scenes/Codex.jsx';
 import Lineup from './scenes/Lineup.jsx';
+import Upgrade from './scenes/Upgrade.jsx';
 import Battle from './scenes/Battle.jsx';
+import Upgrade from './scenes/Upgrade.jsx';
 import { useAudio } from './audio/useAudio.js';
 import SettingsDialog from './ui/SettingsDialog.jsx';
 import { IconGear } from './ui/Icons.jsx';
 
 // 本地存檔版本，用於重大更新時清除舊資料
-const SAVE_VERSION = '3';
+const SAVE_VERSION = '4';
 
 // 檢查存檔版本並在不一致時清除
 (function checkSaveVersion() {
@@ -43,6 +45,10 @@ export default function App() {
     const saved = localStorage.getItem('lineup');
     return saved ? JSON.parse(saved) : ['white','tank','archer'];
   });
+  const [catLevels, setCatLevels] = useState(() => {
+    const saved = localStorage.getItem('catLevels');
+    return saved ? JSON.parse(saved) : { white:1, tank:1, archer:1 };
+  });
   const [currentStage, setCurrentStage] = useState(() => {
     const saved = localStorage.getItem('currentStage');
     return saved ? Number(saved) : 1;
@@ -74,6 +80,9 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('lineup', JSON.stringify(lineup));
   }, [lineup]);
+  useEffect(() => {
+    localStorage.setItem('catLevels', JSON.stringify(catLevels));
+  }, [catLevels]);
   useEffect(() => {
     localStorage.setItem('currentStage', String(currentStage));
   }, [currentStage]);
@@ -122,6 +131,7 @@ export default function App() {
     setCodexCats(['白喵','坦喵','射喵']);
     setCodexEnemies([]);
     setLineup(['white','tank','archer']);
+    setCatLevels({ white:1, tank:1, archer:1 });
     setCurrentStage(1);
     setHighestUnlocked(1);
   };
@@ -134,6 +144,7 @@ export default function App() {
         goLevel={()=>setScene('level')}
         goLineup={()=>setScene('lineup')}
         goShop={()=>setScene('shop')}
+        goUpgrade={()=>setScene('upgrade')}
         goCodex={()=>setScene('codex')}
         onReset={handleReset}
       />
@@ -141,36 +152,72 @@ export default function App() {
     level: (
       <LevelSelect
         highestUnlocked={highestUnlocked}
-        onBack={()=>setScene('lobby')}
-        onChoose={(n)=>{ setCurrentStage(n); setScene('battle'); }}
+        onBack={() => setScene('lobby')}
+        onChoose={(n) => { setCurrentStage(n); setScene('battle'); }}
+        goShop={() => setScene('shop')}
+        goUpgrade={() => setScene('upgrade')}
       />
     ),
     shop: (
       <Shop
         coins={coins}
         unlocks={unlocks}
-        onBack={()=>setScene('lobby')}
-        onBuy={(key, item)=>{
+        onBack={() => setScene('lobby')}
+        onBuy={(key, item) => {
           if (coins < item.price || unlocks[key]) return;
+<<<<<<< ours
           setCoins(c=>c-item.price);
           setUnlocks(u=>({...u, [key]:true}));
+          setCatLevels(l=>({...l, [key]:1}));
+=======
+          setCoins(c => c - item.price);
+          setUnlocks(u => ({ ...u, [key]: true }));
+>>>>>>> theirs
           addCatName(item.tpl.name);
         }}
+        goShop={() => setScene('shop')}
+        goUpgrade={() => setScene('upgrade')}
       />
     ),
     codex: (
       <Codex
         cats={codexCats}
         enemies={codexEnemies}
-        onBack={()=>setScene('lobby')}
+        onBack={() => setScene('lobby')}
+        goShop={() => setScene('shop')}
+        goUpgrade={() => setScene('upgrade')}
       />
     ),
     lineup: (
       <Lineup
         unlocks={unlocks}
         lineup={lineup}
+<<<<<<< ours
+        catLevels={catLevels}
         setLineup={(arr)=>{ setLineup(arr); }}
+=======
+        setLineup={(arr) => { setLineup(arr); }}
+>>>>>>> theirs
         addCatName={addCatName}
+        onBack={() => setScene('lobby')}
+        goShop={() => setScene('shop')}
+        goUpgrade={() => setScene('upgrade')}
+      />
+    ),
+    upgrade: (
+      <Upgrade
+        onBack={() => setScene('lobby')}
+        goShop={() => setScene('shop')}
+        goUpgrade={() => setScene('upgrade')}
+      />
+    ),
+    upgrade: (
+      <Upgrade
+        coins={coins}
+        setCoins={setCoins}
+        unlocks={unlocks}
+        catLevels={catLevels}
+        setCatLevels={setCatLevels}
         onBack={()=>setScene('lobby')}
       />
     ),
@@ -184,6 +231,7 @@ export default function App() {
         setHighestUnlocked={setHighestUnlocked}
         lineup={lineup}
         unlocks={unlocks}
+        catLevels={catLevels}
         addEnemyName={addEnemyName}
       />
     ),

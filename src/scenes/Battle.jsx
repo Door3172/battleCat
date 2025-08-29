@@ -17,7 +17,7 @@ import { stageConfig } from '../data/stages.js';
 
 export default function Battle({
   coins, setCoins, currentStage, setScene, highestUnlocked, setHighestUnlocked,
-  lineup, unlocks, addEnemyName
+  lineup, unlocks, catLevels, addEnemyName
 }) {
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
@@ -93,7 +93,7 @@ export default function Battle({
 
   const ensureWorld = () => {
     if (worldRef.current) return worldRef.current;
-    worldRef.current = createWorld(currentStage, unlocks);
+    worldRef.current = createWorld(currentStage, unlocks, catLevels);
     const w = worldRef.current;
     w.state = 'prestart';
     setUi(s => ({

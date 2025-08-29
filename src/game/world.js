@@ -1,8 +1,8 @@
 import { stageConfig } from '../data/stages.js';
 import { BASE_CATS, SHOP_UNLOCKS } from '../data/cats.js';
 
-export function buildCatsTpl(unlocks) {
-  return {
+export function buildCatsTpl(unlocks, catLevels = {}) {
+  const base = {
     ...BASE_CATS,
     ...(unlocks.ninja ? { ninja: SHOP_UNLOCKS.ninja.tpl } : {}),
     ...(unlocks.knight ? { knight: SHOP_UNLOCKS.knight.tpl } : {}),
@@ -14,9 +14,20 @@ export function buildCatsTpl(unlocks) {
     ...(unlocks.jaycat ? { jaycat: SHOP_UNLOCKS.jaycat.tpl } : {}),
     ...(unlocks.jay ? { jay: SHOP_UNLOCKS.jay.tpl } : {}),
   };
+  const out = {};
+  for (const k in base) {
+    const tpl = base[k];
+    const lv = catLevels[k] || 1;
+    out[k] = {
+      ...tpl,
+      hp: tpl.hp + (tpl.hpIncrement || 0) * (lv - 1),
+      attack: tpl.attack + (tpl.atkIncrement || 0) * (lv - 1),
+    };
+  }
+  return out;
 }
 
-export function createWorld(currentStage, unlocks) {
+export function createWorld(currentStage, unlocks, catLevels) {
   const cfg = stageConfig(currentStage);
   return {
     w: 50 + cfg.towerDistance + 50, h: 400,
@@ -29,7 +40,7 @@ export function createWorld(currentStage, unlocks) {
     hudTick: 0, cannonCd: 0,
     enemyClock: cfg.firstDelay,
     nextEnemyIdx: 0,
-    cfg, catsTpl: buildCatsTpl(unlocks),
+    cfg, catsTpl: buildCatsTpl(unlocks, catLevels),
     bossSpawned: false, summonCd: {},
   };
 }
