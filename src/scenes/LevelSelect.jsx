@@ -5,7 +5,7 @@ import Button from '../ui/Button.jsx';
 import { MAX_STAGE } from '../data/stages.js';
 import { useAudio } from '../audio/useAudio.js'; // 👈 加
 
-export default function LevelSelect({ highestUnlocked, onBack, onChoose, goShop, goUpgrade }) {
+export default function LevelSelect({ highestUnlocked, onBack, onChoose }) {
   const audio = useAudio();
 
   useEffect(() => {
@@ -16,8 +16,6 @@ export default function LevelSelect({ highestUnlocked, onBack, onChoose, goShop,
     <div className="relative space-y-3">
       <div className="absolute top-4 right-4 flex gap-2">
         <Button onClick={onBack}>⬅️ 返回大廳</Button>
-        <Button onClick={goShop}>🛒 商店</Button>
-        <Button onClick={goUpgrade}>⬆️ 升級</Button>
       </div>
       <HeroBanner title="貓咪大戰爭" subtitle="選擇關卡" />
       <Card>

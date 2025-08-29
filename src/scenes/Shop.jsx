@@ -7,13 +7,11 @@ import Divider from '../ui/Divider.jsx';
 import { SHOP_UNLOCKS } from '../data/cats.js';
 import { fmt } from '../utils/number.js';
 
-export default function Shop({ coins, unlocks, onBack, onBuy, goShop, goUpgrade }) {
+export default function Shop({ coins, unlocks, onBack, onBuy }) {
   return (
     <div className="relative space-y-3">
       <div className="absolute top-4 right-4 flex gap-2">
         <Button onClick={onBack}>⬅️ 返回大廳</Button>
-        <Button onClick={goShop}>🛒 商店</Button>
-        <Button onClick={goUpgrade}>⬆️ 升級</Button>
       </div>
       <HeroBanner title="貓咪大戰爭" subtitle="商店" right={<span>金幣：<b className="tabular-nums">{fmt(coins)}</b></span>} />
       <div className="grid md:grid-cols-3 gap-3">

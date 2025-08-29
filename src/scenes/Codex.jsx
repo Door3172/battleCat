@@ -4,13 +4,11 @@ import Card from '../ui/Card.jsx';
 import Pill from '../ui/Pill.jsx';
 import Button from '../ui/Button.jsx';
 
-export default function Codex({ cats, enemies, onBack, goShop, goUpgrade }) {
+export default function Codex({ cats, enemies, onBack }) {
   return (
     <div className="relative space-y-3">
       <div className="absolute top-4 right-4 flex gap-2">
         <Button onClick={onBack}>⬅️ 返回大廳</Button>
-        <Button onClick={goShop}>🛒 商店</Button>
-        <Button onClick={goUpgrade}>⬆️ 升級</Button>
       </div>
       <HeroBanner title="貓咪大戰爭" subtitle="圖鑑" />
       <div className="grid md:grid-cols-2 gap-3">

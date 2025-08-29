@@ -48,6 +48,14 @@ export default function App() {
     const saved = localStorage.getItem('catLevels');
     return saved ? JSON.parse(saved) : { white:1, tank:1, archer:1 };
   });
+  const [researchLv, setResearchLv] = useState(() => {
+    const saved = localStorage.getItem('researchLv');
+    return saved ? Number(saved) : 1;
+  });
+  const [cannonLv, setCannonLv] = useState(() => {
+    const saved = localStorage.getItem('cannonLv');
+    return saved ? Number(saved) : 1;
+  });
   const [currentStage, setCurrentStage] = useState(() => {
     const saved = localStorage.getItem('currentStage');
     return saved ? Number(saved) : 1;
@@ -82,6 +90,12 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('catLevels', JSON.stringify(catLevels));
   }, [catLevels]);
+  useEffect(() => {
+    localStorage.setItem('researchLv', String(researchLv));
+  }, [researchLv]);
+  useEffect(() => {
+    localStorage.setItem('cannonLv', String(cannonLv));
+  }, [cannonLv]);
   useEffect(() => {
     localStorage.setItem('currentStage', String(currentStage));
   }, [currentStage]);
@@ -131,6 +145,8 @@ export default function App() {
     setCodexEnemies([]);
     setLineup(['white','tank','archer']);
     setCatLevels({ white:1, tank:1, archer:1 });
+    setResearchLv(1);
+    setCannonLv(1);
     setCurrentStage(1);
     setHighestUnlocked(1);
   };
@@ -153,8 +169,6 @@ export default function App() {
         highestUnlocked={highestUnlocked}
         onBack={() => setScene('lobby')}
         onChoose={(n) => { setCurrentStage(n); setScene('battle'); }}
-        goShop={() => setScene('shop')}
-        goUpgrade={() => setScene('upgrade')}
       />
     ),
     shop: (
@@ -169,8 +183,6 @@ export default function App() {
           setCatLevels(l=>({...l, [key]:1}));
           addCatName(item.tpl.name);
         }}
-        goShop={() => setScene('shop')}
-        goUpgrade={() => setScene('upgrade')}
       />
     ),
     codex: (
@@ -178,8 +190,6 @@ export default function App() {
         cats={codexCats}
         enemies={codexEnemies}
         onBack={() => setScene('lobby')}
-        goShop={() => setScene('shop')}
-        goUpgrade={() => setScene('upgrade')}
       />
     ),
     lineup: (
@@ -190,15 +200,6 @@ export default function App() {
         setLineup={(arr)=>{ setLineup(arr); }}
         addCatName={addCatName}
         onBack={() => setScene('lobby')}
-        goShop={() => setScene('shop')}
-        goUpgrade={() => setScene('upgrade')}
-      />
-    ),
-    upgrade: (
-      <Upgrade
-        onBack={() => setScene('lobby')}
-        goShop={() => setScene('shop')}
-        goUpgrade={() => setScene('upgrade')}
       />
     ),
     upgrade: (
@@ -208,6 +209,10 @@ export default function App() {
         unlocks={unlocks}
         catLevels={catLevels}
         setCatLevels={setCatLevels}
+        researchLv={researchLv}
+        setResearchLv={setResearchLv}
+        cannonLv={cannonLv}
+        setCannonLv={setCannonLv}
         onBack={()=>setScene('lobby')}
       />
     ),
@@ -223,6 +228,8 @@ export default function App() {
         unlocks={unlocks}
         catLevels={catLevels}
         addEnemyName={addEnemyName}
+        researchLv={researchLv}
+        cannonLv={cannonLv}
       />
     ),
   };

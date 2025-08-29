@@ -2,7 +2,6 @@ import React from 'react';
 import HeroBanner from '../ui/HeroBanner.jsx';
 import Card from '../ui/Card.jsx';
 import Button from '../ui/Button.jsx';
-import Pill from '../ui/Pill.jsx';
 import { buildCatsTpl } from '../game/world.js';
 
 export default function Lineup({ unlocks, lineup, catLevels, setLineup, addCatName, onBack }){
@@ -23,8 +22,6 @@ export default function Lineup({ unlocks, lineup, catLevels, setLineup, addCatNa
     <div className="relative space-y-3">
       <div className="absolute top-4 right-4 flex gap-2">
         <Button onClick={onBack}>⬅️ 返回大廳</Button>
-        <Button onClick={goShop}>🛒 商店</Button>
-        <Button onClick={goUpgrade}>⬆️ 升級</Button>
       </div>
       <HeroBanner title="貓咪大戰爭" subtitle="隊伍編成" />
       <Card>

@@ -8,9 +8,13 @@ import { buildCatsTpl } from '../game/world.js';
 import { upgradeCost } from '../data/cats.js';
 import { fmt } from '../utils/number.js';
 
-export default function Upgrade({ coins, setCoins, unlocks, catLevels, setCatLevels, onBack }) {
+export default function Upgrade({ coins, setCoins, unlocks, catLevels, setCatLevels, researchLv, setResearchLv, cannonLv, setCannonLv, onBack }) {
   const cats = buildCatsTpl(unlocks, catLevels);
   const entries = Object.entries(catLevels);
+  const researchCost = upgradeCost(researchLv);
+  const canUpgradeResearch = researchLv < 10 && coins >= researchCost;
+  const cannonCost = upgradeCost(cannonLv);
+  const canUpgradeCannon = cannonLv < 10 && coins >= cannonCost;
   return (
     <div className="relative space-y-3">
       <div className="absolute top-4 right-4 flex gap-2">
@@ -43,6 +47,40 @@ export default function Upgrade({ coins, setCoins, unlocks, catLevels, setCatLev
             </Card>
           );
         })}
+        <Card>
+          <div className="font-semibold">研究力</div>
+          <div className="text-slate-600 text-sm mt-1">Lv.{researchLv} 初始收入 {(10 + 0.6 * (researchLv - 1)).toFixed(1)}</div>
+          <Divider />
+          <div className="flex gap-2 items-center flex-wrap">
+            <Button
+              onClick={() => {
+                if (!canUpgradeResearch) return;
+                setCoins(c => c - researchCost);
+                setResearchLv(l => l + 1);
+              }}
+              disabled={!canUpgradeResearch}
+            >
+              {researchLv >= 10 ? '已滿級' : `升級（${researchCost} 金幣）`}
+            </Button>
+          </div>
+        </Card>
+        <Card>
+          <div className="font-semibold">貓砲攻擊力</div>
+          <div className="text-slate-600 text-sm mt-1">Lv.{cannonLv} ATK {58 + (cannonLv - 1) * 10}</div>
+          <Divider />
+          <div className="flex gap-2 items-center flex-wrap">
+            <Button
+              onClick={() => {
+                if (!canUpgradeCannon) return;
+                setCoins(c => c - cannonCost);
+                setCannonLv(l => l + 1);
+              }}
+              disabled={!canUpgradeCannon}
+            >
+              {cannonLv >= 10 ? '已滿級' : `升級（${cannonCost} 金幣）`}
+            </Button>
+          </div>
+        </Card>
       </div>
     </div>
   );

@@ -17,7 +17,8 @@ import { stageConfig } from '../data/stages.js';
 
 export default function Battle({
   coins, setCoins, currentStage, setScene, highestUnlocked, setHighestUnlocked,
-  lineup, unlocks, catLevels, addEnemyName
+  lineup, unlocks, catLevels, addEnemyName,
+  researchLv, cannonLv
 }) {
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
@@ -93,7 +94,7 @@ export default function Battle({
 
   const ensureWorld = () => {
     if (worldRef.current) return worldRef.current;
-    worldRef.current = createWorld(currentStage, unlocks, catLevels);
+    worldRef.current = createWorld(currentStage, unlocks, catLevels, researchLv, cannonLv);
     const w = worldRef.current;
     w.state = 'prestart';
     setUi(s => ({
@@ -166,14 +167,17 @@ export default function Battle({
     const w = ensureWorld();
     if (w.state !== 'running') return;
     if (w.fish < w.incomeCost) return;
-    w.fish -= w.incomeCost; w.income += 4.8; w.incomeLv += 1; w.incomeCost = Math.round(w.incomeCost * 1.7);
+    w.fish -= w.incomeCost;
+    w.income += 4.8 + 0.1 * (researchLv - 1);
+    w.incomeLv += 1;
+    w.incomeCost = Math.round(w.incomeCost * 1.7);
     setUi(s => ({ ...s, fish: Math.floor(w.fish), incomeLv: w.incomeLv }));
   };
 
   const fireCannon = () => {
     const w = ensureWorld();
     if (w.state !== 'running' || w.cannonCd > 0) return;
-    const dmg = 58 * w.cfg.difficulty; const knock = 70;
+    const dmg = (58 + (cannonLv - 1) * 10) * w.cfg.difficulty; const knock = 70;
     w.units.forEach(u => { if (u.team === -1) { u.hp -= dmg; u.x += knock; } });
     w.cannonCd = 14;
     draw();
