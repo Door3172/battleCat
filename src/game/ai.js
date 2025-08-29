@@ -55,9 +55,9 @@ export function spawnEnemy(world, getCanvasWidth, getCanvasHeight, onEnemySeen, 
     const sc = applyScale ? computeScale(cfg, world) : 1;
     const tpl = {
       ...base,
-      hp: Math.round(base.hp * sc),
-      maxHp: Math.round(base.hp * sc),
-      attack: Math.round(base.attack * (1.0 + (sc - 1) * 0.6))
+      hp: Math.round(base.hp * sc * statMultiplier / 100),
+      maxHp: Math.round(base.hp * sc * statMultiplier / 100),
+      attack: Math.round(base.attack * (1.0 + (sc - 1) * 0.6) * statMultiplier / 100)
     };
     world.units.push(makeUnit(-1, rightX - 30, gy - 8, tpl));
     world.bossSpawned = true;
@@ -92,11 +92,12 @@ export function spawnBossIfNeeded(world, getCanvasWidth, getCanvasHeight, onEnem
   const rightX = leftX + world.cfg.towerDistance;
   const base = BOSSES[cfg.bossKey] || BOSSES.boarKing;
   const sc = computeScale(cfg, world);
+  const mult = cfg.bossMultiplier ?? 100;
   const scaled = {
     ...base,
-    hp: Math.round(base.hp * sc),
-    maxHp: Math.round(base.hp * sc),
-    attack: Math.round(base.attack * (1.0 + (sc - 1) * 0.6))
+    hp: Math.round(base.hp * sc * mult / 100),
+    maxHp: Math.round(base.hp * sc * mult / 100),
+    attack: Math.round(base.attack * (1.0 + (sc - 1) * 0.6) * mult / 100)
   };
   world.units.push(makeUnit(-1, rightX - 30, gy - 8, scaled));
   world.bossSpawned = true;

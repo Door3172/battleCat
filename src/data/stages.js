@@ -34,6 +34,7 @@ export function stageConfig(stage){
   const bossKey = bossCfg?.key ?? bossCfg?.type;
   const bossAt = bossCfg?.time;
   const bossHp = bossCfg?.hp;
+  const bossMultiplier = bossCfg?.multiplier;
 
   return {
     stageIndex,
@@ -44,6 +45,7 @@ export function stageConfig(stage){
     bossKey,
     bossAt,
     bossHp,
+    bossMultiplier,
     rewardCoins,
   };
 }
