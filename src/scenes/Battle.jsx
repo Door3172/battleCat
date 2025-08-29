@@ -167,15 +167,21 @@ export default function Battle({
     spawnBossIfNeeded(w, getWorldWidth, getWorldHeight, addEnemyName);
     if (Array.isArray(w.cfg.schedule)) {
 
-      while (w.nextEnemyIdx < w.cfg.schedule.length && w.time >= w.cfg.schedule[w.nextEnemyIdx].time) {
+      while (w.nextEnemyIdx < w.cfg.schedule.length) {
         const entry = w.cfg.schedule[w.nextEnemyIdx];
-        spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, entry.type, entry.multiplier ?? 100);
-        w.nextEnemyIdx += 1;
+        if (entry.time === undefined) {
+          w.nextEnemyIdx += 1;
+          continue;
+        }
+        if (w.time >= entry.time) {
+          spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, entry.type, entry.multiplier ?? 100);
+          w.nextEnemyIdx += 1;
+          continue;
+        }
+        break;
       }
 
       for (const e of w.cfg.schedule) {
-        // hp 條件（敵方城堡血量）
-        if (typeof e.hp === 'number' && w.rightHp > e.hp) continue;
         const start = e.start ?? e.time ?? 0;
         const end = e.until ?? Infinity;
         const interval = e.interval;
@@ -183,9 +189,10 @@ export default function Battle({
         if (e._next == null) e._next = start;
         if (e._spawned == null) e._spawned = 0;
         if (w.time >= e._next && w.time <= end && e._spawned < maxSpawn) {
-          spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, e.type, e.multiplier ?? 100);
-          e._spawned += 1;
-
+          if (typeof e.hp !== 'number' || w.rightHp <= e.hp) {
+            spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, e.type, e.multiplier ?? 100);
+            e._spawned += 1;
+          }
           if (interval && w.time + interval <= end && e._spawned < maxSpawn) {
             e._next += interval;
           } else {

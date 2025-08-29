@@ -50,6 +50,20 @@ export function spawnEnemy(world, getCanvasWidth, getCanvasHeight, onEnemySeen, 
 
   world.enemyIndex = (world.enemyIndex || 0) + 1;
   world.totalSpawns = (world.totalSpawns || 0) + 1;
+  if (BOSSES[key]) {
+    const base = BOSSES[key];
+    const sc = computeScale(cfg, world);
+    const tpl = {
+      ...base,
+      hp: Math.round(base.hp * sc),
+      maxHp: Math.round(base.hp * sc),
+      attack: Math.round(base.attack * (1.0 + (sc - 1) * 0.6))
+    };
+    world.units.push(makeUnit(-1, rightX - 30, gy - 8, tpl));
+    world.bossSpawned = true;
+    onEnemySeen && onEnemySeen(base.name);
+    return;
+  }
 
   const base = ENEMIES[key] || ENEMIES.dog;
   const sc = computeScale(cfg, world);

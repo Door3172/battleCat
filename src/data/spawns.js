@@ -11,7 +11,7 @@
 //         interval: 8,        // 幾秒生一次（可選）
 //         until: 60,          // 到幾秒為止停止生怪（可選）
 //         hp: 500,            // 敵方城堡血量降到多少時才開始生（可選）
-//         multiplier: 150,    // 數量倍率（百分比），100 為原始值（可選）
+//         multiplier: 150,    // 敵人倍率（百分比），100 為原始值（可選）
 //       },
 //       // ...
 //     ]
@@ -150,7 +150,7 @@ export const SPAWNS = {
       { start: 12, interval: 34, type: 'hippo', multiplier: 100 },
       { time: 45, type: 'alien', multiplier: 105 },
       { time: 1, type: 'boarKing', hp: 1400, multiplier: 100 },
-      { time: 1, interval: 20, type: 'black', hp: 1400, multiplier: 100 },
+      { start: 1, interval: 20, type: 'black', hp: 1400, multiplier: 100 },
       { time: 1, type: 'boar', hp: 1400, multiplier: 100 },
       { time: 1, type: 'boar', hp: 1000, multiplier: 120 },
     ],

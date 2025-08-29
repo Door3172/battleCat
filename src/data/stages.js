@@ -52,7 +52,7 @@ function buildSequence(stage){
 function bossKeyByStage(stage){
   if (stage % 30 === 0) return 'boarKing';
   if (stage % 20 === 0) return 'mechGolem';
-  if (stage % 10 === 0) return 'alienEye';
+  if (stage % 10 === 0) return 'boarKing';
   return 'boarKing'; // fallback
 }
 
@@ -77,6 +77,16 @@ export function stageConfig(stage){
                           spawn,
                           (k, v) => k.startsWith('_') ? undefined : v
                         )));
+  if (Array.isArray(schedule)) {
+    schedule.sort((a, b) => {
+      const ta = typeof a.time === 'number';
+      const tb = typeof b.time === 'number';
+      if (ta && tb) return a.time - b.time;
+      if (ta) return -1;
+      if (tb) return 1;
+      return 0;
+    });
+  }
 
   // BOSS 與固定時間（只有 10/20/30… 才有）
   const isBoss = stageIndex % 10 === 0;
