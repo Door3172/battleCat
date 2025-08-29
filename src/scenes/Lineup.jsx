@@ -5,13 +5,8 @@ import Button from '../ui/Button.jsx';
 import Pill from '../ui/Pill.jsx';
 import { buildCatsTpl } from '../game/world.js';
 
-<<<<<<< ours
 export default function Lineup({ unlocks, lineup, catLevels, setLineup, addCatName, onBack }){
   const tplAll = buildCatsTpl(unlocks, catLevels);
-=======
-export default function Lineup({ unlocks, lineup, setLineup, addCatName, onBack, goShop, goUpgrade }) {
-  const tplAll = buildCatsTpl(unlocks);
->>>>>>> theirs
   const toggle=(key)=>{
     const idx = lineup.indexOf(key);
     let next;
