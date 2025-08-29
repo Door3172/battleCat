@@ -21,6 +21,7 @@ export default function Battle({
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
   const rafRef = useRef(0);
+  const abortedRef = useRef(false);
   const [timeScale, setTimeScale] = useState(1);
   const worldRef = useRef(null);
   const [ui, setUi] = useState({ fish: 0, incomeLv: 1, cannonCd: 0, leftHp: 1000, rightHp: 1000, state: 'ready', time: 0 });
@@ -125,6 +126,17 @@ export default function Battle({
     forceResize(); draw();
   };
 
+  const exitBattle = () => {
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = 0;
+    worldRef.current = null;
+    abortedRef.current = true;
+  };
+
+  useEffect(() => {
+    return () => exitBattle();
+  }, []);
+
   const canSummon = (key) => { const w = ensureWorld(); return (w.summonCd[key] || 0) <= 0; };
   const spawnCat = (key) => {
     const w = ensureWorld();
@@ -221,6 +233,7 @@ export default function Battle({
   };
 
   const awardWin = async () => {
+    if (abortedRef.current) return;
     await audio.fadeOutMusic(300);
     audio.playSfx('sfx_win');
     setCoins(c => c + 120);
@@ -230,6 +243,7 @@ export default function Battle({
   };
 
   const handleLose = async () => {
+    if (abortedRef.current) return;
     await audio.fadeOutMusic(300);
     audio.playSfx('sfx_lose');
     setTimeout(() => setScene('lobby'), 300);
@@ -277,7 +291,7 @@ export default function Battle({
           <Button onClick={fireCannon} disabled={ui.cannonCd > 0 || ui.state !== 'running'} tone="primary">🧨 貓咪砲 {ui.cannonCd > 0 ? `(${ui.cannonCd.toFixed(1)}s)` : ''}</Button>
           <Button onClick={togglePause}>{ui.state === 'paused' ? '▶️ 繼續' : '⏸️ 暫停'}</Button>
           <Button onClick={resetWorld}>🔄 重開</Button>
-          <Button onClick={() => setScene('lobby')}>🏠 返回大廳</Button>
+          <Button onClick={() => { exitBattle(); setScene('lobby'); }}>🏠 返回大廳</Button>
         </div>
       </>
     );
