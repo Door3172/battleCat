@@ -65,6 +65,7 @@ export function drawAll(ctx, world, getCanvasWidth, getCanvasHeight, currentStag
   if(world.state==='win'||world.state==='lose'){
     ctx.save(); ctx.globalAlpha=.75; ctx.fillStyle='#000'; ctx.fillRect(0,0,screenW,screenH); ctx.restore();
     ctx.fillStyle='#fff'; ctx.font='bold 32px ui-sans-serif, system-ui'; ctx.textAlign='center';
-    ctx.fillText(world.state==='win'?'勝利！+120 金幣':'戰敗…', screenW/2, screenH/2); ctx.font='14px ui-sans-serif, system-ui'; ctx.fillText('返回大廳中…', screenW/2, screenH/2+26); ctx.textAlign='left';
+    const winMsg = `勝利！+${world.cfg.rewardCoins} 金幣`;
+    ctx.fillText(world.state==='win'?winMsg:'戰敗…', screenW/2, screenH/2); ctx.font='14px ui-sans-serif, system-ui'; ctx.fillText('返回大廳中…', screenW/2, screenH/2+26); ctx.textAlign='left';
   }
 }

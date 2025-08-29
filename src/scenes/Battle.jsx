@@ -13,6 +13,7 @@ import { spawnEnemy, stepUnits, groundY, makeUnit, spawnBossIfNeeded } from '../
 import { drawAll } from '../game/draw.js';
 import { rand } from '../utils/math.js';
 import { useAudio } from '../audio/useAudio.js';
+import { stageConfig } from '../data/stages.js';
 
 export default function Battle({
   coins, setCoins, currentStage, setScene, highestUnlocked, setHighestUnlocked,
@@ -38,7 +39,9 @@ export default function Battle({
     const vw = Math.max(320, Math.min(1000, el.clientWidth || window.innerWidth));
     const vh = window.innerHeight || 560;
     const targetH = Math.max(180, Math.min(Math.round(vw / 1.9), Math.round(vh * 0.6)));
-    const targetW = Math.round(targetH * 1.9);
+    const cfg = stageConfig(currentStage);
+    const minWidth = cfg.towerDistance + 100;
+    const targetW = Math.max(minWidth, Math.round(targetH * 1.9));
     c.width = Math.floor(targetW * dpr); c.height = Math.floor(targetH * dpr);
     c.style.width = targetW + 'px'; c.style.height = targetH + 'px';
     const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -132,6 +135,11 @@ export default function Battle({
     worldRef.current = null;
     abortedRef.current = true;
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => startGame(), 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     return () => exitBattle();
@@ -237,7 +245,7 @@ export default function Battle({
     if (abortedRef.current) return;
     await audio.fadeOutMusic(300);
     audio.playSfx('sfx_win');
-    setCoins(c => c + 120);
+    setCoins(c => c + worldRef.current.cfg.rewardCoins);
     const next = Math.min(30, Math.max(highestUnlocked, currentStage + 1));
     setHighestUnlocked(next);
     setTimeout(() => setScene('lobby'), 300);
@@ -304,7 +312,7 @@ export default function Battle({
       <div ref={wrapRef} className="relative w-full overflow-hidden">
         <canvas ref={canvasRef} className="rounded-2xl border shadow w-full block mx-auto" />
         <Dialog show={ui.state !== 'running'}>
-          {ui.state === 'ready' && <div className="text-lg font-semibold">按下 1~5 任一鍵或點下方按鈕開始</div>}
+          {ui.state === 'ready' && <div className="text-lg font-semibold">戰鬥即將自動開始（亦可按下 1~5 任一鍵或點下方按鈕提前開始）</div>}
           {ui.state === 'paused' && <div className="text-lg font-semibold">已暫停（按 P 繼續）</div>}
           {ui.state === 'win' && <div className="text-lg font-semibold">🎉 勝利！+120 金幣，已返回大廳</div>}
           {ui.state === 'lose' && <div className="text-lg font-semibold">😿 戰敗… 試著升級研究力或調整編成</div>}

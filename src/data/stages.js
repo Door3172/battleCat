@@ -70,6 +70,7 @@ export function stageConfig(stage){
 
   const enemyBaseHp   = stageSpawn?.enemyBaseHp ?? (1000 + stageIndex * 50);
   const towerDistance = stageSpawn?.towerDistance ?? (800 + stageIndex * 20);
+  const rewardCoins   = stageSpawn?.reward ?? 120;
   const rawSchedule   = Array.isArray(stageSpawn) ? stageSpawn :
                         stageSpawn?.schedule;
   const schedule      = rawSchedule?.map(spawn =>
@@ -109,5 +110,6 @@ export function stageConfig(stage){
     isBoss,
     bossKey,
     bossAt,        // 👈 固定出場時間（秒）
+    rewardCoins,
   };
 }

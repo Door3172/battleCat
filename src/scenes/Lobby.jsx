@@ -19,7 +19,14 @@ export default function Lobby({ coins, highestUnlocked, goLevel, goLineup, goSho
             <Button onClick={goLineup}>🧩 隊伍編成</Button>
             <Button onClick={goShop}>🛒 商店</Button>
             <Button onClick={goCodex}>📚 圖鑑</Button>
-            <Button onClick={onReset} tone="ghost">🗑️ 刪除存檔</Button>
+            <Button
+              onClick={() => {
+                if (window.confirm('確定要刪除所有存檔嗎？此動作無法復原')) onReset();
+              }}
+              tone="ghost"
+            >
+              🗑️ 刪除存檔
+            </Button>
           </div>
         </Card>
         <Card>

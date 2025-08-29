@@ -40,6 +40,7 @@
 export const SPAWNS = {
   1: {
     enemyBaseHp: 500,
+    reward: 120,
     schedule: [
       { start: 10, interval: 15, type: 'dog', multiplier: 100 },
       { start: 30, interval: 40, type: 'dog', multiplier: 100 },
@@ -48,6 +49,7 @@ export const SPAWNS = {
   },
   2: {
     enemyBaseHp: 600,
+    reward: 120,
     schedule: [
       { start: 10, interval: 15, type: 'dog', multiplier: 100 },
       { start: 25, interval: 35, type: 'dog', multiplier: 110 },
@@ -59,6 +61,7 @@ export const SPAWNS = {
   },
   3: {
     enemyBaseHp: 650,
+    reward: 120,
     schedule: [
       { start: 10, interval: 17, type: 'dog', multiplier: 100 },
       { start: 30, interval: 13, type: 'dog', multiplier: 100 },
@@ -68,6 +71,7 @@ export const SPAWNS = {
   },
   4: {
     enemyBaseHp: 650,
+    reward: 120,
     schedule: [
       { start: 11, interval: 18, type: 'dog', multiplier: 100 },
       { start: 30, interval: 12, type: 'dog', multiplier: 110 },
@@ -80,6 +84,7 @@ export const SPAWNS = {
   },
   5: {
     enemyBaseHp: 1000,
+    reward: 120,
     schedule: [
       { start: 8, interval: 9, type: 'dog', multiplier: 110 },
       { start: 16, interval: 17, type: 'red', multiplier: 100 },
@@ -90,6 +95,7 @@ export const SPAWNS = {
   },
   6: {
     enemyBaseHp: 850,
+    reward: 120,
     schedule: [
       { start: 8, interval: 9, type: 'dog', multiplier: 110 },
       { start: 22, interval: 11, type: 'dog', multiplier: 100 },
@@ -106,6 +112,7 @@ export const SPAWNS = {
   },
   7: {
     enemyBaseHp: 1050,
+    reward: 120,
     schedule: [
       { start: 8, interval: 8, type: 'dog', multiplier: 100 },
       { start: 12, interval: 17, type: 'red', multiplier: 100 },
@@ -118,6 +125,7 @@ export const SPAWNS = {
   },
   8: {
     enemyBaseHp: 1000,
+    reward: 120,
     schedule: [
       { start: 10, interval: 18, type: 'red', multiplier: 100 },
       { start: 10, interval: 10, type: 'snake', multiplier: 110 },
@@ -131,6 +139,7 @@ export const SPAWNS = {
   },
   9: {
     enemyBaseHp: 1200,
+    reward: 120,
     schedule: [
       { start: 15, interval: 16, type: 'red', multiplier: 105 },
       { start: 6, interval: 28, type: 'boar', multiplier: 100 },
@@ -142,6 +151,7 @@ export const SPAWNS = {
   },
   10: {
     enemyBaseHp: 1500,
+    reward: 120,
     schedule: [
       { start: 8, interval: 10, type: 'dog', multiplier: 100 },
       { start: 30, interval: 23, type: 'dog', multiplier: 100 },
