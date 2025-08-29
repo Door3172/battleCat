@@ -163,12 +163,14 @@ export default function Battle({
     audio.playSfx('sfx_summon'); // 召喚叮一聲
   };
 
+  const calcIncomeIncrement = () => 4.8 + 0.1 * (researchLv - 1);
+
   const upgradeIncome = () => {
     const w = ensureWorld();
     if (w.state !== 'running') return;
     if (w.fish < w.incomeCost) return;
     w.fish -= w.incomeCost;
-    w.income += 4.8 + 0.1 * (researchLv - 1);
+    w.income += calcIncomeIncrement();
     w.incomeLv += 1;
     w.incomeCost = Math.round(w.incomeCost * 1.7);
     setUi(s => ({ ...s, fish: Math.floor(w.fish), incomeLv: w.incomeLv }));
@@ -339,6 +341,7 @@ export default function Battle({
             leftHp={ui.leftHp}
             rightHp={ui.rightHp}
             incomeCost={ensureWorld().incomeCost}
+            incomeInc={calcIncomeIncrement()}
             onUpgrade={upgradeIncome}
             onSpeed={toggleSpeed}
             speedLabel={`${timeScale}x`}
