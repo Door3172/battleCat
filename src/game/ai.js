@@ -80,8 +80,9 @@ export function spawnEnemy(world, getCanvasWidth, getCanvasHeight, onEnemySeen, 
 
 export function spawnBossIfNeeded(world, getCanvasWidth, getCanvasHeight, onEnemySeen){
   const { cfg } = world;
-  if (!(cfg.isBoss && !world.bossSpawned && typeof cfg.bossAt === 'number')) return;
-  if (world.time < cfg.bossAt) return;
+  if (!(cfg.isBoss && !world.bossSpawned)) return;
+  if (typeof cfg.bossAt === 'number' && world.time < cfg.bossAt) return;
+  if (typeof cfg.bossHp === 'number' && world.rightHp > cfg.bossHp) return;
 
   const cur = world.units.filter(u=>u.team===-1).length;
   if (cur >= cfg.maxEnemies) return;

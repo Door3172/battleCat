@@ -220,7 +220,7 @@ export default function Battle({
             spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, e.type, e.multiplier ?? 100);
             e._spawned += 1;
             if (interval && w.time + interval <= end && e._spawned < maxSpawn) {
-              e._next += interval;
+              e._next = w.time + interval;
             } else if (e._spawned >= maxSpawn || (interval && w.time + interval > end)) {
               e._next = Infinity;
             }

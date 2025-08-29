@@ -153,6 +153,7 @@ export const SPAWNS = {
     enemyBaseHp: 1500,
     towerDistance: 1200,
     reward: 300,
+    boss: { time: 1, key: 'boarKing', hp: 1400 },
     schedule: [
       { time: 6, type: 'black', multiplier: 150 },
       { time: 21, type: 'black', multiplier: 150 },
@@ -162,7 +163,6 @@ export const SPAWNS = {
       { start: 12, interval: 30, type: 'alien', multiplier: 100 },
       { start: 12, interval: 35, type: 'hippo', multiplier: 150 },
       { time: 45, type: 'alien', multiplier: 105 },
-      { time: 1, type: 'boarKing', hp: 1400, multiplier: 100 },
       { start: 1, interval: 20, type: 'black', hp: 1400, multiplier: 100 },
       { time: 1, type: 'boar', hp: 1400, multiplier: 200 },
       { time: 1, type: 'boar', hp: 1000, multiplier: 200 },

@@ -49,13 +49,6 @@ function buildSequence(stage){
   return seq;
 }
 
-function bossKeyByStage(stage){
-  if (stage % 30 === 0) return 'boarKing';
-  if (stage % 20 === 0) return 'mechGolem';
-  if (stage % 10 === 0) return 'boarKing';
-  return 'boarKing'; // fallback
-}
-
 export function stageConfig(stage){
   // 基礎難度與生怪節奏（整體固定，沒有 jitter）
   const stageIndex  = Math.max(1, stage|0);
@@ -89,11 +82,12 @@ export function stageConfig(stage){
     });
   }
 
-  // BOSS 與固定時間（只有 10/20/30… 才有）
-  const isBoss = stageIndex % 10 === 0;
-  const bossKey = isBoss ? bossKeyByStage(stageIndex) : undefined;
-  // 固定出現秒數：越後面稍晚或稍早都可調，這裡先給固定 40s
-  const bossAt = isBoss ? 40 : undefined;
+  // BOSS 自訂設定
+  const bossCfg = stageSpawn?.boss;
+  const isBoss = !!bossCfg;
+  const bossKey = bossCfg?.key ?? bossCfg?.type;
+  const bossAt = bossCfg?.time;
+  const bossHp = bossCfg?.hp;
 
   return {
     stageIndex,
@@ -110,6 +104,7 @@ export function stageConfig(stage){
     isBoss,
     bossKey,
     bossAt,        // 👈 固定出場時間（秒）
+    bossHp,
     rewardCoins,
   };
 }
