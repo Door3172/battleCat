@@ -8,7 +8,7 @@ import { buildCatsTpl } from '../game/world.js';
 import { upgradeCost } from '../data/cats.js';
 import { fmt } from '../utils/number.js';
 
-export default function Upgrade({ coins, setCoins, unlocks, catLevels, setCatLevels, researchLv, setResearchLv, cannonLv, setCannonLv, onBack }) {
+export default function Upgrade({ coins, setCoins, unlocks, catLevels, setCatLevels, researchLv, setResearchLv, cannonLv, setCannonLv, castleLv, setCastleLv, onBack }) {
   const cats = buildCatsTpl(unlocks, catLevels);
   // 以完整模板列出所有可升級單位，缺少等級資訊時預設為 1 級
   const entries = Object.keys(cats).map(k => [k, catLevels[k] || 1]);
@@ -16,6 +16,8 @@ export default function Upgrade({ coins, setCoins, unlocks, catLevels, setCatLev
   const canUpgradeResearch = researchLv < 10 && coins >= researchCost;
   const cannonCost = upgradeCost(cannonLv);
   const canUpgradeCannon = cannonLv < 10 && coins >= cannonCost;
+  const castleCost = upgradeCost(castleLv);
+  const canUpgradeCastle = castleLv < 10 && coins >= castleCost;
   return (
     <div className="relative space-y-3">
       <div className="absolute top-4 right-4 flex gap-2">
@@ -79,6 +81,23 @@ export default function Upgrade({ coins, setCoins, unlocks, catLevels, setCatLev
               disabled={!canUpgradeCannon}
             >
               {cannonLv >= 10 ? '已滿級' : `升級（${cannonCost} 金幣）`}
+            </Button>
+          </div>
+        </Card>
+        <Card>
+          <div className="font-semibold">主堡血量</div>
+          <div className="text-slate-600 text-sm mt-1">Lv.{castleLv} HP {1000 + (castleLv - 1) * 100}</div>
+          <Divider />
+          <div className="flex gap-2 items-center flex-wrap">
+            <Button
+              onClick={() => {
+                if (!canUpgradeCastle) return;
+                setCoins(c => c - castleCost);
+                setCastleLv(l => l + 1);
+              }}
+              disabled={!canUpgradeCastle}
+            >
+              {castleLv >= 10 ? '已滿級' : `升級（${castleCost} 金幣）`}
             </Button>
           </div>
         </Card>

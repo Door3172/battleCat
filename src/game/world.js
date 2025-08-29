@@ -27,13 +27,14 @@ export function buildCatsTpl(unlocks, catLevels = {}) {
   return out;
 }
 
-export function createWorld(currentStage, unlocks, catLevels, researchLv = 1, cannonLv = 1) {
+export function createWorld(currentStage, unlocks, catLevels, researchLv = 1, cannonLv = 1, castleLv = 1) {
   const cfg = stageConfig(currentStage);
+  const baseHp = 1000 + (castleLv - 1) * 100;
   return {
     w: 50 + cfg.towerDistance + 50, h: 400,
     units: [],
-    leftHp: 1000, rightHp: cfg.enemyBaseHp,
-    leftMaxHp: 1000, rightMaxHp: cfg.enemyBaseHp,
+    leftHp: baseHp, rightHp: cfg.enemyBaseHp,
+    leftMaxHp: baseHp, rightMaxHp: cfg.enemyBaseHp,
     towerDistance: cfg.towerDistance,
     fish: 150,
     income: 10.0 + 0.6 * (researchLv - 1),
@@ -41,6 +42,7 @@ export function createWorld(currentStage, unlocks, catLevels, researchLv = 1, ca
     incomeCost: 100,
     researchLv,
     cannonLv,
+    castleLv,
     last: 0, time: 0, state: 'ready',
     hudTick: 0, cannonCd: 0,
     enemyClock: cfg.firstDelay,

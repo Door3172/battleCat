@@ -18,15 +18,16 @@ import { stageConfig } from '../data/stages.js';
 export default function Battle({
   coins, setCoins, currentStage, setScene, highestUnlocked, setHighestUnlocked,
   lineup, unlocks, catLevels, addEnemyName,
-  researchLv, cannonLv
+  researchLv, cannonLv, castleLv
 }) {
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
   const rafRef = useRef(0);
   const abortedRef = useRef(false);
   const [timeScale, setTimeScale] = useState(1);
+  const timeScaleRef = useRef(1);
   const worldRef = useRef(null);
-  const [ui, setUi] = useState({ fish: 0, incomeLv: 1, cannonCd: 0, leftHp: 1000, rightHp: 1000, state: 'prestart', time: 0 });
+  const [ui, setUi] = useState({ fish: 0, incomeLv: 1, cannonCd: 0, leftHp: 1000 + (castleLv - 1) * 100, rightHp: 1000, state: 'prestart', time: 0 });
 
   const audio = useAudio();
 
@@ -90,11 +91,11 @@ export default function Battle({
     };
     document.addEventListener('keydown', onKey, { passive: false });
     return () => document.removeEventListener('keydown', onKey);
-  }, [lineup, timeScale]);
+  }, [lineup]);
 
   const ensureWorld = () => {
     if (worldRef.current) return worldRef.current;
-    worldRef.current = createWorld(currentStage, unlocks, catLevels, researchLv, cannonLv);
+    worldRef.current = createWorld(currentStage, unlocks, catLevels, researchLv, cannonLv, castleLv);
     const w = worldRef.current;
     w.state = 'prestart';
     setUi(s => ({
@@ -122,7 +123,13 @@ export default function Battle({
     if (w.state === 'running') { w.state = 'paused'; setUi(s => ({ ...s, state: 'paused' })); cancelAnimationFrame(rafRef.current); }
     else if (w.state === 'paused') startGame();
   };
-  const toggleSpeed = () => setTimeScale(s => s === 1 ? 2 : 1);
+  const toggleSpeed = () => {
+    setTimeScale(s => {
+      const ns = s === 1 ? 2 : 1;
+      timeScaleRef.current = ns;
+      return ns;
+    });
+  };
   const resetWorld = () => {
     cancelAnimationFrame(rafRef.current);
     worldRef.current = null;
@@ -188,7 +195,7 @@ export default function Battle({
   const loop = (now) => {
     const w = ensureWorld(); if (w.state !== 'running') return;
     const rawDt = Math.min(0.05, (now - w.last) / 1000); w.last = now;
-    const dt = rawDt * timeScale;
+    const dt = rawDt * timeScaleRef.current;
     w.time += dt; w.fish += w.income * dt;
     if (w.cannonCd > 0) w.cannonCd = Math.max(0, w.cannonCd - dt);
     for (const k in w.summonCd) w.summonCd[k] = Math.max(0, (w.summonCd[k] || 0) - dt);

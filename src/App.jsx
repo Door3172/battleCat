@@ -56,6 +56,10 @@ export default function App() {
     const saved = localStorage.getItem('cannonLv');
     return saved ? Number(saved) : 1;
   });
+  const [castleLv, setCastleLv] = useState(() => {
+    const saved = localStorage.getItem('castleLv');
+    return saved ? Number(saved) : 1;
+  });
   const [currentStage, setCurrentStage] = useState(() => {
     const saved = localStorage.getItem('currentStage');
     return saved ? Number(saved) : 1;
@@ -96,6 +100,9 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('cannonLv', String(cannonLv));
   }, [cannonLv]);
+  useEffect(() => {
+    localStorage.setItem('castleLv', String(castleLv));
+  }, [castleLv]);
   useEffect(() => {
     localStorage.setItem('currentStage', String(currentStage));
   }, [currentStage]);
@@ -147,6 +154,7 @@ export default function App() {
     setCatLevels({ white:1, tank:1, archer:1 });
     setResearchLv(1);
     setCannonLv(1);
+    setCastleLv(1);
     setCurrentStage(1);
     setHighestUnlocked(1);
   };
@@ -213,6 +221,8 @@ export default function App() {
         setResearchLv={setResearchLv}
         cannonLv={cannonLv}
         setCannonLv={setCannonLv}
+        castleLv={castleLv}
+        setCastleLv={setCastleLv}
         onBack={()=>setScene('lobby')}
       />
     ),
@@ -230,6 +240,7 @@ export default function App() {
         addEnemyName={addEnemyName}
         researchLv={researchLv}
         cannonLv={cannonLv}
+        castleLv={castleLv}
       />
     ),
   };
