@@ -26,7 +26,8 @@ export function stageConfig(stage){
   }
 
   const enemyBaseHp   = stageSpawn?.enemyBaseHp;
-  const towerDistance = stageSpawn?.towerDistance;
+  // 若未設定 towerDistance，採用預設值避免畫面尺寸計算出現 NaN
+  const towerDistance = stageSpawn?.towerDistance ?? 750;
   const rewardCoins   = stageSpawn?.reward;
 
   // BOSS 自訂設定
