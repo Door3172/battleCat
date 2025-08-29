@@ -40,11 +40,12 @@
 export const SPAWNS = {
   1: {
     enemyBaseHp: 500,
+    towerDistance: 750,
     reward: 120,
     schedule: [
       { start: 10, interval: 15, type: 'dog', multiplier: 100 },
       { start: 30, interval: 40, type: 'dog', multiplier: 100 },
-      { time: 30, type: 'dog', multiplier: 150 },
+      { time: 31, type: 'dog', multiplier: 150 },
     ],
   },
   2: {
@@ -71,7 +72,7 @@ export const SPAWNS = {
   },
   4: {
     enemyBaseHp: 650,
-    reward: 120,
+    reward: 160,
     schedule: [
       { start: 11, interval: 18, type: 'dog', multiplier: 100 },
       { start: 30, interval: 12, type: 'dog', multiplier: 110 },
@@ -84,35 +85,36 @@ export const SPAWNS = {
   },
   5: {
     enemyBaseHp: 1000,
-    reward: 120,
+    towerDistance: 800,
+    reward: 180,
     schedule: [
-      { start: 8, interval: 9, type: 'dog', multiplier: 110 },
-      { start: 16, interval: 17, type: 'red', multiplier: 100 },
-      { start: 11, interval: 14, type: 'snake', multiplier: 100 },
+      { start: 8, interval: 10, type: 'dog', multiplier: 110 },
+      { start: 16, interval: 18, type: 'red', multiplier: 100 },
+      { start: 11, interval: 15, type: 'snake', multiplier: 100 },
       { time: 1, type: 'hippo', multiplier: 100 },
       { time: 37, type: 'red', multiplier: 110 },
     ],
   },
   6: {
     enemyBaseHp: 850,
-    reward: 120,
+    reward: 200,
     schedule: [
-      { start: 8, interval: 9, type: 'dog', multiplier: 110 },
-      { start: 22, interval: 11, type: 'dog', multiplier: 100 },
-      { start: 16, interval: 20, type: 'red', multiplier: 100 },
-      { start: 5, interval: 45, type: 'red', multiplier: 105 },
-      { start: 11, interval: 10, type: 'snake', multiplier: 110 },
-      { start: 6, interval: 19, type: 'snake', multiplier: 100 },
+      { start: 8, interval: 12, type: 'dog', multiplier: 110 },
+      { start: 22, interval: 13, type: 'dog', multiplier: 90 },
+      { start: 16, interval: 23, type: 'red', multiplier: 100 },
+      { start: 5, interval: 47, type: 'red', multiplier: 105 },
+      { start: 11, interval: 12, type: 'snake', multiplier: 110 },
+      { start: 6, interval: 21, type: 'snake', multiplier: 100 },
       { time: 30, type: 'black', multiplier: 100 },
       { time: 30, type: 'black', multiplier: 100 },
-      { time: 130, type: 'black', multiplier: 100 },
+      { time: 130, type: 'black', multiplier: 80 },
       { time: 130, type: 'black', multiplier: 100 },
       { time: 130, type: 'black', multiplier: 100 },
     ],
   },
   7: {
     enemyBaseHp: 1050,
-    reward: 120,
+    reward: 200,
     schedule: [
       { start: 8, interval: 8, type: 'dog', multiplier: 100 },
       { start: 12, interval: 17, type: 'red', multiplier: 100 },
@@ -125,21 +127,19 @@ export const SPAWNS = {
   },
   8: {
     enemyBaseHp: 1000,
-    reward: 120,
+    reward: 220,
     schedule: [
       { start: 10, interval: 18, type: 'red', multiplier: 100 },
       { start: 10, interval: 10, type: 'snake', multiplier: 110 },
       { start: 10, interval: 15, type: 'black', multiplier: 100 },
-      { time: 1, type: 'metal', multiplier: 100 },
-      { time: 100, type: 'metal', multiplier: 100 },
-      { time: 160, type: 'metal', multiplier: 100 },
+      { time: 60, type: 'boar', multiplier: 100 },
       { time: 1, type: 'boar', hp: 600, multiplier: 100 },
-      { time: 1, type: 'boar', hp: 500, multiplier: 100 },
+      { time: 1, type: 'boar', hp: 500, multiplier: 110 },
     ],
   },
   9: {
     enemyBaseHp: 1200,
-    reward: 120,
+    reward: 240,
     schedule: [
       { start: 15, interval: 16, type: 'red', multiplier: 105 },
       { start: 6, interval: 28, type: 'boar', multiplier: 100 },
@@ -151,12 +151,15 @@ export const SPAWNS = {
   },
   10: {
     enemyBaseHp: 1500,
-    reward: 120,
+    towerDistance: 1200,
+    reward: 300,
     schedule: [
-      { start: 8, interval: 10, type: 'dog', multiplier: 100 },
-      { start: 30, interval: 23, type: 'dog', multiplier: 100 },
+      { time: 6, type: 'black', multiplier: 100 },
+      { time: 21, type: 'black', multiplier: 100 },
+      { start: 8, interval: 10, type: 'dog', multiplier: 90 },
+      { start: 30, interval: 24, type: 'dog', multiplier: 100 },
       { start: 32, interval: 28, type: 'red', multiplier: 100 },
-      { start: 12, interval: 28, type: 'alien', multiplier: 100 },
+      { start: 12, interval: 30, type: 'alien', multiplier: 100 },
       { start: 12, interval: 34, type: 'hippo', multiplier: 100 },
       { time: 45, type: 'alien', multiplier: 105 },
       { time: 1, type: 'boarKing', hp: 1400, multiplier: 100 },
