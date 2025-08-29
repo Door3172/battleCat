@@ -179,7 +179,7 @@ export default function Battle({
   const fireCannon = () => {
     const w = ensureWorld();
     if (w.state !== 'running' || w.cannonCd > 0) return;
-    const dmg = (58 + (cannonLv - 1) * 10) * w.cfg.difficulty; const knock = 70;
+    const dmg = (58 + (cannonLv - 1) * 10) * (w.cfg.difficulty || 1); const knock = 70;
     w.units.forEach(u => { if (u.team === -1) { u.hp -= dmg; u.x += knock; } });
     w.cannonCd = 14;
     draw();

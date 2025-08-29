@@ -19,7 +19,7 @@ export function makeUnit(team, x, y, tpl){
   };
 }
 
-const killBounty = (tpl,cfg)=> Math.round((tpl.bounty||12)*(0.9+Math.random()*0.2)*(0.8+cfg.difficulty*0.1));
+const killBounty = (tpl,cfg)=> Math.round((tpl.bounty||12)*(0.9+Math.random()*0.2)*(0.8+(cfg.difficulty||1)*0.1));
 
 function computeScale(cfg, world){
   const stageFactor = 1 + Math.max(0, (cfg.stageIndex||1) - 1) * 0.08; // 每關 +8%
