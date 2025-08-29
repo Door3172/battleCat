@@ -25,7 +25,7 @@ export default function Battle({
   const abortedRef = useRef(false);
   const [timeScale, setTimeScale] = useState(1);
   const worldRef = useRef(null);
-  const [ui, setUi] = useState({ fish: 0, incomeLv: 1, cannonCd: 0, leftHp: 1000, rightHp: 1000, state: 'ready', time: 0 });
+  const [ui, setUi] = useState({ fish: 0, incomeLv: 1, cannonCd: 0, leftHp: 1000, rightHp: 1000, state: 'prestart', time: 0 });
 
   const audio = useAudio();
 
@@ -36,7 +36,7 @@ export default function Battle({
   const forceResize = () => {
     const el = wrapRef.current, c = canvasRef.current; if (!el || !c) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const vw = Math.max(320, Math.min(1000, el.clientWidth || window.innerWidth));
+    const vw = Math.max(320, el.clientWidth || window.innerWidth);
     const vh = window.innerHeight || 560;
     const targetH = Math.max(180, Math.min(Math.round(vw / 1.9), Math.round(vh * 0.6)));
     const cfg = stageConfig(currentStage);
@@ -71,7 +71,7 @@ export default function Battle({
       if (e.repeat) return;
       if (e.code === 'Space') e.preventDefault();
       const G = ensureWorld();
-      if (G.state === 'ready') startGame();
+      if (G.state === 'ready' || G.state === 'prestart') startGame();
       const keys = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5'];
       if (keys.includes(e.code)) {
         const idx = keys.indexOf(e.code);
@@ -95,6 +95,7 @@ export default function Battle({
     if (worldRef.current) return worldRef.current;
     worldRef.current = createWorld(currentStage, unlocks);
     const w = worldRef.current;
+    w.state = 'prestart';
     setUi(s => ({
       ...s,
       fish: Math.floor(w.fish),
@@ -102,7 +103,7 @@ export default function Battle({
       leftHp: w.leftHp,
       rightHp: w.rightHp,
       cannonCd: 0,
-      state: 'ready',
+      state: 'prestart',
       time: 0
     }));
     return w;
@@ -125,6 +126,7 @@ export default function Battle({
     cancelAnimationFrame(rafRef.current);
     worldRef.current = null;
     const w = ensureWorld();
+    w.state = 'ready';
     setUi({ fish: w.fish, incomeLv: w.incomeLv, cannonCd: 0, leftHp: w.leftHp, rightHp: w.rightHp, state: 'ready', time: 0 });
     forceResize(); draw();
   };
@@ -148,7 +150,7 @@ export default function Battle({
   const canSummon = (key) => { const w = ensureWorld(); return (w.summonCd[key] || 0) <= 0; };
   const spawnCat = (key) => {
     const w = ensureWorld();
-    if (w.state === 'ready') startGame();
+    if (w.state === 'ready' || w.state === 'prestart') startGame();
     if (w.state !== 'running') return;
     const tpl = w.catsTpl[key]; if (!tpl) return;
     if (!canSummon(key)) return;
@@ -311,7 +313,8 @@ export default function Battle({
       <HeroBanner title="貓咪大戰爭" subtitle="1~5 召喚、Space 大砲、X 1x/2x、P 暫停、R 重開" />
       <div ref={wrapRef} className="relative w-full overflow-hidden">
         <canvas ref={canvasRef} className="rounded-2xl border shadow w-full block mx-auto" />
-        <Dialog show={ui.state !== 'running'}>
+        {ui.state === 'prestart' && <div className="fixed inset-0 bg-black/50 pointer-events-none" />}
+        <Dialog show={['ready', 'paused', 'win', 'lose'].includes(ui.state)}>
           {ui.state === 'ready' && <div className="text-lg font-semibold">戰鬥即將自動開始（亦可按下 1~5 任一鍵或點下方按鈕提前開始）</div>}
           {ui.state === 'paused' && <div className="text-lg font-semibold">已暫停（按 P 繼續）</div>}
           {ui.state === 'win' && <div className="text-lg font-semibold">🎉 勝利！+120 金幣，已返回大廳</div>}
