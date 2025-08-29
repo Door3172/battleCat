@@ -6,7 +6,6 @@ import Codex from './scenes/Codex.jsx';
 import Lineup from './scenes/Lineup.jsx';
 import Upgrade from './scenes/Upgrade.jsx';
 import Battle from './scenes/Battle.jsx';
-import Upgrade from './scenes/Upgrade.jsx';
 import { useAudio } from './audio/useAudio.js';
 import SettingsDialog from './ui/SettingsDialog.jsx';
 import { IconGear } from './ui/Icons.jsx';
