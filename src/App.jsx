@@ -165,14 +165,9 @@ export default function App() {
         onBack={() => setScene('lobby')}
         onBuy={(key, item) => {
           if (coins < item.price || unlocks[key]) return;
-<<<<<<< ours
           setCoins(c=>c-item.price);
           setUnlocks(u=>({...u, [key]:true}));
           setCatLevels(l=>({...l, [key]:1}));
-=======
-          setCoins(c => c - item.price);
-          setUnlocks(u => ({ ...u, [key]: true }));
->>>>>>> theirs
           addCatName(item.tpl.name);
         }}
         goShop={() => setScene('shop')}
@@ -192,12 +187,8 @@ export default function App() {
       <Lineup
         unlocks={unlocks}
         lineup={lineup}
-<<<<<<< ours
         catLevels={catLevels}
         setLineup={(arr)=>{ setLineup(arr); }}
-=======
-        setLineup={(arr) => { setLineup(arr); }}
->>>>>>> theirs
         addCatName={addCatName}
         onBack={() => setScene('lobby')}
         goShop={() => setScene('shop')}
