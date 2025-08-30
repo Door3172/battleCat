@@ -115,13 +115,20 @@ export default function Battle({
     const w = ensureWorld();
     if (w.state === 'running') return;
     w.state = 'running'; w.last = performance.now();
-    cancelAnimationFrame(rafRef.current); rafRef.current = requestAnimationFrame(loop);
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(loop);
     setUi(s => ({ ...s, state: 'running' }));
   };
   const togglePause = () => {
     const w = ensureWorld();
-    if (w.state === 'running') { w.state = 'paused'; setUi(s => ({ ...s, state: 'paused' })); cancelAnimationFrame(rafRef.current); }
-    else if (w.state === 'paused') startGame();
+    if (w.state === 'running') {
+      w.state = 'paused';
+      setUi(s => ({ ...s, state: 'paused' }));
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = 0;
+      }
+    } else if (w.state === 'paused') startGame();
   };
   const toggleSpeed = () => {
     setTimeScale(s => {
@@ -131,7 +138,10 @@ export default function Battle({
     });
   };
   const resetWorld = () => {
-    cancelAnimationFrame(rafRef.current);
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+    }
     worldRef.current = null;
     const w = ensureWorld();
     w.state = 'ready';
@@ -140,8 +150,10 @@ export default function Battle({
   };
 
   const exitBattle = () => {
-    cancelAnimationFrame(rafRef.current);
-    rafRef.current = 0;
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+    }
     worldRef.current = null;
     abortedRef.current = true;
   };
@@ -253,7 +265,10 @@ export default function Battle({
       setUi({ fish: Math.floor(w.fish), incomeLv: w.incomeLv, cannonCd: w.cannonCd, leftHp: Math.max(0, Math.floor(w.leftHp)), rightHp: Math.max(0, Math.floor(w.rightHp)), state: w.state, time: w.time });
     }
     draw();
-    if (w.state === 'running') rafRef.current = requestAnimationFrame(loop);
+    if (w.state === 'running') {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(loop);
+    }
   };
 
   const awardWin = async () => {
