@@ -129,33 +129,6 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt){
 
     u.atkCd -= dt;
     const dist = target ? Math.abs(target.x-u.x) : Infinity;
-<<<<<<< ours
-    const inRange = target && dist <= u.range + BODY_W*0.4 && dist >= (u.aoeMinRadius ?? 0);
-
-    if(u.atkCd<=0){
-      if(inRange){
-        if(u.aoe){
-          const rMax = (u.aoeRadius ?? u.range) + BODY_W*0.4;
-          const rMin = u.aoeMinRadius ?? 0;
-          let hits = 0;
-          const baseInRange = distBase <= rMax && distBase >= rMin;
-          for(let k=0;k<world.units.length;k++){
-            const t = world.units[k];
-            if(t.hp<=0 || t.team===u.team) continue;
-            const distToAttacker = Math.abs(t.x - u.x);
-            if(distToAttacker <= rMax && distToAttacker >= rMin){
-              t.hp -= u.atk;
-              hits++;
-              if(u.maxTargets && hits >= u.maxTargets) break;
-            }
-          }
-          if(baseInRange && (!u.maxTargets || hits < u.maxTargets)){
-            if(u.team===1) world.rightHp -= u.atk; else world.leftHp -= u.atk;
-            hits++;
-          }
-          u.atkCd = u.atkRate;
-        }else{
-=======
     const triggerRange = u.range + BODY_W*0.4;
     const trigger = (target && dist <= triggerRange && dist >= (u.aoeMinRadius ?? 0)) ||
                     (distBase <= triggerRange && distBase >= (u.aoeMinRadius ?? 0));
@@ -182,7 +155,6 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt){
         if(hits>0) u.atkCd = u.atkRate;
       }else{
         if(target && dist <= triggerRange && dist >= (u.aoeMinRadius ?? 0)){
->>>>>>> theirs
           target.hp -= u.atk;
         }else{
           if(u.team===1) world.rightHp -= u.atk; else world.leftHp -= u.atk;
