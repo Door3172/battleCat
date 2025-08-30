@@ -11,7 +11,7 @@ export const BASE_CATS = {
 export const SHOP_UNLOCKS = {
   ninja: { name: '忍者喵', price: 120, tpl: { name: '忍者喵', cost: 135, hp: 280, speed: 90, attack: 9, range: 30, atkRate: 0.4, color: '#fde68a', cd: 2.7, aoe: false, hpIncrement: 28, atkIncrement: 2 } },
   knight: { name: '騎士喵', price: 300, tpl: { name: '騎士喵', cost: 250, hp: 950, speed: 85, attack: 110, range: 40, atkRate: 5, color: '#fda4af', cd: 5.0, aoe: true, aoeRadius: 60, maxTargets: 3, hpIncrement: 40, atkIncrement: 25 } },
-  mage: { name: '法師喵', price: 390, tpl: { name: '法師喵', cost: 260, hp: 70, speed: 45, attack: 105, range: 100, atkRate: 2.4, color: '#c4b5fd', cd: 5.0, aoe: true, aoeRadius: 100, hpIncrement: 5, atkIncrement: 10 } },
+  mage: { name: '法師喵', price: 390, tpl: { name: '法師喵', cost: 260, hp: 70, speed: 45, attack: 105, range: 100, atkRate: 2.4, color: '#c4b5fd', cd: 5.0, aoe: true, aoeRadius: 120, aoeMinRadius: 80, hpIncrement: 5, atkIncrement: 10 } },
   samurai: { name: '武士喵', price: 360, tpl: { name: '武士喵', cost: 265, hp: 540, speed: 25, attack: 30, range: 26, atkRate: 0.6, color: '#94a3b8', cd: 5.4, aoe: false, hpIncrement: 40, atkIncrement: 4 } },
   sumo: { name: '相撲喵', price: 300, tpl: { name: '相撲喵', cost: 205, hp: 1250, speed: 36, attack: 1, range: 20, atkRate: 0.1, color: '#fecaca', cd: 3.3, aoe: true, aoeRadius: 20, maxTargets: 2, hpIncrement: 125, atkIncrement: 0.5 } },
   viking: { name: '維京喵', price: 400, tpl: { name: '維京喵', cost: 300, hp: 300, speed: 45, attack: 130, range: 24, atkRate: 1.0, color: '#bfdbfe', cd: 6.0, aoe: true, aoeRadius: 24, maxTargets: 3, hpIncrement: 25, atkIncrement: 15 } },

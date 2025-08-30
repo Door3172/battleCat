@@ -15,6 +15,7 @@ export function makeUnit(team, x, y, tpl){
     color: tpl.color, name: tpl.name, bounty: tpl.bounty||0,
     aoe: !!tpl.aoe,
     aoeRadius: tpl.aoeRadius ?? undefined,
+    aoeMinRadius: tpl.aoeMinRadius ?? 0,
     maxTargets: tpl.maxTargets ?? undefined,
   };
 }
@@ -120,34 +121,33 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt){
       const v = world.units[j];
       if(v.hp<=0||v.team===u.team) continue;
       const d=Math.abs(v.x-u.x);
-      if(d<best){best=d; target=v;}
+      if(d<best && d>=(u.aoeMinRadius ?? 0)){best=d; target=v;}
     }
 
     const enemyBaseX = u.team===1? rightX : leftX;
     const distBase = Math.abs(enemyBaseX-u.x);
 
     u.atkCd -= dt;
-    const inRange = target && Math.abs(target.x-u.x) <= u.range + BODY_W*0.4;
+    const dist = target ? Math.abs(target.x-u.x) : Infinity;
+    const inRange = target && dist <= u.range + BODY_W*0.4 && dist >= (u.aoeMinRadius ?? 0);
 
     if(u.atkCd<=0){
       if(inRange){
         if(u.aoe){
-          const r = (u.aoeRadius ?? u.range) + BODY_W*0.4;
-          const rr = u.range + BODY_W*0.4;
+          const rMax = (u.aoeRadius ?? u.range) + BODY_W*0.4;
+          const rMin = u.aoeMinRadius ?? 0;
           let hits = 0;
           for(let k=0;k<world.units.length;k++){
             const t = world.units[k];
             if(t.hp<=0 || t.team===u.team) continue;
-            const distToTarget = Math.abs(t.x - target.x);
             const distToAttacker = Math.abs(t.x - u.x);
-            if(distToTarget <= r && distToAttacker <= rr){
+            if(distToAttacker <= rMax && distToAttacker >= rMin){
               t.hp -= u.atk;
               hits++;
               if(u.maxTargets && hits >= u.maxTargets) break;
             }
           }
-          const baseDistCenter = Math.abs(target.x - enemyBaseX);
-          if(distBase <= rr && baseDistCenter <= r){
+          if(distBase <= rMax && distBase >= rMin){
             if(u.team===1) world.rightHp -= u.atk; else world.leftHp -= u.atk;
           }
           u.atkCd = u.atkRate;
@@ -155,7 +155,7 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt){
           target.hp -= u.atk;
           u.atkCd = u.atkRate;
         }
-      }else if(distBase<=u.range+BODY_W*0.4){
+      }else if(distBase<=u.range+BODY_W*0.4 && distBase >= (u.aoeMinRadius ?? 0)){
         if(u.team===1) world.rightHp -= u.atk; else world.leftHp -= u.atk;
         u.atkCd = u.atkRate;
       }
@@ -165,7 +165,7 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt){
     let move = u.speed*dt*(u.team===1?1:-1);
     if(target){
       const d=Math.abs(target.x-u.x);
-      const stop=d<=u.range*0.98;
+      const stop=d<=u.range*0.98 && d>=(u.aoeMinRadius ?? 0);
       if(stop) move=0;
       if(d<BODY_W*0.9) move=0;
     }
