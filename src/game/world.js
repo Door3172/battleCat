@@ -13,6 +13,7 @@ export function buildCatsTpl(unlocks, catLevels = {}) {
     ...(unlocks.cow ? { cow: SHOP_UNLOCKS.cow.tpl } : {}),
     ...(unlocks.jaycat ? { jaycat: SHOP_UNLOCKS.jaycat.tpl } : {}),
     ...(unlocks.jay ? { jay: SHOP_UNLOCKS.jay.tpl } : {}),
+    ...(unlocks.void ? { void: SHOP_UNLOCKS.void.tpl } : {}),
   };
   const out = {};
   for (const k in base) {
