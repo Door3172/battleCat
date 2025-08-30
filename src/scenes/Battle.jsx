@@ -222,7 +222,11 @@ export default function Battle({
         }
         if (w.time >= entry.time) {
           if (typeof entry.hp === 'number' && w.rightHp > entry.hp) break;
+          // 單次時間生成的敵人若在上方 while 產生
+          // 需要標記已生成，避免下方循環再次生成
           spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, entry.type, entry.multiplier ?? 100, false);
+          entry._spawned = (entry._spawned || 0) + 1;
+          entry._next = Infinity;
           w.nextEnemyIdx += 1;
           continue;
         }
