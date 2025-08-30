@@ -133,19 +133,21 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt){
       if(inRange){
         if(u.aoe){
           const r = (u.aoeRadius ?? u.range) + BODY_W*0.4;
+          const rr = u.range + BODY_W*0.4;
           let hits = 0;
           for(let k=0;k<world.units.length;k++){
             const t = world.units[k];
             if(t.hp<=0 || t.team===u.team) continue;
-            const d = Math.abs(t.x - target.x);
-            if(d <= r){
+            const distToTarget = Math.abs(t.x - target.x);
+            const distToAttacker = Math.abs(t.x - u.x);
+            if(distToTarget <= r && distToAttacker <= rr){
               t.hp -= u.atk;
               hits++;
               if(u.maxTargets && hits >= u.maxTargets) break;
             }
           }
-          const baseDist = Math.abs(target.x - enemyBaseX);
-          if(baseDist <= r){
+          const baseDistCenter = Math.abs(target.x - enemyBaseX);
+          if(distBase <= rr && baseDistCenter <= r){
             if(u.team===1) world.rightHp -= u.atk; else world.leftHp -= u.atk;
           }
           u.atkCd = u.atkRate;
