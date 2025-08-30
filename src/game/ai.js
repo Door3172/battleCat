@@ -110,6 +110,15 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt){
   const rightX = leftX + world.cfg.towerDistance;
   let bounty = 0;
 
+  function damageTower(attacker) {
+    const key = attacker.team === 1 ? 'rightHp' : 'leftHp';
+    const before = world[key];
+    world[key] = before - attacker.atk;
+    if (world.debug || (typeof process !== 'undefined' && process.env.DEBUG_TOWER)) {
+      console.log(`${attacker.name}@${attacker.x} ${key}: ${before} -> ${world[key]}`);
+    }
+  }
+
   for(let i=0;i<world.units.length;i++){
     const u = world.units[i];
     if(u.hp<=0) continue;
@@ -149,7 +158,7 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt){
           }
         }
         if(distBase <= rMax && distBase >= rMin && (!u.maxTargets || hits < u.maxTargets)){
-          if(u.team===1) world.rightHp -= u.atk; else world.leftHp -= u.atk;
+          damageTower(u);
           hits++;
         }
         if(hits>0) u.atkCd = u.atkRate;
@@ -157,7 +166,7 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt){
         if(target && dist <= triggerRange && dist >= (u.aoeMinRadius ?? 0)){
           target.hp -= u.atk;
         }else{
-          if(u.team===1) world.rightHp -= u.atk; else world.leftHp -= u.atk;
+          damageTower(u);
         }
         u.atkCd = u.atkRate;
       }
