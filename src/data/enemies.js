@@ -9,7 +9,7 @@ export const ENEMIES = {
   metal: { name: '金屬怪', hp: 40, speed: 40, attack: 33, range: 18, atkRate: 2, color: '#64748b', bounty: 100, aoe: false },
   elephant: { name: '大象', hp: 1200, speed: 12, attack: 200, range: 110, atkRate: 4.5, color: '#606469ff', bounty: 500, aoe: true, aoeRadius: 110 },
   snail: { name: '蝸牛', hp: 1600, speed: 7, attack: 15, range: 15, atkRate: 4, color: '#ba917dff', bounty: 160, aoe: true, aoeRadius: 30 },
-  bull: { name: '公牛', hp: 900, speed: 105, attack: 280, range: 20, atkRate: 8, color: '#c25017ff', bounty: 450, aoe: true, aoeRadius: 55},
+  bull: { name: '公牛', hp: 900, speed: 105, attack: 280, range: 20, atkRate: 8, color: '#c25017ff', bounty: 450, aoe: true, aoeRadius: 20},
 };
 
 export const BOSSES = {
