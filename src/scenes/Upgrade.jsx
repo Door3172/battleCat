@@ -52,7 +52,7 @@ export default function Upgrade({ coins, setCoins, unlocks, catLevels, setCatLev
         })}
         <Card>
           <div className="font-semibold">研究力</div>
-          <div className="text-slate-600 text-sm mt-1">Lv.{researchLv} 初始收入 {(10 + 0.6 * (researchLv - 1)).toFixed(1)}</div>
+          <div className="text-slate-600 text-sm mt-1">Lv.{researchLv} 初始收入 {(7.5 + 4.5 * (researchLv - 1)).toFixed(1)}</div>
           <Divider />
           <div className="flex gap-2 items-center flex-wrap">
             <Button
@@ -69,7 +69,7 @@ export default function Upgrade({ coins, setCoins, unlocks, catLevels, setCatLev
         </Card>
         <Card>
           <div className="font-semibold">貓砲攻擊力</div>
-          <div className="text-slate-600 text-sm mt-1">Lv.{cannonLv} ATK {58 + (cannonLv - 1) * 10}</div>
+          <div className="text-slate-600 text-sm mt-1">Lv.{cannonLv} ATK {60 + (cannonLv - 1) * 10}</div>
           <Divider />
           <div className="flex gap-2 items-center flex-wrap">
             <Button

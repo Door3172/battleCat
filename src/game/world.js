@@ -37,7 +37,7 @@ export function createWorld(currentStage, unlocks, catLevels, researchLv = 1, ca
     leftMaxHp: baseHp, rightMaxHp: cfg.enemyBaseHp,
     towerDistance: cfg.towerDistance,
     fish: 150,
-    income: 10.0 + 0.6 * (researchLv - 1),
+    income: 7.5 + 4.5 * (researchLv - 1),
     incomeLv: 1,
     incomeCost: 100,
     researchLv,

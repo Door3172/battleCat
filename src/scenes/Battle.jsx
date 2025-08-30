@@ -170,7 +170,7 @@ export default function Battle({
     audio.playSfx('sfx_summon'); // 召喚叮一聲
   };
 
-  const calcIncomeIncrement = () => 4.8 + 0.15 * (researchLv - 1);
+  const calcIncomeIncrement = () => 3 + 1.5 * (researchLv - 1);
 
   const upgradeIncome = () => {
     const w = ensureWorld();
@@ -179,7 +179,7 @@ export default function Battle({
     w.fish -= w.incomeCost;
     w.income += calcIncomeIncrement();
     w.incomeLv += 1;
-    w.incomeCost = Math.round(w.incomeCost * 1.7);
+    w.incomeCost = Math.round(w.incomeCost + 100 * (w.incomeLv - 1));
     setUi(s => ({ ...s, fish: Math.floor(w.fish), incomeLv: w.incomeLv }));
   };
 
