@@ -18,7 +18,7 @@ export const ENEMIES = {
   hermitCrab: { name: '寄居蟹', hp: 750, speed: 15, attack: 90, range: 30, atkRate: 3, color: '#e1ac62ff', bounty: 200, aoe: true, aoeRadius: 30, maxTargets: 3, abilities: { shield: { interval: 45, amount: 500 } } },
   babySquid: { name: '小墨魚', hp: 190, speed: 25, attack: 110, range: 85, atkRate: 2.2, color: '#ba4e55ff', bounty: 80, aoe: true, aoeRadius: 85, maxTargets: 3, abilities: { slow: { chance: 0.4, duration: 0.9, factor: 0.7 } } },
   octopusling: { name: '小章魚', hp: 330, speed: 42, attack: 42, range: 45, atkRate: 1.7, color: '#ce3757ff', bounty: 100, aoe: true, aoeRadius: 45, maxTargets: 5, abilities: { revive: { chance: 0.5, percent: 0.1 } } },
-  dolphin: { name: '海豚', hp: 850, speed: 140, attack: 90, range: 45, atkRate: 3.0, color: '#91c4cdc4', bounty: 300, aoe: true, aoeRadius: 85, aoeMinRadius: 40, maxTargets: 3, abilities: { knockback: { chance: 0.6, distance: 15 } } },
+  dolphin: { name: '海豚', hp: 850, speed: 100, attack: 90, range: 45, atkRate: 3.0, color: '#91c4cdc4', bounty: 300, aoe: true, aoeRadius: 85, aoeMinRadius: 40, maxTargets: 3, abilities: { knockback: { chance: 0.6, distance: 15 } } },
   spermWhale: { name: '抹香鯨', hp: 5000, speed: 13, attack: 850, range: 20, atkRate: 7.2, color: '#64e4dcc4', bounty: 2500, aoe: true, aoeRadius: 20, abilities: { slowImmune: true, knockbackImmune: true } },
   colossalLobster: { name: '巨龍蝦', hp: 1350, speed: 18, attack: 175, range: 55, atkRate: 2.7, color: '#fb3f1ac4', bounty: 800, aoe: true, aoeRadius: 55, maxTargets: 2, abilities: { shield: { interval: 120, amount: 300 } } },
 };
