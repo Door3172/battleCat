@@ -13,7 +13,7 @@ import { IconGear } from './ui/Icons.jsx';
 import { getMaxStage } from './data/stages.js';
 
 // 本地存檔版本，用於重大更新時清除舊資料
-const SAVE_VERSION = '3';
+const SAVE_VERSION = '1';
 
 // 檢查存檔版本並在不一致時清除
 (function checkSaveVersion() {

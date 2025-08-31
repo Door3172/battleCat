@@ -14,6 +14,7 @@ export function buildCatsTpl(unlocks, catLevels = {}) {
     ...(unlocks.jaycat ? { jaycat: SHOP_UNLOCKS.jaycat.tpl } : {}),
     ...(unlocks.jay ? { jay: SHOP_UNLOCKS.jay.tpl } : {}),
     ...(unlocks.void ? { void: SHOP_UNLOCKS.void.tpl } : {}),
+    ...(unlocks.azurePhantom ? { azurePhantom: SHOP_UNLOCKS.azurePhantom.tpl } : {}),
   };
   const out = {};
   for (const k in base) {

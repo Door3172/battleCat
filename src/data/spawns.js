@@ -150,7 +150,7 @@ export const SPAWNS = {
     ],
   },
   10: {
-    enemyBaseHp: 1500,
+    enemyBaseHp: 2300,
     towerDistance: 1000,
     reward: 400,
     boss: { time: 1, key: 'boarKing', hp: 1400 },
@@ -228,7 +228,7 @@ export const SPAWNS = {
     ],
   },
   15: {
-    enemyBaseHp: 2000,
+    enemyBaseHp: 3000,
     towerDistance: 900,
     reward: 660,
     boss: { time: 45, key: 'alienEye' },
@@ -298,7 +298,7 @@ export const SPAWNS = {
     ],
   },
   20: {
-    enemyBaseHp: 3000,
+    enemyBaseHp: 3200,
     towerDistance: 850,
     reward: 840,
     boss: { time: 3, key: 'mechGolem' },

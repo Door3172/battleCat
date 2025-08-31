@@ -20,6 +20,7 @@ export const SHOP_UNLOCKS = {
   jaycat: { name: '禁節貓娘', price: 520, tpl: { name: '禁節貓娘', cost: 50, hp: 1, speed: 45, attack: 1, range: 35, atkRate: 0.01, color: '#eb52c7ff', cd: 18.0, aoe: true, aoeRadius: 30, maxTargets: 3, hpIncrement: 0, atkIncrement: 1 } },//-
   jay: { name: '禁節喵', price: 520, tpl: { name: '禁節喵', cost: 900, hp: 1, speed: 90, attack: 999, range: 25, atkRate: 10, color: '#f094e9ff', cd: 45.0, aoe: false, hpIncrement: 0, atkIncrement: 199 } },
   void: { name: '虛空秘典喵', price: 1200, tpl: { name: '虛空秘典喵', cost: 2500, hp: 200, speed: 15, attack: 1600, range: 160, atkRate: 8.8, color: '#3e2351ff', cd: 90.0, aoe: true, aoeRadius: 160, hpIncrement: 30, atkIncrement: 250 } },//-
+  azurePhantom: { name: '蒼藍幻影喵', price: 1200, tpl: { name: '蒼藍幻影喵', cost: 1800, hp: 320, speed: 21, attack: 220, range: 140, atkRate: 2.4, color: '#32516eff', cd: 80.0, aoe: true, aoeRadius: 140, hpIncrement: 50, atkIncrement: 60, abilities: { slow: { chance: 0.3, duration: 1.2, factor: 0.5 } } } },
 };
 
 export const upgradeCost = (lv) => Math.floor(100 * Math.pow(1.5, lv - 1));
