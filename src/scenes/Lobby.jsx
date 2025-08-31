@@ -9,7 +9,7 @@ import { IconCoin } from '../ui/Icons.jsx';
 export default function Lobby({ coins, highestUnlocked, goLevel, goLineup, goShop, goUpgrade, goCodex, onReset }){
   return (
     <div className="space-y-4">
-      <HeroBanner title="貓咪之戰(Beta)" subtitle="致敬貓咪大戰爭 — V5.5升級系統!" right={<Pill>最高解鎖 {highestUnlocked}</Pill>} />
+      <HeroBanner title="貓咪之戰(Beta)" subtitle="致敬貓咪大戰爭 — V5.9大幅修復BUG!" right={<Pill>最高解鎖 {highestUnlocked}</Pill>} />
       <div className="grid md:grid-cols-3 gap-3">
         <Card>
           <div className="text-slate-600 text-sm">狀態</div>
