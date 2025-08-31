@@ -5,23 +5,6 @@ const cssVar = (name) => {
 
 export const SKIN = {
   color: {
-<<<<<<< ours
-    ink: 'var(--color-ink)',
-    inkSub: 'var(--color-ink-sub)',
-    mute: 'var(--color-mute)',
-    line: 'var(--color-line)',
-    bgTop: 'var(--color-bg-top)',
-    bgBottom: 'var(--color-bg-bottom)',
-    cardTop: 'var(--color-card-top)',
-    cardBottom: 'var(--color-card-bottom)',
-    accentA: 'var(--color-accent-a)',
-    accentB: 'var(--color-accent-b)',
-    ok: 'var(--color-ok)',
-    warn: 'var(--color-warn)',
-    danger: 'var(--color-danger)',
-    white: 'var(--color-white)',
-    black: 'var(--color-black)',
-=======
     get ink() { return cssVar('--color-ink'); },
     get inkSub() { return cssVar('--color-ink-sub'); },
     get mute() { return cssVar('--color-mute'); },
@@ -37,7 +20,6 @@ export const SKIN = {
     get danger() { return cssVar('--color-danger'); },
     get white() { return cssVar('--color-white'); },
     get black() { return cssVar('--color-black'); },
->>>>>>> theirs
   },
   size: { touch: 40, gapSm: 6, gapMd: 10, gapLg: 16, gapXl: 24, padSm: 8, padMd: 12, padLg: 16 },
   radius: { sm: 10, md: 14, lg: 20, xl: 24, pill: 999 },
