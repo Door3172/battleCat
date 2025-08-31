@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { SKIN } from '../data/skin.js';
 
-export default function Dialog({ show, onClose, children }) {
+export default function Dialog({ show, onClose, children, fullscreen = true }) {
   useEffect(() => {
     if (!show) return;
     const onKey = (e) => {
@@ -13,7 +13,7 @@ export default function Dialog({ show, onClose, children }) {
 
   return (
     <div
-      className={`fixed inset-0 grid place-items-center bg-black/50 transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      className={`${fullscreen ? 'fixed' : 'absolute'} inset-0 grid place-items-center bg-black/50 transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       onClick={() => { if (show) onClose?.(); }}
     >
       <div

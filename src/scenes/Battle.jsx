@@ -346,7 +346,7 @@ export default function Battle({
       <div ref={wrapRef} className="relative w-full overflow-hidden">
         <canvas ref={canvasRef} className="rounded-2xl border shadow w-full block mx-auto" />
         {ui.state === 'prestart' && <div className="fixed inset-0 bg-black/50 pointer-events-none" />}
-        <Dialog show={['ready', 'paused', 'win', 'lose'].includes(ui.state)}>
+        <Dialog fullscreen={false} show={['ready', 'paused', 'win', 'lose'].includes(ui.state)}>
           {ui.state === 'ready' && <div className="text-lg font-semibold">戰鬥即將自動開始（亦可按下 1~5 任一鍵或點下方按鈕提前開始）</div>}
           {ui.state === 'paused' && <div className="text-lg font-semibold">已暫停（按 P 繼續）</div>}
           {ui.state === 'win' && (
