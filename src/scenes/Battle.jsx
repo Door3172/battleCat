@@ -41,7 +41,7 @@ export default function Battle({
     const vw = Math.max(320, el.clientWidth || window.innerWidth);
     const vh = window.innerHeight || 560;
     const targetH = Math.max(180, Math.min(Math.round(vw / 1.9), Math.round(vh * 0.5)));
-      const cfg = stageConfig(currentStage, currentChapter);
+    const cfg = stageConfig(currentStage, currentChapter);
     const minWidth = cfg.towerDistance + 100;
     const targetW = Math.max(minWidth, Math.round(targetH * 1.9));
     c.width = Math.floor(targetW * dpr); c.height = Math.floor(targetH * dpr);
@@ -95,7 +95,7 @@ export default function Battle({
 
   const ensureWorld = () => {
     if (worldRef.current) return worldRef.current;
-      worldRef.current = createWorld(currentStage, unlocks, catLevels, researchLv, cannonLv, castleLv, currentChapter);
+    worldRef.current = createWorld(currentStage, unlocks, catLevels, researchLv, cannonLv, castleLv, currentChapter);
     const w = worldRef.current;
     w.state = 'prestart';
     setUi(s => ({
@@ -200,7 +200,7 @@ export default function Battle({
     if (w.state !== 'running' || w.cannonCd > 0) return;
     const dmg = (60 + (cannonLv - 1) * 10) * (w.cfg.difficulty || 1); const knock = 60;
     w.units.forEach(u => { if (u.team === -1) { u.hp -= dmg; u.x += knock; } });
-    w.cannonCd = 14;
+    w.cannonCd = 20;
     draw();
   };
 
