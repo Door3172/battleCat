@@ -250,7 +250,7 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt) {
       const v = world.units[j];
       if (v.hp <= 0 || v.team === u.team) continue;
       const d = Math.abs(v.x - u.x);
-      if (d < best && d >= (u.aoeMinRadius ?? 0)) { best = d; target = v; }
+      if (d < best) { best = d; target = v; }
     }
 
     const enemyBaseX = u.team === 1 ? rightX : leftX;
@@ -260,7 +260,7 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt) {
     const dist = target ? Math.abs(target.x - u.x) : Infinity;
     const triggerRange = u.range + BODY_W * 0.4;
     const trigger = (target && dist <= triggerRange && dist >= (u.aoeMinRadius ?? 0)) ||
-      (distBase <= triggerRange && distBase >= (u.aoeMinRadius ?? 0));
+      distBase <= triggerRange;
 
     if (u.atkCd <= 0 && trigger) {
       if (u.aoe) {
@@ -277,7 +277,7 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt) {
             if (u.maxTargets && hits >= u.maxTargets) break;
           }
         }
-        if (distBase <= rMax && distBase >= rMin && (!u.maxTargets || hits < u.maxTargets)) {
+        if (distBase <= rMax && (!u.maxTargets || hits < u.maxTargets)) {
           damageTower(u);
           hits++;
         }
@@ -296,7 +296,8 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt) {
     let move = u.speed * dt * (u.team === 1 ? 1 : -1);
     if (target) {
       const d = Math.abs(target.x - u.x);
-      const stop = d <= u.range * 0.98 && d >= (u.aoeMinRadius ?? 0);
+      const stopDist = Math.max(u.range * 0.98, u.aoeMinRadius ?? 0);
+      const stop = d <= stopDist;
       if (stop) move = 0;
       if (d < BODY_W * 0.9) move = 0;
     }
