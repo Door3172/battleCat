@@ -28,5 +28,5 @@ export const BOSSES = {
   alienEye: { name: '星眼巨像', hp: 1800, speed: 50, attack: 480, range: 175, atkRate: 4, color: '#4c1d95', bounty: 1500, aoe: true, aoeRadius: 175, aoeMinRadius: 30, maxTargets: 6 },
   mechGolem: { name: '機甲巨像', hp: 7000, speed: 11, attack: 240, range: 20, atkRate: 1.6, color: '#334155', bounty: 1600, aoe: true, aoeRadius: 70, maxTargets: 3, abilities: { slowImmune: true } },
   octopusKing: { name: '章魚王', hp: 5000, speed: 22, attack: 160, range: 110, atkRate: 1.8, color: '#de2e42ff', bounty: 1600, aoe: true, aoeRadius: 110, maxTargets: 8, abilities: { knockback: { chance: 0.3, distance: 8 } } },
-  ghostShark: { name: '幽靈鯊', hp: 4000, speed: 65, attack: 500, range: 40, atkRate: 0.7, color: '#206facff', bounty: 2100, aoe: false, abilities: { lifesteal: { chance: 0.05, percent: 0.03 }, berserk: { threshold: 0.2, attackUp: 1 }, dodge: { chance: 0.2 }, freezeImmune: true, knockbackImmune: true, slowImmune: true } },
+  ghostShark: { name: '幽靈鯊', hp: 3500, speed: 50, attack: 500, range: 40, atkRate: 1.6, color: '#206facff', bounty: 2100, aoe: false, abilities: { lifesteal: { chance: 0.05, percent: 0.03 }, berserk: { threshold: 0.2, attackUp: 1 }, dodge: { chance: 0.2 }, freezeImmune: true, knockbackImmune: true, slowImmune: true } },
 };
