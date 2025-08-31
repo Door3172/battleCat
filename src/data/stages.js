@@ -25,7 +25,8 @@ export function stageConfig(stage){
     });
   }
 
-  const enemyBaseHp   = stageSpawn?.enemyBaseHp;
+  // 若未設定 enemyBaseHp，採用預設值避免城堡血量變成 undefined 造成畫面異常
+  const enemyBaseHp   = stageSpawn?.enemyBaseHp ?? 1000;
   // 若未設定 towerDistance，採用預設值避免畫面尺寸計算出現 NaN
   const towerDistance = stageSpawn?.towerDistance ?? 750;
   const rewardCoins   = stageSpawn?.reward;
