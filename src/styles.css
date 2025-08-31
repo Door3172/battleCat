@@ -18,6 +18,8 @@
   --color-danger: #ef4444;
   --color-white: #ffffff;
   --color-black: #0b1224;
+  --color-bg-top: #f8fafc;
+  --color-bg-bottom: #ecf0f6;
 
   /* 間距變數 */
   --space-touch: 40px;
@@ -40,12 +42,14 @@
   --gradient-hero: linear-gradient(180deg, var(--color-accent-a) 0%, var(--color-accent-b) 62%, #ffd87a 100%);
 }
 
-html, body, #root { height: 100%; }
+html { min-height: 100%; scroll-behavior: smooth; }
+body, #root { min-height: 100%; }
 body {
   margin: 0;
-  background: var(--color-bg);
+  background: linear-gradient(var(--color-bg-top), var(--color-bg-bottom));
   color: var(--color-ink);
   font-family: var(--font-ui);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -65,3 +69,46 @@ button {
 }
 
 canvas { display:block; }
+
+body.theme-warm {
+  --color-bg: #fff7ed;
+  --color-bg-top: #fffaf0;
+  --color-bg-bottom: #fde68a;
+  --color-ink: #422006;
+  --color-ink-sub: #78350f;
+  --color-mute: #a16207;
+  --color-line: #fed7aa;
+  --color-card-top: rgba(255,248,235,.92);
+  --color-card-bottom: rgba(255,237,213,.78);
+  --color-accent-a: #f97316;
+  --color-accent-b: #fb923c;
+  --color-ok: #16a34a;
+  --color-warn: #ea580c;
+  --color-danger: #dc2626;
+  --color-white: #ffffff;
+  --color-black: #2d2214;
+  --font-ui: ui-serif, 'Noto Serif TC', serif;
+  --gradient-hero: linear-gradient(180deg, var(--color-accent-a) 0%, var(--color-accent-b) 62%, #ffedd5 100%);
+}
+
+body.theme-minimal {
+  --color-bg: #ffffff;
+  --color-bg-top: #ffffff;
+  --color-bg-bottom: #f3f4f6;
+  --color-ink: #111827;
+  --color-ink-sub: #374151;
+  --color-mute: #9ca3af;
+  --color-line: #e5e7eb;
+  --color-card-top: rgba(255,255,255,1);
+  --color-card-bottom: rgba(243,244,246,1);
+  --color-accent-a: #0ea5e9;
+  --color-accent-b: #0369a1;
+  --color-ok: #16a34a;
+  --color-warn: #d97706;
+  --color-danger: #dc2626;
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --font-ui: ui-sans-serif, system-ui, Segoe UI, Noto Sans TC, Apple Color Emoji, Segoe UI Emoji;
+  --gradient-hero: linear-gradient(180deg, var(--color-accent-a) 0%, var(--color-accent-b) 62%, #bae6fd 100%);
+}
+

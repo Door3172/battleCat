@@ -73,6 +73,10 @@ export default function App() {
     const saved = localStorage.getItem('volume');
     return saved ? Number(saved) : 1;
   });
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    return saved ? saved : 'modern';
+  });
 
   const audio = useAudio();
 
@@ -115,6 +119,11 @@ export default function App() {
   useEffect(() => {
     audio.setMasterVolume(volume);
   }, [audio, volume]);
+  useEffect(() => {
+    document.body.classList.remove('theme-modern', 'theme-warm', 'theme-minimal');
+    document.body.classList.add(`theme-${theme}`);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   // ✅ 一次性自動解鎖音訊（任意互動就解鎖）
   useEffect(() => {
@@ -246,7 +255,7 @@ export default function App() {
   };
 
   return (
-    <main className="relative w-full mx-auto max-w-5xl p-4 space-y-4">
+    <main className="relative w-full mx-auto max-w-5xl p-4 sm:p-8 space-y-4 min-h-full">
       <button
         type="button"
         aria-label="開啟設定"
@@ -262,6 +271,8 @@ export default function App() {
         audio={audio}
         volume={volume}
         setVolume={setVolume}
+        theme={theme}
+        setTheme={setTheme}
       />
     </main>
   );
