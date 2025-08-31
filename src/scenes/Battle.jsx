@@ -40,7 +40,7 @@ export default function Battle({
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const vw = Math.max(320, el.clientWidth || window.innerWidth);
     const vh = window.innerHeight || 560;
-    const targetH = Math.max(180, Math.min(Math.round(vw / 1.9), Math.round(vh * 0.6)));
+    const targetH = Math.max(180, Math.min(Math.round(vw / 1.9), Math.round(vh * 0.5)));
     const cfg = stageConfig(currentStage);
     const minWidth = cfg.towerDistance + 100;
     const targetW = Math.max(minWidth, Math.round(targetH * 1.9));
