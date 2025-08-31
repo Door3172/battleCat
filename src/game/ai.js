@@ -1,6 +1,32 @@
 import { ENEMIES, BOSSES } from '../data/enemies.js';
 import { BODY_W } from './world.js';
 
+/*
+能力設定 (abilities key 說明)
+lifesteal      吸血：{ chance:機率0~1, percent:回復比例0~1 }
+freeze         凍結：{ chance:機率, duration:秒數 }
+knockback      擊退：{ chance:機率, distance:距離像素 }
+slow           緩速：{ chance:機率, duration:秒數, factor:速度倍率(預設0.5) }
+critical       暴擊：{ chance:機率, multiplier:傷害倍率(預設2) }
+shield         護盾：{ interval:刷新秒數, amount:護盾血量 }
+revive         再生：{ chance:機率, percent:復活後血量百分比 }
+berserk        狂暴：{ threshold:觸發血量百分比, attackUp:攻擊力提升比例 }
+dodge          閃避：{ chance:機率 }
+freezeImmune   凍結免疫：true/false
+knockbackImmune擊退免疫：true/false
+slowImmune     緩速免疫：true/false
+
+範例：
+const archer = {
+  // ... 其他屬性
+  abilities: {
+    critical: { chance:0.25, multiplier:2 }, // 25% 機率造成 2 倍傷害
+    lifesteal: { chance:0.1, percent:0.2 }, // 10% 機率吸血 20%
+    freezeImmune: true                      // 免疫凍結
+  }
+};
+*/
+
 export function groundY(getCanvasHeight){
   return getCanvasHeight()*0.72;
 }
@@ -10,13 +36,19 @@ export function makeUnit(team, x, y, tpl){
     id: Math.random().toString(36).slice(2),
     team, x, y,
     hp: tpl.hp, maxHp: tpl.hp,
-    speed: tpl.speed, atk: tpl.attack, range: tpl.range,
+    speed: tpl.speed, baseSpeed: tpl.speed,
+    atk: tpl.attack, baseAtk: tpl.attack, range: tpl.range,
     atkRate: tpl.atkRate, atkCd: 0,
     color: tpl.color, name: tpl.name, bounty: tpl.bounty||0,
     aoe: !!tpl.aoe,
     aoeRadius: tpl.aoeRadius ?? undefined,
     aoeMinRadius: tpl.aoeMinRadius ?? 0,
     maxTargets: tpl.maxTargets ?? undefined,
+    abilities: tpl.abilities || {},
+    effects: {},
+    shieldHp: 0,
+    shieldCd: tpl.abilities && tpl.abilities.shield ? 0 : undefined,
+    revived: false,
   };
 }
 
@@ -110,10 +142,57 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt){
   const rightX = leftX + world.cfg.towerDistance;
   let bounty = 0;
 
+  function dealAttack(attacker, target){
+    let dmg = attacker.atk;
+    const crit = attacker.abilities?.critical;
+    if(crit && Math.random() < crit.chance){
+      dmg *= crit.multiplier ?? 2;
+    }
+
+    let dealt = 0;
+    if(target){
+      const dodge = target.abilities?.dodge;
+      if(!(dodge && Math.random() < dodge.chance)){
+        if(target.shieldHp > 0){
+          const sh = target.shieldHp - dmg;
+          if(sh >= 0){ target.shieldHp = sh; dmg = 0; }
+          else { target.shieldHp = 0; dmg = -sh; }
+        }
+        if(dmg > 0){ target.hp -= dmg; dealt = dmg; }
+      }
+    }else{
+      dealt = dmg;
+    }
+
+    const ls = attacker.abilities?.lifesteal;
+    if(ls && dealt > 0 && Math.random() < ls.chance){
+      const heal = dealt * ls.percent;
+      attacker.hp = Math.min(attacker.maxHp, attacker.hp + heal);
+    }
+
+    if(target && dealt > 0){
+      const fr = attacker.abilities?.freeze;
+      if(fr && !target.abilities?.freezeImmune && Math.random() < fr.chance){
+        target.effects.frozen = Math.max(target.effects.frozen || 0, fr.duration);
+      }
+      const kb = attacker.abilities?.knockback;
+      if(kb && !target.abilities?.knockbackImmune && Math.random() < kb.chance){
+        target.x += kb.distance * (attacker.team === 1 ? 1 : -1);
+      }
+      const sl = attacker.abilities?.slow;
+      if(sl && !target.abilities?.slowImmune && Math.random() < sl.chance){
+        target.effects.slow = Math.max(target.effects.slow || 0, sl.duration);
+        target.effects.slowFactor = sl.factor ?? 0.5;
+      }
+    }
+    return dealt;
+  }
+
   function damageTower(attacker) {
     const key = attacker.team === 1 ? 'rightHp' : 'leftHp';
     const before = world[key];
-    world[key] = before - attacker.atk;
+    const dealt = dealAttack(attacker, null);
+    world[key] = before - dealt;
     if (world.debug || (typeof process !== 'undefined' && process.env.DEBUG_TOWER)) {
       console.log(`${attacker.name}@${attacker.x} ${key}: ${before} -> ${world[key]}`);
     }
@@ -122,6 +201,47 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt){
   for(let i=0;i<world.units.length;i++){
     const u = world.units[i];
     if(u.hp<=0) continue;
+
+    const ab = u.abilities || {};
+    // shield refresh
+    if(ab.shield){
+      u.shieldCd = (u.shieldCd ?? 0) - dt;
+      if(u.shieldCd <= 0){
+        u.shieldHp = ab.shield.amount;
+        u.shieldCd = ab.shield.interval;
+      }
+    }
+
+    // frozen effect
+    if(u.effects.frozen > 0){
+      u.effects.frozen -= dt;
+      if(u.effects.frozen > 0){
+        continue;
+      }else{
+        u.effects.frozen = 0;
+      }
+    }
+
+    // slow effect
+    if(u.effects.slow > 0){
+      u.effects.slow -= dt;
+      if(u.effects.slow <= 0){
+        u.effects.slow = 0;
+        delete u.effects.slowFactor;
+      }
+    }
+
+    const speedFactor = u.effects.slow > 0 ? (u.effects.slowFactor ?? 0.5) : 1;
+    u.speed = u.baseSpeed * speedFactor;
+
+    u.atk = u.baseAtk;
+    // berserk
+    if(ab.berserk){
+      const { threshold, attackUp } = ab.berserk;
+      if(u.hp <= u.maxHp * threshold){
+        u.atk = u.baseAtk * (1 + attackUp);
+      }
+    }
 
     // 最近目標
     let target=null, best=1e9;
@@ -152,7 +272,7 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt){
           if(t.hp<=0 || t.team===u.team) continue;
           const distToAttacker = Math.abs(t.x - u.x);
           if(distToAttacker <= rMax && distToAttacker >= rMin){
-            t.hp -= u.atk;
+            dealAttack(u, t);
             hits++;
             if(u.maxTargets && hits >= u.maxTargets) break;
           }
@@ -164,7 +284,7 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt){
         if(hits>0) u.atkCd = u.atkRate;
       }else{
         if(target && dist <= triggerRange && dist >= (u.aoeMinRadius ?? 0)){
-          target.hp -= u.atk;
+          dealAttack(u, target);
         }else{
           damageTower(u);
         }
@@ -188,7 +308,16 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt){
   const next=[];
   for(const u of world.units){
     if(u.hp>0) next.push(u);
-    else if(u.team===-1) bounty+=killBounty(u, world.cfg);
+    else{
+      const rv = u.abilities?.revive;
+      if(rv && !u.revived && Math.random() < rv.chance){
+        u.hp = Math.round(u.maxHp * rv.percent);
+        u.revived = true;
+        next.push(u);
+      }else if(u.team===-1){
+        bounty+=killBounty(u, world.cfg);
+      }
+    }
   }
   world.units = next;
   return bounty;

@@ -1,7 +1,8 @@
 export const BASE_CATS = {
   white: { name: '白喵', cost: 50, hp: 100, speed: 21, attack: 12, range: 20, atkRate: 1.25, color: '#ffffff', cd: 2.0, aoe: false, hpIncrement: 20, atkIncrement: 2 },
   tank: { name: '坦喵', cost: 100, hp: 400, speed: 16, attack: 4, range: 24, atkRate: 2.2, color: '#d9f99d', cd: 2.7, aoe: true, aoeRadius: 24, maxTargets: 5, hpIncrement: 65, atkIncrement: 2 },
-  archer: { name: '射喵', cost: 225, hp: 90, speed: 50, attack: 9, range: 85, atkRate: 0.35, color: '#bae6fd', cd: 4.0, aoe: false, hpIncrement: 9, atkIncrement: 1 },//-
+  archer: { name: '射喵', cost: 225, hp: 90, speed: 50, attack: 9, range: 85, atkRate: 0.35, color: '#bae6fd', cd: 4.0, aoe: false, hpIncrement: 9, atkIncrement: 1 },
+  //archer: { name: '射喵', cost: 225, hp: 90, speed: 50, attack: 9, range: 85, atkRate: 0.35, color: '#bae6fd', cd: 4.0, aoe: false, hpIncrement: 9, atkIncrement: 1, abilities: { critical: { chance: 0.25, multiplier: 2 } } }, // 暴擊 critical：25% 機率造成 2 倍傷害
   giant: { name: '巨人喵', cost: 900, hp: 2500, speed: 14, attack: 123, range: 35, atkRate: 1.7, color: '#ddd6fe', cd: 26.0, aoe: true, aoeRadius: 35, maxTargets: 3, hpIncrement: 250, atkIncrement: 11 },//+
   bird: { name: '鳥喵', cost: 360, hp: 150, speed: 80, attack: 56, range: 65, atkRate: 1.4, color: '#fef9c3', cd: 3.6, aoe: true, aoeRadius: 75, maxTargets: 2, hpIncrement: 12, atkIncrement: 8 },
   fish: { name: '魚喵', cost: 400, hp: 800, speed: 24, attack: 42, range: 24, atkRate: 1.5, color: '#a7f3d0', cd: 6.8, aoe: false, hpIncrement: 85, atkIncrement: 5 },
