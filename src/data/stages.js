@@ -1,11 +1,23 @@
 // src/data/stages.js
 import { SPAWNS } from './spawns.js';
+import { SPAWNS2 } from './spawns2.js';
 
-// 最大關卡數依據 SPAWNS 自動取得
-export const MAX_STAGE = Math.max(0, ...Object.keys(SPAWNS).map(Number));
-export function stageConfig(stage){
+// 各章節對應的關卡資料
+const SPAWNS_MAP = {
+  1: SPAWNS,
+  2: SPAWNS2,
+};
+
+// 取得指定章節的最大關卡數
+export function getMaxStage(chapter = 1) {
+  const spawns = SPAWNS_MAP[chapter] || {};
+  return Math.max(0, ...Object.keys(spawns).map(Number));
+}
+
+export function stageConfig(stage, chapter = 1){
+  const spawns = SPAWNS_MAP[chapter] || {};
   const stageIndex = Math.max(1, stage|0);
-  const stageSpawn = SPAWNS[stageIndex];
+  const stageSpawn = spawns[stageIndex];
 
   const rawSchedule = Array.isArray(stageSpawn) ? stageSpawn :
                       stageSpawn?.schedule;

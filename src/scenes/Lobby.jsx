@@ -6,16 +6,16 @@ import Pill from '../ui/Pill.jsx';
 import { fmt } from '../utils/number.js';
 import { IconCoin } from '../ui/Icons.jsx';
 
-export default function Lobby({ coins, highestUnlocked, goLevel, goLineup, goShop, goUpgrade, goCodex, onReset }){
+export default function Lobby({ coins, highestUnlocked, goChapter, goLineup, goShop, goUpgrade, goCodex, onReset }){
   return (
-    <div className="space-y-4">
-      <HeroBanner title="貓咪之戰(Beta)" subtitle="致敬貓咪大戰爭 — V5.9大幅修復BUG!" right={<Pill>最高解鎖 {highestUnlocked}</Pill>} />
+      <div className="space-y-4">
+        <HeroBanner title="貓咪之戰(Beta)" subtitle="致敬貓咪大戰爭 — V5.9大幅修復BUG!" right={<Pill>世界 {highestUnlocked[1]}／未來 {highestUnlocked[2]}</Pill>} />
       <div className="grid md:grid-cols-3 gap-3">
         <Card>
           <div className="text-slate-600 text-sm">狀態</div>
           <div className="text-3xl font-extrabold tabular-nums flex items-center gap-2"><IconCoin />{fmt(coins)}<span className="text-base font-medium ml-1">金幣</span></div>
-          <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2" aria-label="主要選單">
-            <Button onClick={goLevel} tone="accent">▶️ 開始遊戲（選關）</Button>
+            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2" aria-label="主要選單">
+              <Button onClick={goChapter} tone="accent">▶️ 開始遊戲（選章節）</Button>
             <Button onClick={goLineup}>🧩 隊伍編成</Button>
             <Button onClick={goShop}>🛒 商店</Button>
             <Button onClick={goUpgrade}>⬆️ 升級</Button>

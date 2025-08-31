@@ -13,10 +13,10 @@ import { spawnEnemy, stepUnits, groundY, makeUnit, spawnBossIfNeeded } from '../
 import { drawAll } from '../game/draw.js';
 import { rand } from '../utils/math.js';
 import { useAudio } from '../audio/useAudio.js';
-import { stageConfig } from '../data/stages.js';
+import { stageConfig, getMaxStage } from '../data/stages.js';
 
 export default function Battle({
-  coins, setCoins, currentStage, setScene, highestUnlocked, setHighestUnlocked,
+  coins, setCoins, currentStage, currentChapter, setScene, highestUnlocked, setHighestUnlocked,
   lineup, unlocks, catLevels, addEnemyName,
   researchLv, cannonLv, castleLv
 }) {
@@ -41,7 +41,7 @@ export default function Battle({
     const vw = Math.max(320, el.clientWidth || window.innerWidth);
     const vh = window.innerHeight || 560;
     const targetH = Math.max(180, Math.min(Math.round(vw / 1.9), Math.round(vh * 0.5)));
-    const cfg = stageConfig(currentStage);
+      const cfg = stageConfig(currentStage, currentChapter);
     const minWidth = cfg.towerDistance + 100;
     const targetW = Math.max(minWidth, Math.round(targetH * 1.9));
     c.width = Math.floor(targetW * dpr); c.height = Math.floor(targetH * dpr);
@@ -95,7 +95,7 @@ export default function Battle({
 
   const ensureWorld = () => {
     if (worldRef.current) return worldRef.current;
-    worldRef.current = createWorld(currentStage, unlocks, catLevels, researchLv, cannonLv, castleLv);
+      worldRef.current = createWorld(currentStage, unlocks, catLevels, researchLv, cannonLv, castleLv, currentChapter);
     const w = worldRef.current;
     w.state = 'prestart';
     setUi(s => ({
@@ -280,8 +280,8 @@ export default function Battle({
     await audio.fadeOutMusic(300);
     audio.playSfx('sfx_win');
     setCoins(c => c + worldRef.current.cfg.rewardCoins);
-    const next = Math.min(30, Math.max(highestUnlocked, currentStage + 1));
-    setHighestUnlocked(next);
+    const next = Math.min(getMaxStage(currentChapter), Math.max(highestUnlocked[currentChapter], currentStage + 1));
+    setHighestUnlocked(h => ({ ...h, [currentChapter]: next }));
     setTimeout(() => setScene('lobby'), 300);
   };
 

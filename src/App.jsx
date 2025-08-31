@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Lobby from './scenes/Lobby.jsx';
+import ChapterSelect from './scenes/ChapterSelect.jsx';
 import LevelSelect from './scenes/LevelSelect.jsx';
 import Shop from './scenes/Shop.jsx';
 import Codex from './scenes/Codex.jsx';
@@ -9,6 +10,7 @@ import Battle from './scenes/Battle.jsx';
 import { useAudio } from './audio/useAudio.js';
 import SettingsDialog from './ui/SettingsDialog.jsx';
 import { IconGear } from './ui/Icons.jsx';
+import { getMaxStage } from './data/stages.js';
 
 // 本地存檔版本，用於重大更新時清除舊資料
 const SAVE_VERSION = '3';
@@ -56,18 +58,30 @@ export default function App() {
     const saved = localStorage.getItem('cannonLv');
     return saved ? Number(saved) : 1;
   });
-  const [castleLv, setCastleLv] = useState(() => {
-    const saved = localStorage.getItem('castleLv');
-    return saved ? Number(saved) : 1;
-  });
-  const [currentStage, setCurrentStage] = useState(() => {
-    const saved = localStorage.getItem('currentStage');
-    return saved ? Number(saved) : 1;
-  });
-  const [highestUnlocked, setHighestUnlocked] = useState(() => {
-    const saved = localStorage.getItem('highestUnlocked');
-    return saved ? Number(saved) : 1;
-  });
+    const [castleLv, setCastleLv] = useState(() => {
+      const saved = localStorage.getItem('castleLv');
+      return saved ? Number(saved) : 1;
+    });
+    const [currentChapter, setCurrentChapter] = useState(() => {
+      const saved = localStorage.getItem('currentChapter');
+      return saved ? Number(saved) : 1;
+    });
+    const [currentStage, setCurrentStage] = useState(() => {
+      const saved = localStorage.getItem('currentStage');
+      return saved ? Number(saved) : 1;
+    });
+    const [highestUnlocked, setHighestUnlocked] = useState(() => {
+      const saved = localStorage.getItem('highestUnlocked');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (typeof parsed === 'object' && parsed !== null) return parsed;
+          const num = Number(parsed);
+          if (!Number.isNaN(num)) return { 1: num, 2: 1 };
+        } catch {}
+      }
+      return { 1: 1, 2: 1 };
+    });
   const [showSettings, setShowSettings] = useState(false);
   const [volume, setVolume] = useState(() => {
     const saved = localStorage.getItem('volume');
@@ -107,12 +121,15 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('castleLv', String(castleLv));
   }, [castleLv]);
-  useEffect(() => {
-    localStorage.setItem('currentStage', String(currentStage));
-  }, [currentStage]);
-  useEffect(() => {
-    localStorage.setItem('highestUnlocked', String(highestUnlocked));
-  }, [highestUnlocked]);
+    useEffect(() => {
+      localStorage.setItem('currentStage', String(currentStage));
+    }, [currentStage]);
+    useEffect(() => {
+      localStorage.setItem('currentChapter', String(currentChapter));
+    }, [currentChapter]);
+    useEffect(() => {
+      localStorage.setItem('highestUnlocked', JSON.stringify(highestUnlocked));
+    }, [highestUnlocked]);
   useEffect(() => {
     localStorage.setItem('volume', String(volume));
   }, [volume]);
@@ -164,8 +181,9 @@ export default function App() {
     setResearchLv(1);
     setCannonLv(1);
     setCastleLv(1);
+    setCurrentChapter(1);
     setCurrentStage(1);
-    setHighestUnlocked(1);
+    setHighestUnlocked({ 1:1, 2:1 });
   };
 
   const scenes = {
@@ -173,7 +191,7 @@ export default function App() {
       <Lobby
         coins={coins}
         highestUnlocked={highestUnlocked}
-        goLevel={()=>setScene('level')}
+        goChapter={()=>setScene('chapter')}
         goLineup={()=>setScene('lineup')}
         goShop={()=>setScene('shop')}
         goUpgrade={()=>setScene('upgrade')}
@@ -181,10 +199,17 @@ export default function App() {
         onReset={handleReset}
       />
     ),
+    chapter: (
+      <ChapterSelect
+        onBack={() => setScene('lobby')}
+        onChoose={(ch) => { setCurrentChapter(ch); setScene('level'); }}
+      />
+    ),
     level: (
       <LevelSelect
-        highestUnlocked={highestUnlocked}
-        onBack={() => setScene('lobby')}
+        maxStage={getMaxStage(currentChapter)}
+        highestUnlocked={highestUnlocked[currentChapter]}
+        onBack={() => setScene('chapter')}
         onChoose={(n) => { setCurrentStage(n); setScene('battle'); }}
       />
     ),
@@ -235,23 +260,24 @@ export default function App() {
         onBack={()=>setScene('lobby')}
       />
     ),
-    battle: (
-      <Battle
-        coins={coins}
-        setCoins={setCoins}
-        currentStage={currentStage}
-        setScene={setScene}
-        highestUnlocked={highestUnlocked}
-        setHighestUnlocked={setHighestUnlocked}
-        lineup={lineup}
-        unlocks={unlocks}
-        catLevels={catLevels}
-        addEnemyName={addEnemyName}
-        researchLv={researchLv}
-        cannonLv={cannonLv}
-        castleLv={castleLv}
-      />
-    ),
+      battle: (
+        <Battle
+          coins={coins}
+          setCoins={setCoins}
+          currentStage={currentStage}
+          currentChapter={currentChapter}
+          setScene={setScene}
+          highestUnlocked={highestUnlocked}
+          setHighestUnlocked={setHighestUnlocked}
+          lineup={lineup}
+          unlocks={unlocks}
+          catLevels={catLevels}
+          addEnemyName={addEnemyName}
+          researchLv={researchLv}
+          cannonLv={cannonLv}
+          castleLv={castleLv}
+        />
+      ),
   };
 
   return (

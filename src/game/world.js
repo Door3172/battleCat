@@ -28,8 +28,8 @@ export function buildCatsTpl(unlocks, catLevels = {}) {
   return out;
 }
 
-export function createWorld(currentStage, unlocks, catLevels, researchLv = 1, cannonLv = 1, castleLv = 1) {
-  const cfg = stageConfig(currentStage);
+export function createWorld(currentStage, unlocks, catLevels, researchLv = 1, cannonLv = 1, castleLv = 1, chapter = 1) {
+  const cfg = stageConfig(currentStage, chapter);
   const baseHp = 1000 + (castleLv - 1) * 100;
   return {
     w: 50 + cfg.towerDistance + 50, h: 400,
