@@ -5,6 +5,7 @@ import LevelSelect from './scenes/LevelSelect.jsx';
 import Shop from './scenes/Shop.jsx';
 import Codex from './scenes/Codex.jsx';
 import Lineup from './scenes/Lineup.jsx';
+import Gacha from './scenes/Gacha.jsx';
 import Upgrade from './scenes/Upgrade.jsx';
 import Battle from './scenes/Battle.jsx';
 import { useAudio } from './audio/useAudio.js';
@@ -194,6 +195,7 @@ export default function App() {
         goChapter={()=>setScene('chapter')}
         goLineup={()=>setScene('lineup')}
         goShop={()=>setScene('shop')}
+        goGacha={()=>setScene('gacha')}
         goUpgrade={()=>setScene('upgrade')}
         goCodex={()=>setScene('codex')}
         onReset={handleReset}
@@ -225,6 +227,18 @@ export default function App() {
           setCatLevels(l=>({...l, [key]:1}));
           addCatName(item.tpl.name);
         }}
+      />
+    ),
+    gacha: (
+      <Gacha
+        coins={coins}
+        setCoins={setCoins}
+        unlocks={unlocks}
+        setUnlocks={setUnlocks}
+        catLevels={catLevels}
+        setCatLevels={setCatLevels}
+        addCatName={addCatName}
+        onBack={() => setScene('lobby')}
       />
     ),
     codex: (
