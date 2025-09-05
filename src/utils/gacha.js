@@ -1,4 +1,4 @@
-import { GACHA_PRICE, DUPLICATE_REFUND_RATE, RARITY_RATES } from '../data/gachaRates.js';
+import { GACHA_PRICE, REFUND_RATES, RARITY_RATES } from '../data/gachaRates.js';
 import { GACHA_CHARACTERS } from '../data/gachaPool.js';
 import { rand } from './math.js';
 
@@ -21,7 +21,8 @@ export function drawGacha(ownedKeys, coins) {
   const duplicate = ownedKeys.includes(pick.key);
   let refund = 0;
   if (duplicate) {
-    refund = Math.floor(GACHA_PRICE * DUPLICATE_REFUND_RATE);
+    const rate = REFUND_RATES[rarity] ?? 0;
+    refund = Math.floor(GACHA_PRICE * rate);
     coins += refund;
   }
   return {

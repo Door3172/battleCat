@@ -1,5 +1,11 @@
 export const GACHA_PRICE = 150; // 單抽價格（可調整）
-export const DUPLICATE_REFUND_RATE = 0.5; // 抽到重複角色時返還的金幣百分比
+
+// 各稀有度抽到重複時返還的金幣百分比
+export const REFUND_RATES = {
+  1: 0.05,
+  2: 0.1,
+  3: 0.2,
+};
 
 // 稀有度機率（可調整）
 export const RARITY_RATES = {
