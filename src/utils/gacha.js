@@ -14,9 +14,10 @@ function rollRarity() {
 
 export function drawGacha(ownedKeys, coins) {
   if (coins < GACHA_PRICE) return { success: false, coins };
-  coins -= GACHA_PRICE;
   const rarity = rollRarity();
   const pool = GACHA_CHARACTERS.filter(c => c.rarity === rarity);
+  if (pool.length === 0) return { success: false, coins };
+  coins -= GACHA_PRICE;
   const pick = pool[Math.floor(rand(0, pool.length))];
   const duplicate = ownedKeys.includes(pick.key);
   let refund = 0;

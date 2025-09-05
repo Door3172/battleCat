@@ -1,6 +1,3 @@
-export const GACHA_CHARACTERS = [
-  { key: 'giant', rarity: 2 },
-  { key: 'bird', rarity: 2 },
-  { key: 'fish', rarity: 2 },
-  { key: 'lizard', rarity: 3 },
-];
+// 初始為空陣列，可自行加入轉蛋角色
+// 例如：{ key: 'giant', rarity: 2 }
+export const GACHA_CHARACTERS = [];

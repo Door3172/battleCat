@@ -1,9 +1,13 @@
 import { stageConfig } from '../data/stages.js';
-import { BASE_CATS, SHOP_UNLOCKS } from '../data/cats.js';
+import { BASE_CATS, SHOP_UNLOCKS, GACHA_UNLOCKS } from '../data/cats.js';
 
 export function buildCatsTpl(unlocks, catLevels = {}) {
+  const gacha = Object.fromEntries(
+    Object.entries(GACHA_UNLOCKS).filter(([k]) => unlocks[k])
+  );
   const base = {
     ...BASE_CATS,
+    ...gacha,
     ...(unlocks.ninja ? { ninja: SHOP_UNLOCKS.ninja.tpl } : {}),
     ...(unlocks.knight ? { knight: SHOP_UNLOCKS.knight.tpl } : {}),
     ...(unlocks.mage ? { mage: SHOP_UNLOCKS.mage.tpl } : {}),

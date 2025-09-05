@@ -9,6 +9,10 @@ export const BASE_CATS = {
   lizard: { name: '蜥蜴喵', cost: 600, hp: 300, speed: 18, attack: 130, range: 190, atkRate: 2.5, color: '#fca5a5', cd: 16.0, aoe: false, hpIncrement: 30, atkIncrement: 25 },
 };
 
+export const GACHA_UNLOCKS = {
+  
+};
+
 export const SHOP_UNLOCKS = {
   ninja: { name: '忍者喵', price: 120, tpl: { name: '忍者喵', cost: 150, hp: 280, speed: 90, attack: 9, range: 30, atkRate: 0.4, color: '#fde68a', cd: 2.7, aoe: false, hpIncrement: 28, atkIncrement: 2, abilities: { dodge: { chance: 0.1 } } } },//+
   knight: { name: '騎士喵', price: 300, tpl: { name: '騎士喵', cost: 360, hp: 960, speed: 85, attack: 110, range: 40, atkRate: 5, color: '#fda4af', cd: 5.4, aoe: true, aoeRadius: 65, maxTargets: 2, hpIncrement: 40, atkIncrement: 25 } },//-
