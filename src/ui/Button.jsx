@@ -21,7 +21,7 @@ export default function Button({
   const s = { ...defaultSizes, ...sizeMap }[size] || defaultSizes.md;
   const defaultTones = {
     default: { bg: SKIN.color.white, fg: SKIN.color.ink, br: SKIN.color.line, hov: '#f8fafc' },
-    primary: { bg: SKIN.color.black, fg: SKIN.color.white, br: SKIN.color.black, hov: '#000' },
+    primary: { bg: SKIN.color.primary, fg: SKIN.color.white, br: SKIN.color.primaryHover, hov: SKIN.color.primaryHover },
     ghost: {
       bg: 'rgba(255,255,255,.6)',
       fg: SKIN.color.ink,
@@ -29,10 +29,10 @@ export default function Button({
       hov: 'rgba(255,255,255,.9)',
     },
     accent: {
-      bg: SKIN.color.accentA,
-      fg: '#111827',
-      br: SKIN.color.accentB,
-      hov: SKIN.color.accentB,
+      bg: SKIN.color.secondary,
+      fg: SKIN.color.white,
+      br: SKIN.color.secondaryHover,
+      hov: SKIN.color.secondaryHover,
     },
   };
   const t = { ...defaultTones, ...toneMap }[tone] || defaultTones.default;
@@ -54,7 +54,7 @@ export default function Button({
       onClick={(e) => e.preventDefault()}
       disabled={disabled}
       aria-disabled={disabled}
-      className={`border transition active:scale-[0.98] select-none rounded-full bg-[var(--btn-bg)] [color:var(--btn-fg)] border-[var(--btn-br)] shadow-[var(--btn-shadow)] px-[var(--btn-px)] py-[var(--btn-py)] [font-size:var(--btn-fs)] min-h-[var(--btn-min-h)] leading-[1.15] [touch-action:manipulation] hover:bg-[var(--btn-hov)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--btn-br)] disabled:opacity-50 disabled:pointer-events-none ${block ? 'w-full' : ''} ${className}`}
+      className={`border transition active:scale-[0.98] select-none rounded-full bg-[var(--btn-bg)] [color:var(--btn-fg)] border-[var(--btn-br)] shadow-[var(--btn-shadow)] [font-family:var(--btn-font)] px-[var(--btn-px)] py-[var(--btn-py)] [font-size:var(--btn-fs)] min-h-[var(--btn-min-h)] leading-[1.15] [touch-action:manipulation] hover:bg-[var(--btn-hov)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--btn-br)] disabled:opacity-50 disabled:pointer-events-none ${block ? 'w-full' : ''} ${className}`}
       style={{
         '--btn-bg': t.bg,
         '--btn-fg': t.fg,
@@ -65,6 +65,7 @@ export default function Button({
         '--btn-fs': `${s.f}px`,
         '--btn-min-h': `${SKIN.size.touch}px`,
         '--btn-shadow': SKIN.shadow.soft,
+        '--btn-font': SKIN.font.display,
       }}
     >
       {children}

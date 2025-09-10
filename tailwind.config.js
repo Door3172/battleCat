@@ -4,9 +4,14 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        ui: ['ui-sans-serif', 'system-ui', 'Segoe UI', 'Noto Sans TC', 'Apple Color Emoji', 'Segoe UI Emoji']
+        sans: ['Inter', 'Noto Sans TC', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['Noto Sans TC', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       colors: {
+        primary: 'var(--color-primary)',
+        secondary: 'var(--color-secondary)',
+        ink: 'var(--color-ink)',
+        bg: 'var(--color-bg)',
         ok: 'var(--color-ok)',
         warn: 'var(--color-warn)',
         danger: 'var(--color-danger)',

@@ -5,6 +5,10 @@ const cssVar = (name) => {
 
 export const SKIN = {
   color: {
+    get primary() { return cssVar('--color-primary'); },
+    get primaryHover() { return cssVar('--color-primary-hover'); },
+    get secondary() { return cssVar('--color-secondary'); },
+    get secondaryHover() { return cssVar('--color-secondary-hover'); },
     get ink() { return cssVar('--color-ink'); },
     get inkSub() { return cssVar('--color-ink-sub'); },
     get mute() { return cssVar('--color-mute'); },
@@ -20,6 +24,10 @@ export const SKIN = {
     get danger() { return cssVar('--color-danger'); },
     get white() { return cssVar('--color-white'); },
     get black() { return cssVar('--color-black'); },
+  },
+  font: {
+    get sans() { return cssVar('--font-sans'); },
+    get display() { return cssVar('--font-display'); },
   },
   size: { touch: 40, gapSm: 6, gapMd: 10, gapLg: 16, gapXl: 24, padSm: 8, padMd: 12, padLg: 16 },
   radius: { sm: 10, md: 14, lg: 20, xl: 24, pill: 999 },

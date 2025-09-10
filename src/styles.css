@@ -4,6 +4,10 @@
 
 :root {
   /* 色彩變數 */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-secondary: #9333ea;
+  --color-secondary-hover: #7e22ce;
   --color-bg: #f1f5f9;
   --color-ink: #0f172a;
   --color-ink-sub: #334155;
@@ -11,8 +15,8 @@
   --color-line: #e5e7eb;
   --color-card-top: rgba(255,255,255,.92);
   --color-card-bottom: rgba(248,250,252,.78);
-  --color-accent-a: #f59e0b;
-  --color-accent-b: #f97316;
+  --color-accent-a: var(--color-primary);
+  --color-accent-b: var(--color-secondary);
   --color-ok: #22c55e;
   --color-warn: #f59e0b;
   --color-danger: #ef4444;
@@ -32,7 +36,8 @@
   --space-pad-lg: 16px;
 
   /* 字體變數 */
-  --font-ui: ui-sans-serif, system-ui, Segoe UI, Noto Sans TC, Apple Color Emoji, Segoe UI Emoji;
+  --font-sans: 'Inter', 'Noto Sans TC', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Noto Sans TC', 'Inter', ui-sans-serif, system-ui, sans-serif;
 
   /* 陰影與漸層 */
   --shadow-soft: 0 6px 16px rgba(2,6,23,.06), 0 2px 6px rgba(2,6,23,.06);
@@ -48,12 +53,12 @@ body {
   margin: 0;
   background: linear-gradient(var(--color-bg-top), var(--color-bg-bottom));
   color: var(--color-ink);
-  font-family: var(--font-ui);
+  font-family: var(--font-sans);
   transition: background 0.3s ease, color 0.3s ease;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-ui);
+  font-family: var(--font-display);
   font-weight: 700;
   line-height: 1.25;
 }
@@ -65,7 +70,7 @@ p {
 }
 
 button {
-  font-family: var(--font-ui);
+  font-family: var(--font-sans);
 }
 
 canvas { display:block; }
@@ -80,14 +85,19 @@ body.theme-warm {
   --color-line: #fed7aa;
   --color-card-top: rgba(255,248,235,.92);
   --color-card-bottom: rgba(255,237,213,.78);
-  --color-accent-a: #f97316;
-  --color-accent-b: #fb923c;
+  --color-primary: #f97316;
+  --color-primary-hover: #ea580c;
+  --color-secondary: #fb923c;
+  --color-secondary-hover: #f97316;
+  --color-accent-a: var(--color-primary);
+  --color-accent-b: var(--color-secondary);
   --color-ok: #16a34a;
   --color-warn: #ea580c;
   --color-danger: #dc2626;
   --color-white: #ffffff;
   --color-black: #2d2214;
-  --font-ui: ui-serif, 'Noto Serif TC', serif;
+  --font-sans: 'Noto Serif TC', serif;
+  --font-display: 'Noto Serif TC', serif;
   --gradient-hero: linear-gradient(180deg, var(--color-accent-a) 0%, var(--color-accent-b) 62%, #ffedd5 100%);
 }
 
@@ -101,14 +111,19 @@ body.theme-minimal {
   --color-line: #e5e7eb;
   --color-card-top: rgba(255,255,255,1);
   --color-card-bottom: rgba(243,244,246,1);
-  --color-accent-a: #0ea5e9;
-  --color-accent-b: #0369a1;
+  --color-primary: #0ea5e9;
+  --color-primary-hover: #0284c7;
+  --color-secondary: #0369a1;
+  --color-secondary-hover: #075985;
+  --color-accent-a: var(--color-primary);
+  --color-accent-b: var(--color-secondary);
   --color-ok: #16a34a;
   --color-warn: #d97706;
   --color-danger: #dc2626;
   --color-white: #ffffff;
   --color-black: #000000;
-  --font-ui: ui-sans-serif, system-ui, Segoe UI, Noto Sans TC, Apple Color Emoji, Segoe UI Emoji;
+  --font-sans: 'Inter', 'Noto Sans TC', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Noto Sans TC', 'Inter', ui-sans-serif, system-ui, sans-serif;
   --gradient-hero: linear-gradient(180deg, var(--color-accent-a) 0%, var(--color-accent-b) 62%, #bae6fd 100%);
 }
 

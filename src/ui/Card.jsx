@@ -13,25 +13,31 @@ export default function Card({
 }) {
   const padPx = pad==='sm'?10 : pad==='lg'?18 : 14;
   const tones = {
-    light:{
-      bg:'bg-[linear-gradient(180deg,rgba(255,255,255,.92),rgba(248,250,252,.78))]',
-      border:'border-[#e5e7eb]',
-      shadow:'shadow-[0_14px_36px_rgba(2,6,23,.10),0_4px_14px_rgba(2,6,23,.06)]',
+    light: {
+      bgTop: SKIN.color.cardTop,
+      bgBottom: SKIN.color.cardBottom,
+      border: SKIN.color.line,
+      shadow: SKIN.shadow.card,
     },
-    dark:{
-      bg:'bg-[linear-gradient(180deg,rgba(30,41,59,.92),rgba(15,23,42,.78))]',
-      border:'border-[#334155]',
-      shadow:'shadow-[0_14px_36px_rgba(0,0,0,.5),0_4px_14px_rgba(0,0,0,.2)]',
-    }
+    dark: {
+      bgTop: 'rgba(30,41,59,.92)',
+      bgBottom: 'rgba(15,23,42,.78)',
+      border: '#334155',
+      shadow: '0 14px 36px rgba(0,0,0,.5),0 4px 14px rgba(0,0,0,.2)',
+    },
   };
   const t = tones[tone] || tones.light;
   return (
     <div
-      className={cn('border', t.bg, t.border, t.shadow, bgClass, borderClass, shadowClass, className)}
+      className={cn('border', bgClass, borderClass, shadowClass, className)}
       style={{
         padding: padPx,
         borderRadius: SKIN.radius.xl,
         backdropFilter: 'blur(6px)',
+        background: `linear-gradient(180deg, ${t.bgTop}, ${t.bgBottom})`,
+        borderColor: t.border,
+        boxShadow: t.shadow,
+        fontFamily: SKIN.font.sans,
       }}
     >
       {children}

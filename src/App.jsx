@@ -295,7 +295,7 @@ export default function App() {
   };
 
   return (
-    <main className="relative w-full mx-auto max-w-5xl p-4 sm:p-8 space-y-4 min-h-full">
+    <main className="relative w-full mx-auto max-w-5xl p-4 sm:p-8 space-y-4 min-h-full font-sans text-ink">
       <button
         type="button"
         aria-label="開啟設定"
