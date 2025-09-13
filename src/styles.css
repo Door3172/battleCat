@@ -127,3 +127,35 @@ body.theme-minimal {
   --gradient-hero: linear-gradient(180deg, var(--color-accent-a) 0%, var(--color-accent-b) 62%, #bae6fd 100%);
 }
 
+body.theme-neon {
+  --color-bg: #0f1629;
+  --color-bg-top: #0f1629;
+  --color-bg-bottom: #3b82f6;
+  --color-ink: #e0e7ff;
+  --color-ink-sub: #a5b4fc;
+  --color-mute: #93c5fd;
+  --color-line: rgba(255,255,255,0.3);
+  --color-card-top: rgba(15,22,41,0.6);
+  --color-card-bottom: rgba(59,130,246,0.3);
+  --color-primary: #3b82f6;
+  --color-primary-hover: #60a5fa;
+  --color-secondary: #8b5cf6;
+  --color-secondary-hover: #a78bfa;
+  --color-accent-a: #00ff88;
+  --color-accent-b: #ffd700;
+  --color-ok: #00ff88;
+  --color-warn: #ffd700;
+  --color-danger: #f87171;
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --font-sans: 'Inter', 'Noto Sans TC', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Noto Sans TC', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --shadow-soft: 0 0 20px rgba(59,130,246,.4), 0 0 6px rgba(139,92,246,.4);
+  --shadow-card: 0 0 25px rgba(0,255,136,.25);
+  --gradient-hero: linear-gradient(135deg, var(--color-accent-a) 0%, var(--color-secondary) 50%, var(--color-primary) 100%);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(59,130,246,0.8), rgba(15,22,41,0) 60%),
+    radial-gradient(circle at 80% 80%, rgba(139,92,246,0.8), rgba(15,22,41,0) 60%),
+    linear-gradient(var(--color-bg-top), var(--color-bg-bottom));
+}
+

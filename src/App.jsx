@@ -90,7 +90,7 @@ export default function App() {
   });
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('theme');
-    return saved ? saved : 'modern';
+    return saved ? saved : 'neon';
   });
 
   const audio = useAudio();
@@ -138,7 +138,7 @@ export default function App() {
     audio.setMasterVolume(volume);
   }, [audio, volume]);
   useEffect(() => {
-    document.body.classList.remove('theme-modern', 'theme-warm', 'theme-minimal');
+    document.body.classList.remove('theme-modern', 'theme-warm', 'theme-minimal', 'theme-neon');
     document.body.classList.add(`theme-${theme}`);
     localStorage.setItem('theme', theme);
   }, [theme]);

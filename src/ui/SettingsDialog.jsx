@@ -41,6 +41,7 @@ export default function SettingsDialog({ show, onClose, audio, volume, setVolume
             onChange={(e) => setTheme(e.target.value)}
             className="flex-1 w-full rounded border border-[var(--color-line)] bg-[var(--color-card-top)] p-2 text-sm"
           >
+            <option value="neon">Neon</option>
             <option value="modern">Modern</option>
             <option value="warm">Warm</option>
             <option value="minimal">Minimal</option>
