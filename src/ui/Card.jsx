@@ -29,14 +29,20 @@ export default function Card({
   const t = tones[tone] || tones.light;
   return (
     <div
-      className={cn('border transition-shadow duration-300', bgClass, borderClass, shadowClass, className)}
+      className={cn(
+        'border transition-transform duration-200 hover:-translate-y-1',
+        bgClass,
+        borderClass,
+        shadowClass,
+        className,
+      )}
       style={{
         padding: padPx,
-        borderRadius: SKIN.radius.sm,
+        borderRadius: SKIN.radius.md,
         backdropFilter: 'blur(6px)',
         background: `linear-gradient(180deg, ${t.bgTop}, ${t.bgBottom})`,
         borderColor: t.border,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
         fontFamily: SKIN.font.sans,
       }}
     >

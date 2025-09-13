@@ -54,17 +54,19 @@ export default function Button({
       onClick={(e) => e.preventDefault()}
       disabled={disabled}
       aria-disabled={disabled}
-      className={`border transition-colors duration-300 active:scale-[0.98] select-none rounded-lg bg-[var(--btn-bg)] [color:var(--btn-fg)] border-[var(--btn-br)] shadow-[var(--btn-shadow)] [font-family:var(--btn-font)] px-[var(--btn-px)] py-[var(--btn-py)] [font-size:var(--btn-fs)] min-h-[var(--btn-min-h)] leading-[1.15] [touch-action:manipulation] hover:bg-[var(--btn-hov)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--btn-br)] disabled:opacity-50 disabled:pointer-events-none ${block ? 'w-full' : ''} ${className}`}
+      className={`border transition-colors duration-300 active:scale-95 select-none rounded-xl bg-gradient-to-b from-[var(--btn-from)] to-[var(--btn-to)] [color:var(--btn-fg)] border-[var(--btn-br)] shadow-[var(--btn-shadow)] [font-family:var(--btn-font)] px-[var(--btn-px)] py-[var(--btn-py)] [font-size:var(--btn-fs)] min-h-[var(--btn-min-h)] leading-[1.15] [touch-action:manipulation] hover:from-[var(--btn-hov-from)] hover:to-[var(--btn-hov-to)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--btn-br)] disabled:opacity-50 disabled:pointer-events-none ${block ? 'w-full' : ''} ${className}`}
       style={{
-        '--btn-bg': t.bg,
+        '--btn-from': t.bg,
+        '--btn-to': t.br,
+        '--btn-hov-from': t.hov,
+        '--btn-hov-to': t.br,
         '--btn-fg': t.fg,
         '--btn-br': t.br,
-        '--btn-hov': t.hov,
         '--btn-py': `${s.py}px`,
         '--btn-px': `${s.px}px`,
         '--btn-fs': `${s.f}px`,
         '--btn-min-h': `${SKIN.size.touch}px`,
-        '--btn-shadow': SKIN.shadow.soft,
+        '--btn-shadow': '0 4px 12px rgba(0,0,0,0.15)',
         '--btn-font': SKIN.font.display,
       }}
     >
