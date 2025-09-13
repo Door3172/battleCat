@@ -4,12 +4,12 @@
 
 :root {
   /* 色彩變數 */
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
-  --color-secondary: #9333ea;
-  --color-secondary-hover: #7e22ce;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-secondary: #7c3aed;
+  --color-secondary-hover: #6d28d9;
   --color-bg: #f1f5f9;
-  --color-ink: #0f172a;
+  --color-ink: #1f2937;
   --color-ink-sub: #334155;
   --color-mute: #64748b;
   --color-line: #e5e7eb;
@@ -21,19 +21,19 @@
   --color-warn: #f59e0b;
   --color-danger: #ef4444;
   --color-white: #ffffff;
-  --color-black: #0b1224;
+  --color-black: #1f2937;
   --color-bg-top: #f8fafc;
   --color-bg-bottom: #ecf0f6;
 
   /* 間距變數 */
-  --space-touch: 40px;
-  --space-gap-sm: 6px;
-  --space-gap-md: 10px;
-  --space-gap-lg: 16px;
-  --space-gap-xl: 24px;
+  --space-touch: 44px;
+  --space-gap-sm: 8px;
+  --space-gap-md: 16px;
+  --space-gap-lg: 24px;
+  --space-gap-xl: 32px;
   --space-pad-sm: 8px;
-  --space-pad-md: 12px;
-  --space-pad-lg: 16px;
+  --space-pad-md: 16px;
+  --space-pad-lg: 24px;
 
   /* 字體變數 */
   --font-sans: 'Inter', 'Noto Sans TC', ui-sans-serif, system-ui, sans-serif;

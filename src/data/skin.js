@@ -29,8 +29,8 @@ export const SKIN = {
     get sans() { return cssVar('--font-sans'); },
     get display() { return cssVar('--font-display'); },
   },
-  size: { touch: 40, gapSm: 6, gapMd: 10, gapLg: 16, gapXl: 24, padSm: 8, padMd: 12, padLg: 16 },
-  radius: { sm: 10, md: 14, lg: 20, xl: 24, pill: 999 },
+  size: { touch: 44, gapSm: 8, gapMd: 16, gapLg: 24, gapXl: 32, padSm: 8, padMd: 16, padLg: 24 },
+  radius: { sm: 8, md: 12, lg: 16, xl: 24, pill: 999 },
   shadow: {
     get soft() { return cssVar('--shadow-soft') || '0 6px 16px rgba(2,6,23,.06), 0 2px 6px rgba(2,6,23,.06)'; },
     get card() { return cssVar('--shadow-card') || '0 14px 36px rgba(2,6,23,.10), 0 4px 14px rgba(2,6,23,.06)'; },

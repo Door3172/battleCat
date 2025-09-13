@@ -11,7 +11,7 @@ export default function Card({
   borderClass,
   shadowClass,
 }) {
-  const padPx = pad==='sm'?10 : pad==='lg'?18 : 14;
+  const padPx = pad==='sm'?SKIN.size.padSm : pad==='lg'?SKIN.size.padLg : SKIN.size.padMd;
   const tones = {
     light: {
       bgTop: SKIN.color.cardTop,
@@ -29,14 +29,14 @@ export default function Card({
   const t = tones[tone] || tones.light;
   return (
     <div
-      className={cn('border', bgClass, borderClass, shadowClass, className)}
+      className={cn('border transition-shadow duration-300', bgClass, borderClass, shadowClass, className)}
       style={{
         padding: padPx,
-        borderRadius: SKIN.radius.xl,
+        borderRadius: SKIN.radius.sm,
         backdropFilter: 'blur(6px)',
         background: `linear-gradient(180deg, ${t.bgTop}, ${t.bgBottom})`,
         borderColor: t.border,
-        boxShadow: t.shadow,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
         fontFamily: SKIN.font.sans,
       }}
     >

@@ -54,7 +54,7 @@ export default function Button({
       onClick={(e) => e.preventDefault()}
       disabled={disabled}
       aria-disabled={disabled}
-      className={`border transition active:scale-[0.98] select-none rounded-full bg-[var(--btn-bg)] [color:var(--btn-fg)] border-[var(--btn-br)] shadow-[var(--btn-shadow)] [font-family:var(--btn-font)] px-[var(--btn-px)] py-[var(--btn-py)] [font-size:var(--btn-fs)] min-h-[var(--btn-min-h)] leading-[1.15] [touch-action:manipulation] hover:bg-[var(--btn-hov)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--btn-br)] disabled:opacity-50 disabled:pointer-events-none ${block ? 'w-full' : ''} ${className}`}
+      className={`border transition-colors duration-300 active:scale-[0.98] select-none rounded-lg bg-[var(--btn-bg)] [color:var(--btn-fg)] border-[var(--btn-br)] shadow-[var(--btn-shadow)] [font-family:var(--btn-font)] px-[var(--btn-px)] py-[var(--btn-py)] [font-size:var(--btn-fs)] min-h-[var(--btn-min-h)] leading-[1.15] [touch-action:manipulation] hover:bg-[var(--btn-hov)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--btn-br)] disabled:opacity-50 disabled:pointer-events-none ${block ? 'w-full' : ''} ${className}`}
       style={{
         '--btn-bg': t.bg,
         '--btn-fg': t.fg,
