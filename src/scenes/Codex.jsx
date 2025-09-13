@@ -19,7 +19,7 @@ export default function Codex({ cats, enemies, onBack }) {
           <Card>
             <div className="font-semibold mb-1">敵方單位（已遇見）</div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2" aria-label="已遇見敵方單位列表">
-              {enemies.length === 0 ? <span className="text-slate-500 text-sm">未遇見敵人，進入戰鬥試試看！</span> : enemies.map(n => <Pill key={n}>{n}</Pill>)}
+                {enemies.length === 0 ? <span className="text-mute text-sm">未遇見敵人，進入戰鬥試試看！</span> : enemies.map(n => <Pill key={n}>{n}</Pill>)}
             </div>
           </Card>
       </div>

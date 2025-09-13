@@ -30,12 +30,12 @@ export default function Gacha({ coins, setCoins, unlocks, setUnlocks, catLevels,
       <Card className="space-y-3">
         <GachaMachine />
         <Button onClick={handleDraw} disabled={coins < GACHA_PRICE}>抽一次（{GACHA_PRICE} 金幣）</Button>
-        {last && (
-          <div className="text-slate-600">
-            抽到了 <b>{(BASE_CATS[last.catKey] || GACHA_UNLOCKS[last.catKey]).name}</b>（{last.rarity}★）
-            {last.duplicate ? `－重複，返還 ${last.refund} 金幣` : '－新角色解鎖！'}
-          </div>
-        )}
+          {last && (
+            <div className="text-sub">
+              抽到了 <b>{(BASE_CATS[last.catKey] || GACHA_UNLOCKS[last.catKey]).name}</b>（{last.rarity}★）
+              {last.duplicate ? `－重複，返還 ${last.refund} 金幣` : '－新角色解鎖！'}
+            </div>
+          )}
         <Button onClick={onBack} tone="ghost">返回</Button>
       </Card>
     </div>

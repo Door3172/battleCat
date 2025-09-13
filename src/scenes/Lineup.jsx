@@ -31,8 +31,8 @@ export default function Lineup({ unlocks, lineup, catLevels, setLineup, addCatNa
             <Button key={k} onClick={()=>toggle(k)} size="sm" className={lineup.includes(k)?'ring-1 ring-emerald-300':''} aria-label={`單位 ${tplAll[k].name}`}>{tplAll[k].name}</Button>
           ))}
         </div>
-        <div className="mt-3 text-slate-600 text-sm">目前編成：{lineup.map(k=>tplAll[k].name).join('、') || '（尚未選擇）'}</div>
-      </Card>
+          <div className="mt-3 text-sub text-sm">目前編成：{lineup.map(k=>tplAll[k].name).join('、') || '（尚未選擇）'}</div>
+        </Card>
     </div>
   );
 }

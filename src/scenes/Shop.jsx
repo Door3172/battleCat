@@ -18,7 +18,7 @@ export default function Shop({ coins, unlocks, onBack, onBuy }) {
         {Object.entries(SHOP_UNLOCKS).map(([key, item]) => (
           <Card key={key}>
             <div className="font-semibold">解鎖：{item.name}</div>
-            <div className="text-slate-600 text-sm mt-1">加入可編組單位</div>
+              <div className="text-sub text-sm mt-1">加入可編組單位</div>
             <Divider />
             <div className="flex gap-2 items-center flex-wrap">
               <Button onClick={() => onBuy(key, item)} disabled={unlocks[key] || coins < item.price} tone={unlocks[key] ? 'ghost' : 'default'}>{unlocks[key] ? '已解鎖' : `購買（${item.price} 金幣）`}</Button>

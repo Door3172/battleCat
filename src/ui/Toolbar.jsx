@@ -13,13 +13,13 @@ export default function Toolbar({
     ? `${position} ${side === 'bottom' ? 'bottom-0' : 'top-0'} w-full z-10`
     : '';
   return (
-    <div className={`grid md:grid-cols-2 gap-3 ${posClass} ${className}`}>
-      <Card className={`shadow-md bg-white/80 dark:bg-slate-800/80 ${cardClassName}`}>
-        {left}
-      </Card>
-      <Card className={`shadow-md bg-white/80 dark:bg-slate-800/80 ${cardClassName}`}>
-        {right}
-      </Card>
-    </div>
-  );
-}
+      <div className={`grid md:grid-cols-2 gap-3 ${posClass} ${className}`}>
+        <Card className={`shadow-md ${cardClassName}`}>
+          {left}
+        </Card>
+        <Card className={`shadow-md ${cardClassName}`}>
+          {right}
+        </Card>
+      </div>
+    );
+  }

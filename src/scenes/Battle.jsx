@@ -315,7 +315,7 @@ export default function Battle({
                 role="listitem"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <div className="font-semibold text-[13px] leading-tight text-slate-800 break-words">
+                  <div className="font-semibold text-[13px] leading-tight text-ink break-words">
                     <span className="mr-1">{i + 1}️⃣</span>
                     <span>{w.catsTpl[k]?.name || k}</span>
                   </div>
