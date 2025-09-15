@@ -51,7 +51,7 @@ export default function Button({
       type="button"
       title={title}
       onPointerUp={handler}
-      onClick={(e) => e.preventDefault()}
+      onClick={handler}
       disabled={disabled}
       aria-disabled={disabled}
       className={`border transition-colors duration-300 active:scale-95 select-none rounded-xl bg-gradient-to-b from-[var(--btn-from)] to-[var(--btn-to)] [color:var(--btn-fg)] border-[var(--btn-br)] shadow-[var(--btn-shadow)] [font-family:var(--btn-font)] px-[var(--btn-px)] py-[var(--btn-py)] [font-size:var(--btn-fs)] min-h-[var(--btn-min-h)] leading-[1.15] [touch-action:manipulation] hover:from-[var(--btn-hov-from)] hover:to-[var(--btn-hov-to)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--btn-br)] disabled:opacity-50 disabled:pointer-events-none ${block ? 'w-full' : ''} ${className}`}
