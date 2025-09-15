@@ -17,9 +17,9 @@ export default function Lobby({ coins, highestUnlocked, goChapter, goLineup, goS
             <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2" aria-label="主要選單">
               <Button onClick={goChapter} tone="accent">▶️ 開始遊戲（選章節）</Button>
             <Button onClick={goLineup}>🧩 隊伍編成</Button>
-            <Button onClick={goShop}>🛒 商店</Button>
+            <Button onClick={goShop}><span className="icon icon-shop">商店</span></Button>
             <Button onClick={goGacha}>🎰 轉蛋</Button>
-            <Button onClick={goUpgrade}>⬆️ 升級</Button>
+            <Button onClick={goUpgrade}><span className="icon icon-upgrade">升級</span></Button>
             <Button onClick={goCodex}>📚 圖鑑</Button>
             <Button
               onClick={() => {

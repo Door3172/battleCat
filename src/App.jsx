@@ -10,7 +10,6 @@ import Upgrade from './scenes/Upgrade.jsx';
 import Battle from './scenes/Battle.jsx';
 import { useAudio } from './audio/useAudio.js';
 import SettingsDialog from './ui/SettingsDialog.jsx';
-import { IconGear } from './ui/Icons.jsx';
 import { getMaxStage } from './data/stages.js';
 
 // 本地存檔版本，用於重大更新時清除舊資料
@@ -295,14 +294,14 @@ export default function App() {
   };
 
   return (
-    <main className="relative w-full mx-auto max-w-5xl p-4 sm:p-8 space-y-4 min-h-full font-sans text-ink">
+    <main className="game-background relative w-full mx-auto max-w-5xl p-4 sm:p-8 space-y-4 min-h-full font-sans text-ink">
       <button
         type="button"
         aria-label="開啟設定"
         className="absolute top-4 right-4 p-1 rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
         onClick={() => setShowSettings(true)}
       >
-        <IconGear width={32} height={32} />
+        <span className="icon icon-settings text-lg">設定</span>
       </button>
       {scenes[scene]}
       <SettingsDialog

@@ -368,3 +368,96 @@ body.theme-neon {
 .placeholder-9 { display: none; }
 .placeholder-10 { display: none; }
 
+/* -------------------------------------------------------------------------- */
+/* Game visual enhancements                                                    */
+/* -------------------------------------------------------------------------- */
+.game-background {
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.4), transparent 40%),
+    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.3), transparent 40%),
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100"><path d="M0 80 L200 80 L200 100 L0 100 Z" fill="%23b4c3d6"/><path d="M20 80 L40 40 L60 80 Z" fill="%23899ab1"/><path d="M70 80 L85 60 L100 80 Z" fill="%23899ab1"/><path d="M120 80 L140 45 L160 80 Z" fill="%23899ab1"/></svg>') repeat-x bottom,
+    linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  min-height: 100%;
+}
+.game-background::before {
+  content: "☁️☁️☁️";
+  position: absolute;
+  top: 10px;
+  left: 5%;
+  font-size: 2rem;
+  animation: float 6s ease-in-out infinite;
+}
+.game-background::after {
+  content: "🏰";
+  position: absolute;
+  bottom: 10%;
+  right: 10%;
+  font-size: 6rem;
+  opacity: 0.3;
+}
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Icon utility classes */
+.icon { display:inline-flex; align-items:center; }
+.icon::before { margin-right:4px; }
+.icon-gold::before { content:"💰"; }
+.icon-exp::before { content:"⭐"; }
+.icon-heart::before { content:"❤️"; }
+.icon-attack::before { content:"⚔️"; }
+.icon-defense::before { content:"🛡️"; }
+.icon-speed::before { content:"⚡"; }
+.icon-shop::before { content:"🏪"; }
+.icon-upgrade::before { content:"⬆️"; }
+.icon-settings::before { content:"⚙️"; }
+.icon-pause::before { content:"⏸️"; }
+.icon-play::before { content:"▶️"; }
+.icon-sound::before { content:"🔊"; }
+.icon-new::before { content:"🆕"; }
+.icon-victory::before { content:"🎉"; }
+.icon-defeat::before { content:"💥"; }
+
+/* Unit card styles */
+.unit-card {
+  position: relative;
+  padding: 12px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #ffffff 0%, #dbeafe 100%);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+.unit-card::before {
+  content: var(--unit-emoji, "🐱");
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 2.5rem;
+}
+.unit-card .name { font-weight: 700; }
+.unit-card .stats { display:flex; gap:8px; margin-top:8px; }
+.unit-card .stats span { display:flex; align-items:center; font-size:14px; }
+.unit-card .stats span::before { margin-right:4px; }
+.unit-card .stats .attack::before { content:"⚔️"; }
+.unit-card .stats .hp::before { content:"❤️"; }
+.unit-card.ninja { --unit-emoji:"🥷"; background:linear-gradient(145deg,#1f2937 0%,#4b5563 100%); color:#fff; }
+.unit-card.warrior { --unit-emoji:"⚔️"; background:linear-gradient(145deg,#b91c1c 0%,#f87171 100%); color:#fff; }
+.unit-card.mage { --unit-emoji:"🔮"; background:linear-gradient(145deg,#7e22ce 0%,#c084fc 100%); color:#fff; }
+.unit-card.tank { --unit-emoji:"🛡️"; background:linear-gradient(145deg,#6b7280 0%,#9ca3af 100%); color:#fff; }
+.unit-card.archer { --unit-emoji:"🏹"; background:linear-gradient(145deg,#065f46 0%,#34d399 100%); color:#fff; }
+.unit-card.epic { box-shadow:0 0 8px 2px gold; }
+
+/* Title decoration */
+.hero-title {
+  position: relative;
+}
+.hero-title::before {
+  content: "👑";
+  position: absolute;
+  left: -40px;
+  top: -10px;
+  font-size: 2.5rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
