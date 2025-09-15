@@ -11,6 +11,14 @@ export default function Dialog({ show, onClose, children, fullscreen = true }) {
     return () => document.removeEventListener('keydown', onKey);
   }, [show, onClose]);
 
+  const panelStyle = {
+    borderColor: SKIN.color.line,
+    background: `linear-gradient(180deg, ${SKIN.color.cardTop}, ${SKIN.color.cardBottom})`,
+    boxShadow: SKIN.shadow.card,
+    color: SKIN.color.ink,
+    backdropFilter: 'blur(14px)',
+  };
+
   return (
     <div
       className={`${fullscreen ? 'fixed' : 'absolute'} inset-0 grid place-items-center bg-black/50 transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
@@ -19,8 +27,8 @@ export default function Dialog({ show, onClose, children, fullscreen = true }) {
       <div
         role="dialog"
         aria-modal="true"
-        className="bg-white/85 backdrop-blur rounded-2xl border shadow px-4 py-3 text-center"
-        style={{ borderColor: SKIN.color.line }}
+        className="rounded-2xl border px-4 py-3 text-center"
+        style={panelStyle}
         onClick={(e) => e.stopPropagation()}
       >
         {children}

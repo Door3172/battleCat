@@ -33,6 +33,9 @@
   --color-btn-ghost-text: var(--color-ink);
   --color-btn-shadow: rgba(0, 0, 0, 0.55);
   --color-btn-highlight: rgba(255,255,255,0.25);
+  --color-surface-top: rgba(255,255,255,0.92);
+  --color-surface-bottom: rgba(255,248,225,0.88);
+  --color-surface-border: rgba(255,204,153,0.45);
 
   /* 📏 間距變數 */
   --space-touch: 44px;
@@ -69,9 +72,7 @@ body, #root {
 
 body {
   margin: 0;
-  background: 
-    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="15">🐾</text></svg>') 20px 20px / 100px 100px,
-    linear-gradient(135deg, var(--color-bg-top), var(--color-bg-bottom));
+  background: linear-gradient(160deg, var(--color-bg-top), var(--color-bg-bottom));
   color: var(--color-ink);
   font-family: var(--font-sans);
   transition: background 0.4s ease, color 0.3s ease;
@@ -96,9 +97,10 @@ body.theme-warm {
   --color-btn-cta-text: #3e2723;
   --font-sans: 'Noto Serif TC', 'Georgia', serif;
   --font-display: 'Noto Serif TC', 'Georgia', serif;
-  background: 
-    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="15">☀️</text></svg>') 30px 30px / 120px 120px,
-    linear-gradient(135deg, var(--color-bg-top), var(--color-bg-bottom));
+  --color-surface-top: rgba(255,248,225,0.94);
+  --color-surface-bottom: rgba(255,224,178,0.9);
+  --color-surface-border: rgba(255,183,77,0.4);
+  background: linear-gradient(160deg, var(--color-bg-top), var(--color-bg-bottom));
 }
 
 body.theme-minimal {
@@ -113,9 +115,34 @@ body.theme-minimal {
   --color-primary-hover: #1976d2;
   --color-secondary: #00bcd4;
   --color-secondary-hover: #0097a7;
-  background: 
-    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="12">◦</text></svg>') 25px 25px / 80px 80px,
-    linear-gradient(180deg, var(--color-bg-top), var(--color-bg-bottom));
+  --color-surface-top: rgba(255,255,255,0.96);
+  --color-surface-bottom: rgba(245,245,245,0.92);
+  --color-surface-border: rgba(224,224,224,0.6);
+  background: linear-gradient(160deg, var(--color-bg-top), var(--color-bg-bottom));
+}
+
+body.theme-modern {
+  --color-bg: #0f172a;
+  --color-bg-top: #15203b;
+  --color-bg-bottom: #0b1220;
+  --color-ink: #e2e8f0;
+  --color-ink-sub: #a5b4fc;
+  --color-mute: #64748b;
+  --color-line: rgba(148,163,184,0.35);
+  --color-card-top: rgba(30,41,59,0.92);
+  --color-card-bottom: rgba(15,23,42,0.84);
+  --color-primary: #38bdf8;
+  --color-primary-hover: #0ea5e9;
+  --color-secondary: #a855f7;
+  --color-secondary-hover: #9333ea;
+  --color-btn-ghost-text: #e2e8f0;
+  --color-surface-top: rgba(15,23,42,0.92);
+  --color-surface-bottom: rgba(9,14,26,0.88);
+  --color-surface-border: rgba(56,189,248,0.35);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(56,189,248,0.18), transparent 55%),
+    radial-gradient(circle at 88% 82%, rgba(168,85,247,0.12), transparent 60%),
+    linear-gradient(160deg, var(--color-bg-top), var(--color-bg-bottom));
 }
 
 body.theme-neon {
@@ -138,11 +165,13 @@ body.theme-neon {
   --color-btn-ghost-text: #0f2a3a;
   --color-btn-shadow: rgba(0, 0, 0, 0.7);
   --color-btn-highlight: rgba(255,255,255,0.45);
+  --color-surface-top: rgba(8,22,38,0.92);
+  --color-surface-bottom: rgba(29,45,68,0.88);
+  --color-surface-border: rgba(0,245,255,0.32);
   background:
-    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="15">⚡</text></svg>') 40px 40px / 150px 150px,
-    radial-gradient(circle at 20% 20%, rgba(0,245,255,0.1), transparent 70%),
-    radial-gradient(circle at 80% 80%, rgba(255,23,68,0.1), transparent 70%),
-    linear-gradient(135deg, var(--color-bg-top), var(--color-bg-bottom));
+    radial-gradient(circle at 15% 20%, rgba(0,245,255,0.18), transparent 60%),
+    radial-gradient(circle at 85% 80%, rgba(255,23,68,0.12), transparent 65%),
+    linear-gradient(160deg, var(--color-bg-top), var(--color-bg-bottom));
 }
 
 /* 🎯 標題樣式 */
@@ -385,128 +414,48 @@ canvas {
 
 /* 🎨 遊戲視覺增強 */
 .game-background {
-  background:
-    radial-gradient(circle at 25% 25%, rgba(255,193,7,0.1), transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(79,195,247,0.1), transparent 50%),
-    var(--gradient-battlefield),
-    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100"><path d="M0 80 L200 80 L200 100 L0 100 Z" fill="%23b4c3d6"/><path d="M20 80 L40 40 L60 80 Z" fill="%23899ab1"/><path d="M70 80 L85 60 L100 80 Z" fill="%23899ab1"/><path d="M120 80 L140 45 L160 80 Z" fill="%23899ab1"/></svg>') repeat-x bottom,
-    linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
   position: relative;
-  overflow: hidden;
+  margin: clamp(16px, 4vw, 56px) auto;
+  border-radius: 28px;
+  background: linear-gradient(180deg, var(--color-surface-top), var(--color-surface-bottom));
+  border: 1px solid var(--color-surface-border);
+  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.28);
+  backdrop-filter: blur(18px);
+  min-height: calc(100vh - clamp(48px, 6vw, 112px));
   isolation: isolate;
+  overflow: hidden;
 }
 
 .game-background::before {
   content: '';
   position: absolute;
-  top: -15%;
-  left: -10%;
-  width: 120%;
-  height: 130%;
-  background-image:
-    linear-gradient(115deg, rgba(255,255,255,0) 15%, rgba(255,255,255,0.85) 45%, rgba(255,255,255,0) 60%),
-    linear-gradient(115deg, rgba(255,235,59,0) 25%, rgba(255,235,59,0.7) 48%, rgba(255,235,59,0) 72%);
-  background-repeat: no-repeat;
-  background-size: 38% 120%, 22% 120%;
-  background-position: -45% -12%, -75% 6%;
-  opacity: 0;
-  transform: skewX(-12deg);
-  filter: drop-shadow(0 0 30px rgba(255,255,255,0.35));
-  animation: lightningStrike 7s ease-in-out infinite;
-  mix-blend-mode: screen;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(120deg, rgba(255,255,255,0.14), rgba(255,255,255,0)),
+    linear-gradient(200deg, rgba(0,0,0,0.12), rgba(0,0,0,0));
+  opacity: 0.7;
+  mix-blend-mode: soft-light;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
 }
 
 .game-background::after {
-  content: "⚡⚡";
+  content: '';
   position: absolute;
-  top: 8%;
-  right: 10%;
-  font-size: 5rem;
-  color: #fff59d;
-  text-shadow: 0 0 18px rgba(255,255,255,0.95), -18px 0 30px rgba(255,235,59,0.75), 18px 0 35px rgba(255,255,255,0.6);
-  animation: lightningFlicker 7s infinite;
-  mix-blend-mode: screen;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(255,255,255,0.16), transparent 55%),
+    radial-gradient(circle at 80% 88%, rgba(0,0,0,0.18), transparent 60%);
+  opacity: 0.35;
   pointer-events: none;
-  transform-origin: center top;
-  z-index: 2;
+  z-index: 0;
 }
 
 .game-background > * {
   position: relative;
-  z-index: 3;
-}
-
-@keyframes lightningStrike {
-  0%, 40%, 100% {
-    opacity: 0;
-    background-position: -45% -12%, -75% 6%;
-  }
-  4% {
-    opacity: 1;
-    background-position: 10% -12%, -25% 6%;
-  }
-  6% {
-    opacity: 0.75;
-    background-position: 25% -6%, -8% 12%;
-  }
-  10% {
-    opacity: 0.2;
-    background-position: 40% 0%, 12% 20%;
-  }
-  48% {
-    opacity: 0;
-    background-position: -45% -12%, -75% 6%;
-  }
-  52% {
-    opacity: 1;
-    background-position: 8% -12%, -22% 4%;
-  }
-  55% {
-    opacity: 0.8;
-    background-position: 20% -4%, -4% 12%;
-  }
-  59% {
-    opacity: 0;
-    background-position: 35% 4%, 10% 22%;
-  }
-}
-
-@keyframes lightningFlicker {
-  0%, 18%, 45%, 100% {
-    opacity: 0;
-    transform: translateY(0) rotate(-8deg) scale(1);
-  }
-  4% {
-    opacity: 1;
-    transform: translateY(-8px) rotate(-4deg) scale(1.08);
-  }
-  6% {
-    opacity: 0.35;
-    transform: translateY(-2px) rotate(-6deg) scale(1.02);
-  }
-  9% {
-    opacity: 1;
-    transform: translateY(-6px) rotate(-3deg) scale(1.1);
-  }
-  12% {
-    opacity: 0;
-    transform: translateY(0) rotate(-10deg) scale(0.95);
-  }
-  52% {
-    opacity: 1;
-    transform: translateY(-7px) rotate(-2deg) scale(1.05);
-  }
-  55% {
-    opacity: 0.4;
-    transform: translateY(-2px) rotate(-6deg) scale(0.99);
-  }
-  58% {
-    opacity: 0;
-    transform: translateY(0) rotate(-10deg) scale(0.94);
-  }
+  z-index: 1;
 }
 
 /* 🎯 圖示工具類別 */
@@ -704,9 +653,18 @@ canvas {
   .unit-card::before {
     font-size: 2.5rem;
   }
-  
+
+  .game-background {
+    margin: 0;
+    border-radius: 0;
+    min-height: 100vh;
+    border-left: none;
+    border-right: none;
+    box-shadow: none;
+  }
+
   .game-background::after {
-    font-size: 4rem;
+    opacity: 0.25;
   }
 }
 
