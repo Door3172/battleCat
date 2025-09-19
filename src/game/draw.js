@@ -1,6 +1,5 @@
 import { SKIN } from '../data/skin.js';
 import { BODY_W } from './world.js';
-import { getCharacterImage, getAnimationFrame, AnimationState } from './images.js';
 
 export function drawCatBase(ctx,x,ground,left,hpPct){
   ctx.save();
@@ -28,93 +27,18 @@ export function roundRect(ctx,x,y,w,h,r){
   ctx.arcTo(x+w,y+h,x,y+h,rr); ctx.arcTo(x,y+h,x,y,rr); ctx.arcTo(x,y,x+w,y,rr); ctx.closePath();
 }
 
-export function drawUnit(ctx, u) {
+export function drawUnit(ctx,u){
   ctx.save();
-  ctx.translate(u.x, u.y);
-  const isCat = u.team === 1;
-  const type = u.type || (isCat ? 'white' : 'void');
-  const img = getCharacterImage(type);
-  const animation = getAnimationFrame(u);
-  
-  // 如果有圖片，使用圖片繪製
-  if (img && img.complete) {
-    const scale = 0.5; // 調整圖片大小
-    const width = 80 * scale;
-    const height = 80 * scale;
-    
-    // 根據動畫狀態應用效果
-    let offsetY = 0;
-    let offsetX = 0;
-    let scaleX = isCat ? 1 : -1; // 敵人朝向左邊
-    
-    if (animation.state === AnimationState.APPEAR) {
-      // 出場動畫：從上方降落
-      offsetY = -20 * (1 - animation.time * 2);
-    } else if (animation.state === AnimationState.ATTACK) {
-      // 攻擊動畫：前傾
-      offsetX = isCat ? 5 : -5;
-    } else if (animation.state === AnimationState.MOVE) {
-      // 移動動畫：上下輕微彈跳
-      offsetY = Math.sin(animation.time * 10) * 2;
-    }
-    
-    // 繪製角色圖片
-    ctx.save();
-    ctx.scale(scaleX, 1);
-    ctx.drawImage(img, offsetX * scaleX, -height + offsetY, width, height);
-    ctx.restore();
-    
-    // 繪製血條
-    const hpPct = Math.max(0, Math.min(1, u.hp / u.maxHp));
-    ctx.fillStyle = SKIN.color.ink;
-    ctx.fillRect(-BODY_W/2, 12, BODY_W, 4);
-    ctx.fillStyle = hpPct > 0.5 ? SKIN.color.ok : hpPct > 0.2 ? SKIN.color.warn : SKIN.color.danger;
-    ctx.fillRect(-BODY_W/2, 12, BODY_W * hpPct, 4);
-    
-    // 繪製名稱
-    ctx.fillStyle = SKIN.color.ink;
-    ctx.font = '11px ui-sans-serif, system-ui';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText(isCat ? u.name : '敵', 0, -6);
-  } else {
-    // 備用繪製方法（如果圖片未加載）
-    ctx.fillStyle = u.color;
-    ctx.strokeStyle = SKIN.color.ink;
-    ctx.lineWidth = 2;
-    roundRect(ctx, -BODY_W/2, -16, BODY_W, 24, 6);
-    ctx.fill();
-    ctx.stroke();
-    ctx.beginPath();
-    
-    if (isCat) {
-      ctx.moveTo(-8, -16);
-      ctx.lineTo(-2, -24);
-      ctx.lineTo(0, -16);
-      ctx.moveTo(8, -16);
-      ctx.lineTo(2, -24);
-      ctx.lineTo(0, -16);
-    } else {
-      ctx.moveTo(-6, -16);
-      ctx.lineTo(0, -22);
-      ctx.lineTo(6, -16);
-    }
-    
-    ctx.stroke();
-    
-    const hpPct = Math.max(0, Math.min(1, u.hp / u.maxHp));
-    ctx.fillStyle = SKIN.color.ink;
-    ctx.fillRect(-BODY_W/2, 12, BODY_W, 4);
-    ctx.fillStyle = hpPct > 0.5 ? SKIN.color.ok : hpPct > 0.2 ? SKIN.color.warn : SKIN.color.danger;
-    ctx.fillRect(-BODY_W/2, 12, BODY_W * hpPct, 4);
-    
-    ctx.fillStyle = SKIN.color.ink;
-    ctx.font = '11px ui-sans-serif, system-ui';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText(isCat ? u.name : '敵', 0, -6);
-  }
-  
+  ctx.translate(u.x,u.y);
+  const isCat=u.team===1;
+  ctx.fillStyle=u.color; ctx.strokeStyle=SKIN.color.ink; ctx.lineWidth=2;
+  roundRect(ctx,-BODY_W/2,-16,BODY_W,24,6); ctx.fill(); ctx.stroke();
+  ctx.beginPath();
+  if(isCat){ ctx.moveTo(-8,-16); ctx.lineTo(-2,-24); ctx.lineTo(0,-16); ctx.moveTo(8,-16); ctx.lineTo(2,-24); ctx.lineTo(0,-16);} else { ctx.moveTo(-6,-16); ctx.lineTo(0,-22); ctx.lineTo(6,-16);} ctx.stroke();
+  const hpPct=Math.max(0,Math.min(1,u.hp/u.maxHp));
+  ctx.fillStyle=SKIN.color.ink; ctx.fillRect(-BODY_W/2,12,BODY_W,4);
+  ctx.fillStyle= hpPct>0.5?SKIN.color.ok: hpPct>0.2?SKIN.color.warn:SKIN.color.danger; ctx.fillRect(-BODY_W/2,12,BODY_W*hpPct,4);
+  ctx.fillStyle = SKIN.color.ink; ctx.font = '11px ui-sans-serif, system-ui'; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText(isCat?u.name:'敵', 0, -6);
   ctx.restore();
 }
 
