@@ -82,18 +82,21 @@ body {
 /* 🌟 主題變體 */
 body.theme-warm {
   --color-bg: #fff3e0;
-  --color-bg-top: #fff8e1;
-  --color-bg-bottom: #ffcc02;
-  --color-ink: #4a2c2a;
-  --color-ink-sub: #6d4c41;
-  --color-mute: #8d6e63;
-  --color-line: #ffcc80;
+  --color-bg-top: #fff8f0;
+  --color-bg-bottom: #ffe0b2;
+  --color-ink: #3e2723;
+  --color-ink-sub: #4e342e;
+  --color-mute: #6d4c41;
+  --color-line: #ffccbc;
   --color-card-top: rgba(255,248,225,.95);
   --color-card-bottom: rgba(255,224,178,.85);
-  --color-primary: #ff7043;
-  --color-primary-hover: #ff5722;
+  --color-primary: #ff5722;
+  --color-primary-hover: #e64a19;
   --color-secondary: #ffb74d;
   --color-secondary-hover: #ffa726;
+  --color-btn-text: #ffffff;
+  --color-btn-accent-text: #ffffff;
+  --color-btn-ghost-text: #4a2c2a;
   --color-btn-cta-text: #3e2723;
   --font-sans: 'Noto Serif TC', 'Georgia', serif;
   --font-display: 'Noto Serif TC', 'Georgia', serif;
@@ -115,6 +118,12 @@ body.theme-minimal {
   --color-primary-hover: #1976d2;
   --color-secondary: #00bcd4;
   --color-secondary-hover: #0097a7;
+  --color-btn-text: #ffffff;
+  --color-btn-accent-text: #ffffff;
+  --color-btn-ghost-text: #212121;
+  --color-btn-cta-text: #212121;
+  --color-card-top: rgba(255,255,255,0.95);
+  --color-card-bottom: rgba(250,250,250,0.85);
   --color-surface-top: rgba(255,255,255,0.96);
   --color-surface-bottom: rgba(245,245,245,0.92);
   --color-surface-border: rgba(224,224,224,0.6);
@@ -135,7 +144,10 @@ body.theme-modern {
   --color-primary-hover: #0ea5e9;
   --color-secondary: #a855f7;
   --color-secondary-hover: #9333ea;
+  --color-btn-text: #0f172a;
+  --color-btn-accent-text: #0f172a;
   --color-btn-ghost-text: #e2e8f0;
+  --color-btn-cta-text: #0f172a;
   --color-surface-top: rgba(15,23,42,0.92);
   --color-surface-bottom: rgba(9,14,26,0.88);
   --color-surface-border: rgba(56,189,248,0.35);
@@ -218,6 +230,7 @@ canvas {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(8px);
 }
 
 .card::before {
@@ -268,6 +281,7 @@ canvas {
     0 2px 6px var(--color-btn-shadow);
   position: relative;
   overflow: hidden;
+  letter-spacing: 0.5px;
 }
 
 .btn::before {
