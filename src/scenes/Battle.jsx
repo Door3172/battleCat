@@ -11,6 +11,7 @@ import { fmt } from '../utils/number.js';
 import { createWorld } from '../game/world.js';
 import { spawnEnemy, stepUnits, groundY, makeUnit, spawnBossIfNeeded } from '../game/ai.js';
 import { drawAll } from '../game/draw.js';
+import { initAnimationSystem, triggerAppearAnimation, triggerAttackAnimation } from '../game/images.js';
 import { rand } from '../utils/math.js';
 import { useAudio } from '../audio/useAudio.js';
 import { stageConfig, getMaxStage } from '../data/stages.js';
@@ -52,6 +53,8 @@ export default function Battle({
   useEffect(() => {
     const onResize = () => { forceResize(); draw(); };
     onResize();
+    // 初始化動畫系統
+    initAnimationSystem();
     window.addEventListener('resize', onResize);
     window.addEventListener('orientationchange', onResize);
     document.addEventListener('fullscreenchange', onResize);
@@ -178,7 +181,10 @@ export default function Battle({
     if (w.units.filter(u => u.team === 1).length > 70) return;
     w.fish -= tpl.cost; w.summonCd[key] = tpl.cd;
     const y = groundY(getWorldHeight) - 8 + rand(-3, 3);
-    w.units.push(makeUnit(1, 80 + rand(-6, 6), y, tpl));
+    const unit = makeUnit(1, 80 + rand(-6, 6), y, tpl);
+    w.units.push(unit);
+    // 添加出場動畫
+    triggerAppearAnimation(unit.id);
     audio.playSfx('sfx_summon'); // 召喚叮一聲
   };
 
@@ -316,13 +322,19 @@ export default function Battle({
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="font-semibold text-[13px] leading-tight text-ink break-words">
-                    <span className="mr-1">{i + 1}️⃣</span>
+                    <span className="mr-1 tooltip" title="按鍵{i + 1}快速召喚">{i + 1}️⃣</span>
                     <span>{w.catsTpl[k]?.name || k}</span>
                   </div>
                   <Pill tone="sub">{w.catsTpl[k]?.cost ?? '?'}</Pill>
                 </div>
                 <div className="mt-2">
-                  <Button onClick={summon(k)} disabled={disabled} size="sm" block>
+                  <Button 
+                    onClick={summon(k)} 
+                    disabled={disabled} 
+                    size="sm" 
+                    block
+                    title={`按鍵${i + 1}快速召喚 ${w.catsTpl[k]?.name || k}`}
+                  >
                     {w.catsTpl[k]?.name || k}{cd > 0 ? `（${cd.toFixed(1)}s）` : ''}
                   </Button>
                 </div>
@@ -331,10 +343,13 @@ export default function Battle({
           })}
         </SlotTray>
         <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 items-center gap-2" aria-label="戰鬥控制">
-          <Button onClick={fireCannon} disabled={ui.cannonCd > 0 || ui.state !== 'running'} tone="primary">🧨 貓咪砲 {ui.cannonCd > 0 ? `(${ui.cannonCd.toFixed(1)}s)` : ''}</Button>
-          <Button onClick={togglePause}>{ui.state === 'paused' ? '▶️ 繼續' : '⏸️ 暫停'}</Button>
-          <Button onClick={resetWorld}>🔄 重開</Button>
+          <Button onClick={fireCannon} disabled={ui.cannonCd > 0 || ui.state !== 'running'} tone="primary" title="按空格鍵發射砲彈">🧨 貓咪砲 {ui.cannonCd > 0 ? `(${ui.cannonCd.toFixed(1)}s)` : ''}</Button>
+          <Button onClick={togglePause} title="按P鍵暫停/繼續遊戲">{ui.state === 'paused' ? '▶️ 繼續' : '⏸️ 暫停'}</Button>
+          <Button onClick={resetWorld} title="按R鍵重新開始">🔄 重開</Button>
           <Button onClick={() => { exitBattle(); setScene('lobby'); }}>🏠 返回大廳</Button>
+        </div>
+        <div className="mt-2 text-xs text-center text-gray-600">
+          <p>鍵盤快捷鍵: 數字1-5=召喚角色 | 空格=發射砲彈 | P=暫停 | X=切換速度 | R=重置</p>
         </div>
       </>
     );

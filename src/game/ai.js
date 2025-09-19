@@ -1,4 +1,5 @@
 import { ENEMIES, BOSSES } from '../data/enemies.js';
+import { triggerAppearAnimation, triggerAttackAnimation, triggerHurtAnimation } from './images.js';
 import { BODY_W } from './world.js';
 
 /*
@@ -92,7 +93,10 @@ export function spawnEnemy(world, getCanvasWidth, getCanvasHeight, onEnemySeen, 
       maxHp: Math.round(base.hp * sc * statMultiplier / 100),
       attack: Math.round(base.attack * (1.0 + (sc - 1) * 0.6) * statMultiplier / 100)
     };
-    world.units.push(makeUnit(-1, rightX - 30, gy - 8, tpl));
+    const unit = makeUnit(-1, rightX - 30, gy - 8, tpl);
+    world.units.push(unit);
+    // 添加出場動畫
+    triggerAppearAnimation(unit.id);
     world.bossSpawned = true;
     onEnemySeen && onEnemySeen(base.name);
     return;
@@ -107,7 +111,10 @@ export function spawnEnemy(world, getCanvasWidth, getCanvasHeight, onEnemySeen, 
     attack: Math.round(base.attack * (applyScale ? (0.9 + (sc - 1) * 0.5) : 1) * statMultiplier / 100) // 無隨機因子
   };
 
-  world.units.push(makeUnit(-1, rightX - 30, gy - 8, tpl));
+  const unit = makeUnit(-1, rightX - 30, gy - 8, tpl);
+  world.units.push(unit);
+  // 添加出場動畫
+  triggerAppearAnimation(unit.id);
   onEnemySeen && onEnemySeen(base.name);
 }
 
@@ -143,6 +150,11 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt) {
   let bounty = 0;
 
   function dealAttack(attacker, target) {
+    // 觸發攻擊動畫
+    if (attacker && attacker.id) {
+      triggerAttackAnimation(attacker.id);
+    }
+    
     let dmg = attacker.atk;
     const crit = attacker.abilities?.critical;
     if (crit && Math.random() < crit.chance) {
@@ -158,7 +170,14 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt) {
           if (sh >= 0) { target.shieldHp = sh; dmg = 0; }
           else { target.shieldHp = 0; dmg = -sh; }
         }
-        if (dmg > 0) { target.hp -= dmg; dealt = dmg; }
+        if (dmg > 0) { 
+          target.hp -= dmg; 
+          dealt = dmg; 
+          // 觸發受傷動畫
+          if (target && target.id) {
+            triggerHurtAnimation(target.id);
+          }
+        }
       }
     } else {
       dealt = dmg;
