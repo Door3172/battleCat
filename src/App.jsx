@@ -89,7 +89,7 @@ export default function App() {
   });
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('theme');
-    return saved ? saved : 'neon';
+    return saved ? saved : 'minimal';
   });
 
   const audio = useAudio();
@@ -298,10 +298,10 @@ export default function App() {
       <button
         type="button"
         aria-label="開啟設定"
-        className="absolute top-4 right-4 p-1 rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+        className="absolute right-4 top-4 rounded-xl border border-[var(--color-line)] bg-white/80 px-3 py-2 text-sm font-medium text-[var(--color-ink)] shadow-sm backdrop-blur focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
         onClick={() => setShowSettings(true)}
       >
-        <span className="icon icon-settings text-lg">設定</span>
+        <span className="icon">設定</span>
       </button>
       {scenes[scene]}
       <SettingsDialog

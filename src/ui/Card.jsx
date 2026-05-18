@@ -30,7 +30,7 @@ export default function Card({
   return (
     <div
       className={cn(
-        'border transition-transform duration-200 hover:-translate-y-1',
+        'border transition-transform duration-200 hover:-translate-y-0.5',
         bgClass,
         borderClass,
         shadowClass,
@@ -38,11 +38,11 @@ export default function Card({
       )}
       style={{
         padding: padPx,
-        borderRadius: SKIN.radius.md,
-        backdropFilter: 'blur(6px)',
+        borderRadius: 18,
+        backdropFilter: 'blur(8px)',
         background: `linear-gradient(180deg, ${t.bgTop}, ${t.bgBottom})`,
         borderColor: t.border,
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        boxShadow: t.shadow,
         fontFamily: SKIN.font.sans,
       }}
     >
