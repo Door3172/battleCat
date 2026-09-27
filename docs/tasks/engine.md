@@ -391,7 +391,7 @@ CEO 決定：
 ### 審核（CEO 填寫）
 - 2026-09-28 通過。`atkSeq` 與冷卻重設同一處遞增，AOE 沒命中不加；新增 4 項測試，比對結果仍相同。UI-010 可開工。
 ## [EG-010] BOSS 縮放中從未生效的 `spawnFactor` 改為註解保留
-- 狀態：待處理
+- 狀態：已完成
 - 優先度：低
 - 來自：CEO（2026-09-28，EG-008 回報的發現）
 - 依賴：無
@@ -409,11 +409,25 @@ CEO 決定：
 - 用 EG-008 的固定亂數比對確認結果不變；`npm run build`、`npm test` 通過；更新 CHANGELOG。
 
 ### 回報（負責角色填寫）
-- 修改檔案：
+- 修改檔案：`src/game/ai.js`（`computeScale`）、`src/game/ai.test.js`（新增 2 項）、`docs/PROJECT_MAP.md`（§5 BOSS 縮放那一行，本任務授權）、`docs/CHANGELOG.md`、本任務檔
 - 做了什麼：
+  - `computeScale`：`spawnFactor` 那行**改成註解保留**（沒有刪），回傳值從 `stageFactor * timeFactor * spawnFactor` 改成 `stageFactor * timeFactor`。
+  - 註解寫明三件事：
+    - 用途：每已出怪 +1.5%、上限 +45%，出過越多怪 BOSS 越強。
+    - 為什麼停用：只有已移除的舊固定頻率路徑會累加 `world.totalSpawns`，排程出怪從不累加，這一項恆為 1、從未生效。
+    - 要啟用得做什麼：在 `spawnEnemy`（或 `stepSchedule` 生成時）加上 `world.totalSpawns = (world.totalSpawns || 0) + 1`、取消註解並乘回去；BOSS 會變強，需先經濟評估。
+  - 刪了什麼 / 留了什麼（規則 13）：**沒有刪任何東西**，`spawnFactor` 算式完整保留在註解中。現在程式裡已經沒有讀寫 `world.totalSpawns` 的地方（只出現在註解）。
+  - PROJECT_MAP §5：CEO 先前已在該行加註「從未生效」，我把整行改寫成任務要求的內容（實際縮放只有每關 +8%、每秒 +0.4%；每已出怪 +1.5% 已停用、以註解保留）。
 - 如何驗證：
-- 新增給其他角色的請求：
-- 收尾：
+  - 固定亂數比對：修改前先用目前的程式（EG-008 之後）重建黃金基準（40 關各 120 秒，含 BOSS、召喚、開砲、環境；847 個單位、6 隻 BOSS、賞金 72,180，與 EG-008 的數字一致），修改後輸出**逐位元組相同**。原本的 `spawnFactor` 恆為 `1 + 0 = 1`，乘 1 不改變浮點結果。
+  - 新增 2 項測試，把 BOSS 縮放公式固定下來：1-20 在 3 秒出場的 BOSS HP = 基礎 × (1 + 19×0.08) × (1 + 3×0.004) × multiplier%；時間加成在 180 秒封頂（999 秒結果相同）；`world.totalSpawns = 30` 也不影響 HP。
+  - `npm test` 37 項全過（4 個測試檔，其中一個是其他角色新增的）；`npm run build` 成功。
+- 新增給其他角色的請求：無
+- 收尾：未使用瀏覽器（行為由固定亂數比對與單元測試驗證），沒有開 dev server 或背景程序。
 - 給 CEO 的注意事項：
+  - commit 範圍：`src/game/ai.js`、`src/game/ai.test.js`、`docs/PROJECT_MAP.md`、`docs/CHANGELOG.md`、`docs/tasks/engine.md`。`docs/CHANGELOG.md` 裡另有一行未 commit 的 CEO 紀錄，不是我寫的。
+  - 工作目錄中的 `CLAUDE.md`（新增規則 13）不是我改的，是 CEO 的改動。
+  - 若日後要啟用這項加成，要注意：`spawnEnemy` 也會生成排程裡的 BOSS 型敵人，「每已出怪」要不要把它們算進去，需要在啟用時一併決定。
 
 ### 審核（CEO 填寫）
+- 2026-09-28 通過。`spawnFactor` 以註解保留並寫明用途、停用原因、啟用方法，符合使用者指示與規則 13；固定亂數比對相同，新增 BOSS 縮放測試；build、test（37 項）通過，範圍正確。

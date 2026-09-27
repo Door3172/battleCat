@@ -66,8 +66,17 @@ function computeScale(cfg, world) {
   const stageFactor = 1 + Math.max(0, (cfg.stageIndex || 1) - 1) * 0.08; // 每關 +8%
   const timeSec = Math.min(world.time || 0, 180);
   const timeFactor = 1 + timeSec * 0.004;                               // 每秒 +0.4%
-  const spawnFactor = 1 + Math.min((world.totalSpawns || 0) * 0.015, 0.45);// 每隻 +1.5%（見 PROJECT_MAP：排程出怪不計入 totalSpawns）
-  return stageFactor * timeFactor * spawnFactor;
+
+  // 【已停用，註解保留（EG-010）】每已出怪 +1.5%（上限 +45%）
+  // - 用途：場上已經出過越多怪，BOSS 越強。
+  // - 為什麼停用：只有舊的固定頻率生怪路徑（EG-008 已移除）會累加 world.totalSpawns；
+  //   排程出怪（stepSchedule → spawnEnemy）從來不累加，所以 totalSpawns 恆為 0、這一項恆為 1，從未生效。
+  // - 要啟用：在 spawnEnemy（或 stepSchedule 生成時）加上
+  //     world.totalSpawns = (world.totalSpawns || 0) + 1;
+  //   再取消下一行註解，並把回傳值乘上 spawnFactor。BOSS 會變強，需先經濟評估。
+  // const spawnFactor = 1 + Math.min((world.totalSpawns || 0) * 0.015, 0.45);
+
+  return stageFactor * timeFactor;
 }
 
 // 依關卡排程生成一隻敵人（排程出怪不套用難度成長，只乘 statMultiplier%）。

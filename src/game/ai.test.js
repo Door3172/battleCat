@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { stepSchedule, stepUnits, makeUnit, absorbDamage, applyCannon, pushWithinBounds } from './ai.js';
+import { stepSchedule, stepUnits, makeUnit, absorbDamage, applyCannon, pushWithinBounds, spawnBossIfNeeded } from './ai.js';
+import { BOSSES } from '../data/enemies.js';
 import { stageConfig, getMaxStage } from '../data/stages.js';
 
 // 以固定步長推進 stepSchedule；hpAt(t) 決定敵堡 HP。回傳生成紀錄 [{ type, mult, t }]
@@ -207,5 +208,29 @@ describe('atkSeq 出手計數', () => {
     expect(misser.atkSeq).toBe(0);
     expect(misser.atkCd).toBeLessThanOrEqual(0);
     expect(far.hp).toBe(1000);
+  });
+});
+
+// ── EG-010：BOSS 縮放只有「每關 +8%」與「每秒 +0.4%（上限 180 秒）」；每已出怪 +1.5% 已停用 ──
+describe('BOSS 縮放（computeScale）', () => {
+  const spawnBossAt = (stage, chapter, time, extra = {}) => {
+    const cfg = stageConfig(stage, chapter);
+    const w = { cfg, time, rightHp: 0, units: [], bossSpawned: false, ...extra };
+    spawnBossIfNeeded(w, () => 400);
+    return { cfg, boss: w.units[0] };
+  };
+
+  it('1-20 在 3 秒出場：HP = 基礎 × (1 + 19×0.08) × (1 + 3×0.004) × multiplier%', () => {
+    const { cfg, boss } = spawnBossAt(20, 1, 3);
+    const base = BOSSES[cfg.bossKey];
+    const sc = (1 + 19 * 0.08) * (1 + 3 * 0.004);
+    expect(boss.key).toBe(cfg.bossKey);
+    expect(boss.maxHp).toBe(Math.round(base.hp * sc * (cfg.bossMultiplier ?? 100) / 100));
+  });
+
+  it('時間加成上限 180 秒；world.totalSpawns 不影響（每已出怪 +1.5% 已停用）', () => {
+    const at180 = spawnBossAt(20, 1, 180).boss.maxHp;
+    expect(spawnBossAt(20, 1, 999).boss.maxHp).toBe(at180);
+    expect(spawnBossAt(20, 1, 180, { totalSpawns: 30 }).boss.maxHp).toBe(at180);
   });
 });

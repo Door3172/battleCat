@@ -234,7 +234,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 - `multiplier`：百分比，**同時放大 HP 與攻擊**（不是數量）。
 - 可選 `count`：週期出怪的總次數上限（有 `interval` 時預設無限，否則為 1；實作在 `ai.js` 的 `stepSchedule`（EG-004））。
 - 檢查方式：用 Node 匯入 `SPAWNS`/`SPAWNS2`/`ENEMIES`/`BOSSES`，確認每個 `schedule[].type` 與 `boss.key` 都存在於 `ENEMIES` 或 `BOSSES`（2026-09-27 檢查 246 筆，全部合法）。
-- 排程出的敵人**不套用**難度成長；BOSS（`boss` 欄位）**會套用** `computeScale`：每關 +8%、每秒 +0.4%（上限 180s）、每已出怪 +1.5%（上限 +45%）**這一項從未生效**（排程出怪不會累加 `world.totalSpawns`，恆為 1；EG-008 發現；使用者決定以註解保留，EG-010）。
+- 排程出的敵人**不套用**難度成長；BOSS（`boss` 欄位）**會套用** `computeScale`：每關 +8%、每秒 +0.4%（上限 180 秒）。「每已出怪 +1.5%（上限 +45%）」**已停用**、以註解保留在 `computeScale`（EG-010；排程出怪從不累加 `world.totalSpawns`，這一項從未生效，註解內有啟用方法）。
 - 關卡解鎖：勝利後 `highestUnlocked[章] = min(最大關, max(原值, 本關+1))`。已通關的關卡可重複刷獎勵。
 - 關卡選擇畫面依 `stageConfig(n, chapter).isBoss` 標 ⭐（UI-002）；`App` 會傳 `chapter` 給 `LevelSelect`。
 
