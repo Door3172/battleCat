@@ -208,6 +208,7 @@ export default function App() {
     ),
     level: (
       <LevelSelect
+        chapter={currentChapter}
         maxStage={getMaxStage(currentChapter)}
         highestUnlocked={highestUnlocked[currentChapter]}
         onBack={() => setScene('chapter')}

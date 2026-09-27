@@ -100,7 +100,7 @@ export const SPAWNS2 = {
             { start: 20, interval: 17, type: 'octopusling', multiplier: 125 },
             { start: 7, interval: 26, type: 'octopusling', multiplier: 150 },
             { start: 15, interval: 24, type: 'pufferfish', multiplier: 200 },
-            { time: 2, type: '小丑魚', multiplier: 1000 },
+            { time: 2, type: 'clownfish', multiplier: 1000 },
 
         ],
     },

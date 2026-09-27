@@ -3,8 +3,9 @@ import HeroBanner from '../ui/HeroBanner.jsx';
 import Card from '../ui/Card.jsx';
 import Button from '../ui/Button.jsx';
 import { useAudio } from '../audio/useAudio.js'; // 👈 加
+import { stageConfig } from '../data/stages.js';
 
-export default function LevelSelect({ maxStage, highestUnlocked, onBack, onChoose }) {
+export default function LevelSelect({ chapter = 1, maxStage, highestUnlocked, onBack, onChoose }) {
   const audio = useAudio();
 
   useEffect(() => {
@@ -21,18 +22,19 @@ export default function LevelSelect({ maxStage, highestUnlocked, onBack, onChoos
           <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
               {Array.from({ length: maxStage }, (_, i) => i + 1).map(n => {
                 const locked = n > highestUnlocked;
+                const isBoss = stageConfig(n, chapter).isBoss;
                 return (
                   <button
                     key={n}
                     onPointerUp={() => { if (locked) return; onChoose(n); }}
-                    className={`stage-btn ${locked ? 'locked' : ''} ${n % 10 === 0 ? 'boss' : ''}`}
+                    className={`stage-btn ${locked ? 'locked' : ''} ${isBoss ? 'boss' : ''}`}
                   >
-                    {n}{n % 10 === 0 ? '⭐' : ''}
+                    {n}{isBoss ? '⭐' : ''}
                   </button>
                 );
               })}
         </div>
-          <div className="text-xs text-sub mt-2">⭐ 每 10 關為 BOSS 關</div>
+          <div className="text-xs text-sub mt-2">⭐ 標記的關卡會出現 BOSS</div>
         </Card>
     </div>
   );

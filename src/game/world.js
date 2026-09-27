@@ -5,20 +5,16 @@ export function buildCatsTpl(unlocks, catLevels = {}) {
   const gacha = Object.fromEntries(
     Object.entries(GACHA_UNLOCKS).filter(([k]) => unlocks[k])
   );
+  // 已購買的商店貓，依 SHOP_UNLOCKS 宣告順序自動納入
+  const shop = Object.fromEntries(
+    Object.entries(SHOP_UNLOCKS)
+      .filter(([k]) => unlocks[k])
+      .map(([k, v]) => [k, v.tpl])
+  );
   const base = {
     ...BASE_CATS,
     ...gacha,
-    ...(unlocks.ninja ? { ninja: SHOP_UNLOCKS.ninja.tpl } : {}),
-    ...(unlocks.knight ? { knight: SHOP_UNLOCKS.knight.tpl } : {}),
-    ...(unlocks.mage ? { mage: SHOP_UNLOCKS.mage.tpl } : {}),
-    ...(unlocks.samurai ? { samurai: SHOP_UNLOCKS.samurai.tpl } : {}),
-    ...(unlocks.sumo ? { sumo: SHOP_UNLOCKS.sumo.tpl } : {}),
-    ...(unlocks.viking ? { viking: SHOP_UNLOCKS.viking.tpl } : {}),
-    ...(unlocks.cow ? { cow: SHOP_UNLOCKS.cow.tpl } : {}),
-    ...(unlocks.jaycat ? { jaycat: SHOP_UNLOCKS.jaycat.tpl } : {}),
-    ...(unlocks.jay ? { jay: SHOP_UNLOCKS.jay.tpl } : {}),
-    ...(unlocks.void ? { void: SHOP_UNLOCKS.void.tpl } : {}),
-    ...(unlocks.azurePhantom ? { azurePhantom: SHOP_UNLOCKS.azurePhantom.tpl } : {}),
+    ...shop,
   };
   const out = {};
   for (const k in base) {

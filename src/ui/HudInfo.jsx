@@ -21,7 +21,7 @@ export default function HudInfo({ fish, incomeLv, cannonCd, leftHp, rightHp, inc
             <dd className="text-lg font-bold tabular-nums">{cannonCd<=0?'OK':cannonCd.toFixed(1)+'s'}</dd>
           </dl>
         <Pill aria-label={`左塔 ${leftHp}／右塔 ${rightHp}`}>左塔 {leftHp} ／ 右塔 {rightHp}</Pill>
-        <Button onClick={onUpgrade}><span className="icon icon-upgrade">研究力 +{incomeInc.toFixed(1)}（{incomeCost} 魚）</span></Button>
+        <Button onClick={onUpgrade}><span className="icon icon-upgrade">收入升級 +{incomeInc.toFixed(1)}/秒（{incomeCost} 魚）</span></Button>
         <Button onClick={onSpeed}><span className="icon icon-speed">速度 {speedLabel}</span></Button>
       </div>
     </Card>

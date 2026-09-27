@@ -11,7 +11,8 @@
 //         interval: 8,        // 幾秒生一次（可選）
 //         until: 60,          // 到幾秒為止停止生怪（可選）
 //         hp: 500,            // 敵方城堡血量降到多少時才開始生（可選）
-//         multiplier: 150,    // 敵人倍率（百分比），100 為原始值（可選）
+//         count: 5,           // 週期生成的總次數上限（可選；有 interval 時預設無限，否則為 1）
+//         multiplier: 150,    // 敵人能力值倍率（百分比，同時放大 HP 與攻擊），100 為原始值（可選）
 //       },
 //       // ...
 //     ]
@@ -20,7 +21,9 @@
 // - 若提供 interval，則會在 start（預設 0）之後每隔 interval 秒生成，
 //   直到 until（若未指定則無限）為止
 // - hp 可與 time/start/interval 搭配，需同時滿足條件才會生成
-// - multiplier 為敵人生成的數量倍率，未設定時視為 100%
+// - count 可限制週期生成的總次數，達到後即停止（即使 until 尚未到）
+// - multiplier 為敵人 HP 與攻擊的百分比倍率（不是數量），未設定時視為 100%
+// - type 必須是 ENEMIES 或 BOSSES 的 key（英文），填錯（例如中文名）會被當成 dog
 //export const SPAWNS = {
 //  1: {
 //    enemyBaseHp: 500,
