@@ -49,7 +49,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 
 | key | 預設 | 說明 |
 |---|---|---|
-| `saveVersion` | `'1'` | 與 `SAVE_VERSION` 不符時**整個 localStorage 清空** |
+| `saveVersion` | `'1'` | 與 `SAVE_VERSION` 不符時清除存檔（`clearSaveData()`，**保留玩家設定**，見下） |
 | `coins` | 300 | 金幣（永久貨幣） |
 | `unlocks` | `{ninja:false,...,cow:false}` | 已解鎖的商店/轉蛋貓 |
 | `catLevels` | `{white:1,tank:1,archer:1}` | 各貓等級（未記錄視為 1） |
@@ -61,7 +61,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 | `audioVolumes` | `{master:1, music:.8, summon:.8, ui:.8, result:.8}` | 分類音量，**由音訊模組讀寫**（見 §8），App 不管理。舊 key `volume` 已不再使用（首次載入會被轉成 master） |
 | `theme` | `'minimal'` | `minimal` / `modern` / `warm` / `neon` |
 
-「清除存檔」= `handleReset()`，把以上全部重設。
+「清除存檔」= `handleReset()`，把遊戲進度全部重設。清除邏輯集中在 `App.jsx` 的 `clearSaveData()`（`handleReset` 與 `checkSaveVersion` 共用）：清空 localStorage 但**保留 `PRESERVED_KEYS`（`audioVolumes`、`theme`）**，再寫回 `saveVersion`。新增玩家設定類的 key 時，要加進 `PRESERVED_KEYS`（AU-004）。
 
 ---
 
@@ -296,4 +296,4 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 | 13 | UI | ~~關卡選擇的 BOSS ⭐ 用 `n%10` 寫死，未讀取關卡 `boss` 設定（1-15、1-19 也有 BOSS 卻沒標）~~ ✅ 已修（2026-09-27） | `LevelSelect.jsx` | UI-002 |
 | 14 | UI | ~~設定按鈕（App.jsx）與召喚欄（Battle.jsx）用 CSS 選擇器 / `!important` 硬蓋樣式，屬權宜作法~~ ✅ 已修（UI-003） | `styles.css` | UI-003 |
 | 15 | UI | App 右上「設定」按鈕與關卡格（`.stage-btn`）是原生 `<button>`，沒有點擊音效 | `App.jsx`、`LevelSelect.jsx` | — |
-| 16 | 音效 | 「清除存檔」會清掉 localStorage 的 `audioVolumes`，但記憶體中的音量保留，直到下次調整才重寫 | `App.jsx` `handleReset` | — |
+| 16 | 音效 | ~~「清除存檔」會清掉 localStorage 的 `audioVolumes`，但記憶體中的音量保留，直到下次調整才重寫；主題 `theme` 也有同樣問題~~ ✅ 已修（AU-004：清除存檔保留音量與主題） | `App.jsx` `handleReset` | AU-004 |

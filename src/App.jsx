@@ -15,12 +15,24 @@ import { getMaxStage } from './data/stages.js';
 // 本地存檔版本，用於重大更新時清除舊資料
 const SAVE_VERSION = '1';
 
+// 清除存檔時要保留的玩家設定 key（音量、主題）；以後新增設定 key 加在這裡
+const PRESERVED_KEYS = ['audioVolumes', 'theme'];
+
+// 清除遊戲進度：保留 PRESERVED_KEYS，其餘清空，並寫回 saveVersion
+function clearSaveData() {
+  const kept = PRESERVED_KEYS
+    .map(key => [key, localStorage.getItem(key)])
+    .filter(([, value]) => value !== null);
+  localStorage.clear();
+  kept.forEach(([key, value]) => localStorage.setItem(key, value));
+  localStorage.setItem('saveVersion', SAVE_VERSION);
+}
+
 // 檢查存檔版本並在不一致時清除
 (function checkSaveVersion() {
   const stored = localStorage.getItem('saveVersion');
   if (stored !== SAVE_VERSION) {
-    localStorage.clear();
-    localStorage.setItem('saveVersion', SAVE_VERSION);
+    clearSaveData();
   }
 })();
 
@@ -160,8 +172,7 @@ export default function App() {
   const addEnemyName = (name) => setCodexEnemies(prev => prev.includes(name) ? prev : [...prev, name]);
 
   const handleReset = () => {
-    localStorage.clear();
-    localStorage.setItem('saveVersion', SAVE_VERSION);
+    clearSaveData();
     setCoins(300);
     setUnlocks({ ninja:false, knight:false, mage:false, samurai:false, sumo:false, viking:false, cow:false });
     setCodexCats(['白喵','坦喵','射喵']);

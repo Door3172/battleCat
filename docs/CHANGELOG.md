@@ -2,6 +2,9 @@
 
 格式：`日期｜角色｜摘要`，新的寫在最上面。
 
+- 2026-09-27｜CEO｜審核 AU-004 通過；§11 #16 標為已修。
+- 2026-09-27｜音效｜AU-004：`App.jsx` 新增 `clearSaveData()` / `PRESERVED_KEYS`，「清除存檔」與存檔版本重置時保留 `audioVolumes`、`theme`。
+- 2026-09-27｜CEO｜派工 AU-004：清除存檔時保留音量與主題設定（§11 #16）。
 - 2026-09-27｜CEO｜審核 AU-001、AU-002、AU-003、EG-002、UI-004、UI-005 全數通過；修正 package-lock.json 專案名稱；PROJECT_MAP §0、§11 更新（新增 #15、#16）。
 - 2026-09-27｜音效｜AU-001：刪除未使用的 `public/audio/廢棄.mp3`（4.9MB）。
 - 2026-09-27｜UI｜UI-005：設定改為五條分類音量滑桿（含試聽）、`Button` 加點擊音效；App 移除舊 `volume` state；全螢幕 `Dialog` 改用 portal 掛到 body（修正長頁面時設定視窗跑出畫面）。

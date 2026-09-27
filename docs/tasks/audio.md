@@ -120,3 +120,48 @@
 ### 審核（CEO 填寫）
 - 2026-09-27 通過。三個懷疑點都已確認並修正，另外修掉大廳各畫面切換時音樂重頭播放的問題，做得好。Lobby.jsx 改動符合授權。實機重複打 1、2 關的耳聽驗證請使用者上線後確認。
 
+## [AU-004] 「清除存檔」與存檔版本重置時保留玩家設定（音量、主題）
+- 狀態：已完成
+- 優先度：中
+- 來自：CEO（2026-09-27，使用者指示處理 PROJECT_MAP §11 #16）
+- 依賴：無
+
+**問題**
+`src/App.jsx` 有兩處用 `localStorage.clear()` 清空全部存檔：
+- 第 22 行 `checkSaveVersion()`（`SAVE_VERSION` 不符時）
+- 第 163 行 `handleReset()`（大廳「清除存檔」按鈕）
+
+清空時連 `audioVolumes`（音量）和 `theme`（主題）一起被刪，但畫面上的狀態沒變 → 重新整理後音量、主題都變回預設，玩家會覺得設定「莫名其妙不見」。
+
+**決定（CEO）**：「清除存檔」只清**遊戲進度**，**保留玩家設定**。
+
+**需求**
+1. 兩處都改成：清除存檔時保留 `audioVolumes`、`theme` 兩個 key（其餘照舊清除），並照舊寫回 `saveVersion`。建議在 App.jsx 內寫一個小函式共用，保留清單集中定義，方便以後新增設定 key。
+2. 舊 key `volume` 已由音訊模組轉移成 `audioVolumes.master`，可以照舊被清掉。
+3. 驗證：調整音量與主題 → 按「清除存檔」 → 重新整理 → 音量、主題維持；金幣、解鎖、關卡進度等確實重設。
+
+**授權的跨檔修改**：`src/App.jsx` 只可改 `checkSaveVersion()` 與 `handleReset()` 內的清除邏輯，以及新增上述共用函式 / 保留清單常數；其他（state、場景、props、主題 effect）一律不動。
+
+**完成條件**
+- 上述驗證通過；`npm run build`、`npm test` 通過。
+- 更新 `docs/PROJECT_MAP.md` §1（說明清除存檔會保留哪些 key）；驗證完關閉 dev server 與瀏覽器。
+
+### 回報（負責角色填寫）
+- 修改檔案：`src/App.jsx`、`docs/PROJECT_MAP.md`（§1）、`docs/CHANGELOG.md`
+- 做了什麼：
+  - `App.jsx` 在 `SAVE_VERSION` 下方新增常數 `PRESERVED_KEYS = ['audioVolumes', 'theme']` 與函式 `clearSaveData()`：先讀出保留 key 的值（不存在的略過）→ `localStorage.clear()` → 寫回保留值 → 寫回 `saveVersion`。
+  - `checkSaveVersion()` 與 `handleReset()` 原本的 `localStorage.clear()` + `setItem('saveVersion')` 兩行都改成呼叫 `clearSaveData()`。其他（state、場景、props、主題 effect）沒動，符合授權範圍。
+  - 舊 key `volume` 照舊被清掉。
+- 如何驗證：
+  - `npm run build` 成功；`npx vitest run` 通過（1 test，「開啟設定」）。本機 node_modules 現在已有 vitest。
+  - dev server 實測（清除存檔）：先寫入 coins=9999、highestUnlocked={1:5,2:3}、theme=neon、audioVolumes={master:0.4,…} 後重新整理 → 按「清除存檔」（測試時把 `window.confirm` stub 成回傳 true）→ 畫面金幣變 300、localStorage 中 coins=300、highestUnlocked={1:1,2:1}、saveVersion=1，audioVolumes 與 theme 原值保留 → 重新整理後主題仍是 neon、audioVolumes 不變、金幣仍是 300。
+  - dev server 實測（版本不符）：把 saveVersion 改成 '0'、coins 改成 777 後重新整理 → coins 重設為 300、saveVersion=1，theme 與 audioVolumes 保留。
+  - 驗證完已關閉 dev server 與瀏覽器分頁。
+- 新增給其他角色的請求：無
+- 給 CEO 的注意事項：
+  - commit 範圍：`src/App.jsx`、`docs/PROJECT_MAP.md`、`docs/CHANGELOG.md`、`docs/tasks/audio.md`。
+  - `PROJECT_MAP.md` §11 的 #16 仍是未修狀態，請 CEO 標記為已修（AU-004）。§1 的 `saveVersion` 那列與「清除存檔」說明已由我更新。
+
+### 審核（CEO 填寫）
+- 2026-09-27 通過。App.jsx 只改兩處清除邏輯並新增共用函式與保留清單，符合授權；清除存檔與版本重置兩種情境都有實測；build、test 通過。
+
