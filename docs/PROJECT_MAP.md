@@ -70,14 +70,14 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 - **主題**：`styles.css` 在 `:root` 定義完整的設計 token（CSS 變數），`body.theme-minimal / modern / warm / neon` 各自覆寫**全部** token。App 切換 `body` class，所有畫面（含 Canvas）即時跟著變。
   - Minimal＝白底靛藍、Modern＝深色玻璃藍紫、Warm＝奶油橘粉、Neon＝深夜青＋洋紅螢光。
   - Token 分組：品牌色（`--color-primary*`、`--color-secondary*`、`*-ink` 為其上文字色）、文字、狀態、背景/表面（`--color-card-*`、`--color-inset`、`--color-line(-strong)`）、按鈕（`--btn-*`）、Pill（`--pill-*`）、橫幅（`--hero-*`）、圓角（`--radius-card/panel`、`--btn-radius`）、戰場 Canvas（`--field-*`）。
-  - **新增主題**：複製一個 `body.theme-*` 區塊把所有變數填上，再到 `SettingsDialog.jsx` 的 `themes` 陣列加選項。
+  - **新增主題**：複製一個 `body.theme-*` 區塊把所有變數填上，再到 `SettingsDialog.jsx` 的 `THEMES` 陣列加選項。
 - **DOM 元件一律用 CSS class / `var(--*)`**，不要在 JSX 用 `SKIN.color.*`（那是 JS 讀值，React 不會因主題切換重畫）。
 - **`src/data/skin.js`**：`SKIN.color.*`、`SKIN.field.*`（戰場用）是讀 CSS 變數的 getter，**給 Canvas（draw.js）用**；有快取，body class 改變時自動清空。另有 `SKIN.size`、`SKIN.radius`、`SKIN.shadow`、`SKIN.grad`。
 - **Tailwind** 顏色對應 CSS 變數（`text-ink`、`bg-ok` 等）。
 - 共用 class：`.ui-btn`（`-primary/-accent/-ghost`）、`.ui-card`/`.ui-card-dark`、`.ui-pill`、`.ui-divider`、`.ui-dialog(-backdrop)`、`.ui-select`、`.hero-banner`/`.hero-title`/`.hero-sub`/`.hero-chip`、`.stage-btn`（`.locked` 顯示 🔒 / `.boss`）、`.slot-tray`、`.hud-stat`、`.unit-card`、`.gacha-*`、`.game-background`、`.text-sub`/`.text-mute`/`.text-highlight`。
 - **元件重點**：
   - `Button`：`tone` = default/primary/ghost/accent，`size` = sm/md/lg；同時綁 `onPointerUp` 與 `onClick`，用 120ms 鎖防止重複觸發。可傳 `aria-label`。點擊時呼叫 `audio.playClick()`（disabled 不播）。
-  - `SettingsDialog`：五條分類音量滑桿（主音量 / 背景音樂 / 召喚 / 按鈕 / 勝敗，直接呼叫 `audio.getVolumes()` / `audio.setVolume()`，除音樂外都有 ▶ 試聽）＋風格選單。只收 `show`、`onClose`、`audio`、`theme`、`setTheme`。
+  - `SettingsDialog`：六條分類音量滑桿（主音量 / 背景音樂 / 召喚 / 按鈕 / 勝敗 / 環境提示音，定義在 `VOLUME_ROWS`；直接呼叫 `audio.getVolumes()` / `audio.setVolume()`，除音樂外都有 ▶ 試聽）＋風格選單。只收 `show`、`onClose`、`audio`、`theme`、`setTheme`。
   - `Card`：`tone` light/dark。
   - `Dialog`：`fullscreen` 決定 fixed/absolute，Esc 或點背景呼叫 `onClose`。`fullscreen` 時用 portal 掛到 `document.body`（外框 `.game-background` 有 backdrop-filter，會讓 fixed 改成相對外框定位）。
   - `HeroBanner`：每個場景的頂部標題列；`right` 內容會包在半透明膠囊 `.hero-chip` 裡。

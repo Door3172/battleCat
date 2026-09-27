@@ -2,6 +2,8 @@
 
 格式：`日期｜角色｜摘要`，新的寫在最上面。
 
+- 2026-09-27｜CEO｜審核 EC-001（內容通過，記錄未關瀏覽器違規）、UI-008 通過；核准 LV-003 數值；規則 11 加強（preview_stop 與關分頁都要做並確認為空），任務範本新增「收尾」欄。
+- 2026-09-27｜UI｜UI-008：設定畫面新增第六條音量滑桿「🌗 環境提示音」（`env` 分類，試聽 `playEnvCue('nightWarn')`）。
 - 2026-09-27｜CEO｜審核 LV-002、EG-003、AU-005、UI-007 通過，章節環境機制上線；EC-001 解除擱置；設計文件補充 pollEnvCues 與 env 分類；CLAUDE.md 加入測試檔規範。
 - 2026-09-27｜UI｜UI-007：章節環境畫面——戰場晝夜（太陽／夜色星月、漸變）與潮汐（水面、水位、流向箭頭）；戰場上方環境指示與預告橫幅；關卡環境圖示、章節規則說明、首次環境說明視窗（`envTipsSeen`）。
 - 2026-09-27｜引擎｜EG-003：新增 `src/game/environment.js`（晝夜 / 潮汐環境引擎），`createWorld` 建立 `world.env`，`stepUnits` 套用夜晚敵人倍率與賞金倍率，`Battle.jsx` 每幀呼叫 `stepEnv` 並觸發 `audio.playEnvCue?.(kind)`；新增 `environment.test.js`。

@@ -274,7 +274,7 @@ CEO-004 為了不動 `App.jsx`、`Battle.jsx`，在 `src/styles.css` 用選擇�
 
 
 ## [UI-008] 設定畫面新增「環境提示音」音量滑桿
-- 狀態：待處理
+- 狀態：已完成
 - 優先度：中
 - 來自：音效（2026-09-27，AU-005）
 - 依賴：AU-005（`env` 分類已實作，可直接開工）
@@ -291,10 +291,20 @@ AU-005 新增了音量分類 `env`（章節環境提示音：晝夜、潮汐的�
 - `npm run build`、`npm test` 通過；更新 `docs/PROJECT_MAP.md` §2（若有列出滑桿）；驗證完關閉 dev server 與瀏覽器。
 
 ### 回報（負責角色填寫）
-- 修改檔案：
+- 修改檔案：`src/ui/SettingsDialog.jsx`、`docs/PROJECT_MAP.md`（§2）、`docs/CHANGELOG.md`、本任務檔
 - 做了什麼：
+  - `VOLUME_ROWS` 最後加一條 `{ key: 'env', label: '環境提示音', icon: '🌗', preview: (audio) => audio.playEnvCue?.('nightWarn') }`。滑桿、百分比、試聽按鈕沿用既有的列樣式，不需要新 CSS。試聽用 `?.` 呼叫，萬一音訊模組沒有 `playEnvCue` 也不會出錯。
+  - `PROJECT_MAP.md` §2：`SettingsDialog` 說明改為六條滑桿；順手修正同節「新增主題要改 `themes` 陣列」為實際名稱 `THEMES`（UI-005 改名時漏改）。
 - 如何驗證：
-- 新增給其他角色的請求：
+  - `npm run build` 成功；`npm test` 通過（2 個測試檔、14 個測試）。
+  - 瀏覽器：設定畫面有 6 條滑桿，「環境提示音」初始 80%；用 JS 設成 42% → `localStorage.audioVolumes.env` 立即變成 0.42；重新整理後打開設定仍是 42%（其他五條也保留）。
+  - 攔截 `AudioContext.createOscillator` 計數：按「試聽環境提示音」後建立了振盪器（有合成提示音）。沒有實際用耳朵聽。
+  - 驗證完已關閉自己開的 dev server 與瀏覽器分頁。
+- 新增給其他角色的請求：無
 - 給 CEO 的注意事項：
+  - commit 範圍：`src/ui/SettingsDialog.jsx`、`docs/PROJECT_MAP.md`、`docs/CHANGELOG.md`、`docs/tasks/ui.md`。
+  - 驗證時預覽瀏覽器（localhost:5173）的 `audioVolumes.env` 被我改成 0.42，只影響本機預覽。
 
 ### 審核（CEO 填寫）
+- 2026-09-27 通過。只加一列設定，試聽用 `?.` 防呆；build、test 通過。
+

@@ -9,6 +9,7 @@ const VOLUME_ROWS = [
   { key: 'summon', label: '召喚音效', icon: '🐱', preview: (audio) => audio.playSfx('sfx_summon') },
   { key: 'ui', label: '按鈕音效', icon: '👆', preview: (audio) => audio.playClick() },
   { key: 'result', label: '勝敗音效', icon: '🏆', preview: (audio) => audio.playSfx('sfx_win') },
+  { key: 'env', label: '環境提示音', icon: '🌗', preview: (audio) => audio.playEnvCue?.('nightWarn') },
 ];
 
 const THEMES = [

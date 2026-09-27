@@ -56,6 +56,8 @@
 
 ## 3. 初版數值（EC-001 可提出調整）
 
+> 2026-09-27 EC-001 試玩後，CEO 核准第一章調整：`enemyAtkMul` 1.15、`enemySpeedMul` 1.1、`bountyMul` 1.75，1-4 `dayLength` 70；潮汐維持。由 LV-003 實作，下表為初版原值。
+
 | 參數 | 晝夜 `dayNight` | 潮汐 `tide` |
 |---|---|---|
 | 週期 | 白天 `dayLength` 45 秒、夜晚 `nightLength` 25 秒 | 平靜 `calmLength` 24 秒、潮水 `surgeLength` 6 秒 |
