@@ -67,7 +67,7 @@ npm test           # vitest
 
 | 文件 | 內容 | 狀態 |
 |---|---|---|
-| [chapter-environment.md](docs/design/chapter-environment.md) | 章節環境機制（晝夜、潮汐） | 已實作，平衡試玩中 |
+| [chapter-environment.md](docs/design/chapter-environment.md) | 章節環境機制（晝夜、潮汐） | 已實作，完成首輪平衡 |
 
 ## 任務系統（`docs/tasks/`）
 

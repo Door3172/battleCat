@@ -1,6 +1,6 @@
 # 設計文件：章節環境機制
 
-- 狀態：**v1 已實作（2026-09-27），平衡試玩中（EC-001）**
+- 狀態：**v1 已實作並完成首輪平衡（2026-09-27，EC-001 → LV-003）**
 - 負責：CEO（2026-09-27）
 - 相關任務：LV-002、EG-003、UI-007、AU-005、EC-001
 
@@ -30,7 +30,7 @@
 | 階段 | 效果 |
 |---|---|
 | ☀️ 白天 `day` | 無修正 |
-| 🌙 夜晚 `night` | 敵人攻擊 ×1.2、移動速度 ×1.15；擊殺賞金（魚）×1.5 |
+| 🌙 夜晚 `night` | 敵人攻擊 ×1.15、移動速度 ×1.1；擊殺賞金（魚）×1.75（LV-003 調整後） |
 
 - 夜晚開始前 **5 秒**預告。
 - 玩家策略：白天推進、夜晚守線；或存魚在夜晚大量召喚、趁機賺賞金。
@@ -79,7 +79,7 @@
 ```js
 export const CHAPTER_ENV = {
   1: { type: 'dayNight', dayLength: 45, nightLength: 25, warnTime: 5,
-       enemyAtkMul: 1.2, enemySpeedMul: 1.15, bountyMul: 1.5, startPhase: 'day' },
+       enemyAtkMul: 1.15, enemySpeedMul: 1.1, bountyMul: 1.75, startPhase: 'day' }, // LV-003 調整後
   2: { type: 'tide', calmLength: 24, surgeLength: 6, warnTime: 4, pushSpeed: 32 },
 };
 ```

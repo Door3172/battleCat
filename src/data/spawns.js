@@ -80,6 +80,7 @@ export const SPAWNS = {
   4: {
     enemyBaseHp: 650,
     reward: 160,
+    env: { dayLength: 70 },
     schedule: [
       { start: 11, interval: 18, type: 'dog', multiplier: 150 },
       { start: 30, interval: 12, type: 'dog', multiplier: 150 },

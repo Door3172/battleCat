@@ -10,7 +10,7 @@ import Button from '../ui/Button.jsx';
 import Pill from '../ui/Pill.jsx';
 import { fmt } from '../utils/number.js';
 import { createWorld } from '../game/world.js';
-import { spawnEnemy, stepUnits, groundY, makeUnit, spawnBossIfNeeded } from '../game/ai.js';
+import { spawnEnemy, stepUnits, stepSchedule, groundY, makeUnit, spawnBossIfNeeded } from '../game/ai.js';
 import { drawAll } from '../game/draw.js';
 import { stepEnv, pollEnvCues } from '../game/environment.js';
 import { rand } from '../utils/math.js';
@@ -214,47 +214,8 @@ export default function Battle({
     if (w.cannonCd > 0) w.cannonCd = Math.max(0, w.cannonCd - dt);
     for (const k in w.summonCd) w.summonCd[k] = Math.max(0, (w.summonCd[k] || 0) - dt);
     spawnBossIfNeeded(w, getWorldWidth, getWorldHeight, addEnemyName);
-    if (Array.isArray(w.cfg.schedule)) {
-
-      while (w.nextEnemyIdx < w.cfg.schedule.length) {
-        const entry = w.cfg.schedule[w.nextEnemyIdx];
-        if (entry.time === undefined) {
-          w.nextEnemyIdx += 1;
-          continue;
-        }
-        if (w.time >= entry.time) {
-          if (typeof entry.hp === 'number' && w.rightHp > entry.hp) break;
-          // 單次時間生成的敵人若在上方 while 產生
-          // 需要標記已生成，避免下方循環再次生成
-          spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, entry.type, entry.multiplier ?? 100, false);
-          entry._spawned = (entry._spawned || 0) + 1;
-          entry._next = Infinity;
-          w.nextEnemyIdx += 1;
-          continue;
-        }
-        break;
-      }
-
-      for (const e of w.cfg.schedule) {
-        const start = e.start ?? e.time ?? 0;
-        const end = e.until ?? Infinity;
-        const interval = e.interval;
-        const maxSpawn = e.count ?? (interval ? Infinity : 1);
-        if (e._next == null) e._next = start;
-        if (e._spawned == null) e._spawned = 0;
-        if (w.time >= e._next && w.time <= end && e._spawned < maxSpawn) {
-          if (typeof e.hp !== 'number' || w.rightHp <= e.hp) {
-            spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, e.type, e.multiplier ?? 100, false);
-            e._spawned += 1;
-            if (interval && w.time + interval <= end && e._spawned < maxSpawn) {
-              e._next = w.time + interval;
-            } else if (e._spawned >= maxSpawn || (interval && w.time + interval > end)) {
-              e._next = Infinity;
-            }
-          }
-        }
-      }
-    } else {
+    const spawnScheduled = (type, mult) => spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, type, mult, false);
+    if (!stepSchedule(w, spawnScheduled)) { // 依關卡 schedule 生怪（ai.js）；沒有 schedule 才走舊的固定頻率
       w.enemyClock -= dt;
       if (w.enemyClock <= 0) {
         spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, undefined, 100);
@@ -299,7 +260,7 @@ export default function Battle({
   const draw = () => {
     const c = canvasRef.current; if (!c) return;
     const ctx = c.getContext('2d'); const w = ensureWorld();
-    drawAll(ctx, w, getWorldWidth, getWorldHeight, currentStage, timeScale);
+    drawAll(ctx, w, getWorldWidth, getWorldHeight, currentStage, timeScaleRef.current); // 用 ref：loop 閉包裡的 state 會停在舊值（EG-005）
   };
 
 

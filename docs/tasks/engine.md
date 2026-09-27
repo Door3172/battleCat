@@ -126,7 +126,7 @@ UI-004 要在戰場 Canvas 用角色圖畫貓咪，`draw.js` 需要知道每個�
 
 
 ## [EG-004] 單次出怪（`time`）被重複生成
-- 狀態：待處理
+- 狀態：已完成
 - 優先度：中
 - 來自：經濟（2026-09-27，EC-001 模擬時發現）
 - 依賴：無
@@ -156,17 +156,32 @@ UI-004 要在戰場 Canvas 用角色圖畫貓咪，`draw.js` 需要知道每個�
 - `npm test` 通過（建議加一個測試覆蓋這個情況）。
 
 ### 回報（負責角色填寫）
-- 修改檔案：
+- 修改檔案：`src/game/ai.js`（新增 `stepSchedule`）、`src/scenes/Battle.jsx`（生怪區塊改呼叫 `stepSchedule`、import）、新增 `src/game/ai.test.js`、`docs/PROJECT_MAP.md`（§4.2 第 3 步）、`docs/CHANGELOG.md`、本任務檔
 - 做了什麼：
+  - 把 `Battle.jsx` 主迴圈的排程生怪（`while` + `for` 兩段）**原封不動**移到 `ai.js` 的 `stepSchedule(world, spawn)`，`spawn(type, multiplier)` 由 `Battle.jsx` 傳入（內部仍是 `spawnEnemy(..., false)`）。沒有 `schedule` 時回傳 `false`，`Battle.jsx` 照舊走 `enemyClock` 固定頻率路徑。移出來是為了能寫單元測試。
+  - 修正：`while` 處理每筆單次條目前，先檢查 `entry._spawned > 0`；已被 `for` 生成過就直接 `nextEnemyIdx += 1` 跳過。其餘邏輯（hp 卡住、`_next`、`interval`/`until`/`count`）完全不變。
+  - 已確認所有關卡資料沒有「`time` + `interval`」的條目（條目型態只有 `time`、`time+hp`、`start+interval`、`start+interval+hp`、`interval+hp`、`start+interval+until`），所以 `while` 只會碰到單次條目。
 - 如何驗證：
-- 新增給其他角色的請求：
-- 收尾：
+  - **全關卡前後比對**：把修正前的邏輯逐字複製成模擬腳本，與修正後的 `stepSchedule` 對 40 關各跑 240 秒（1/60 秒一步，敵堡 HP 在 200 秒內線性降到 0），比對每一次生成的（種類, 倍率, 時間）：
+    - 37 關完全相同（逐筆一致）。
+    - 只有 3 關不同，而且**只有減少、沒有新增**，減少的剛好是 hp 門檻解除那一刻的重複生成：1-8 少 1 隻（`boar×200`）、1-10 少 3 隻（`black×150` ×2、`alien×125`）、2-8 少 2 隻（`hermitCrab×200`、`dolphin×150`）。
+  - **新增 `src/game/ai.test.js`（3 項）**：(1) 假排程：hp 條目卡住 `while` 期間，後面的單次條目各只生成 1 次、時間正確，週期出怪次數不變（10 次）；(2) 實際 1-10 設定、照 EC-001 的情境（94.5 秒前敵堡 HP 未達門檻，之後 878）：所有單次條目 `_spawned` 都是 1；(3) 沒有 schedule 回傳 `false`。
+  - `npm test` 17 項全過（3 個檔案），`npm run build` 成功。
+  - 瀏覽器實測 1-1 戰鬥可正常開始、console 無錯誤（與 EG-005 同一次驗證）。
+- 新增給其他角色的請求：無（任務說明提到經濟角色之後會再評估難度，影響關卡：1-8、1-10、2-8）。
+- 收尾：與 EG-005 同一次驗證。自己用 `preview_start` 開的 dev server（5173）已 `preview_stop`，瀏覽器分頁 `seed` 已 `tabs_close`；另外把 EG-003 時沒停掉的 `Browser` 類型預覽程序（`browser-preview-1790522166410-3`，當時 `preview_stop` 帶錯 id 失敗）也一併 `preview_stop` 了。最後 `preview_list` 回傳 `[]`、`tabs_context` 回傳 `tabs: []`（browserOpen: false），確認都是空的。沒有其他背景程序。
 - 給 CEO 的注意事項：
+  - commit 範圍：`src/game/ai.js`、`src/game/ai.test.js`、`src/scenes/Battle.jsx`、`docs/PROJECT_MAP.md`、`docs/CHANGELOG.md`、`docs/tasks/engine.md`（與 EG-005 共用 `Battle.jsx`、`CHANGELOG.md`，建議一起審核、一起 commit）。
+  - `Battle.jsx` 的改動比「加一個判斷」大：生怪區塊約 40 行移到 `ai.js`，行為不變（已用全關卡比對證明）。
+  - `PROJECT_MAP.md` §5（關卡角色的章節）寫著 `count`「實作在 `Battle.jsx` 生怪迴圈」，現在應改成 `ai.js` 的 `stepSchedule`。那不是我的章節，所以我沒改，請 CEO 或關卡角色更新。
+  - 關於 EG-003 的收尾：當時沒有停掉 `Browser` 類型的預覽程序，這次發現後已補停。
 
 ### 審核（CEO 填寫）
+- 2026-09-27 通過。把生怪移到 `ai.js` 的 `stepSchedule` 雖超出「加一個判斷」，但為了可測試、且用 40 關逐筆比對證明只少掉重複生成，接受。新增 3 項測試。PROJECT_MAP §5 的 `count` 說明已由 CEO 更新。1-8、1-10、2-8 難度略降，已開 EC-002 請經濟重跑。
+
 
 ## [EG-005] 戰場左上角倍速一直顯示「1x」
-- 狀態：待處理
+- 狀態：已完成
 - 優先度：低
 - 來自：經濟（2026-09-27，EC-001 實機試玩時發現）
 - 依賴：無
@@ -182,11 +197,13 @@ UI-004 要在戰場 Canvas 用角色圖畫貓咪，`draw.js` 需要知道每個�
 - 切 2x 後 Canvas 左上角顯示「2x」，切回顯示「1x」。
 
 ### 回報（負責角色填寫）
-- 修改檔案：
-- 做了什麼：
-- 如何驗證：
-- 新增給其他角色的請求：
-- 收尾：
-- 給 CEO 的注意事項：
+- 修改檔案：`src/scenes/Battle.jsx`（`draw()` 1 行）、`docs/CHANGELOG.md`、本任務檔
+- 做了什麼：`draw()` 傳給 `drawAll` 的倍速從 state `timeScale` 改成 `timeScaleRef.current`。原因與任務推測相同：`loop` 用 `requestAnimationFrame` 在舊的 render 閉包裡重排，裡面的 `draw` 看到的 `timeScale` 永遠是 1；ref 永遠是最新值，而遊戲實際的 `dt` 本來就是讀這個 ref。其他地方沒動（`Toolbar` 的 `speedLabel` 仍用 state，它本來就正確）。
+- 如何驗證：用自己開的 dev server 在瀏覽器進入 1-1 戰鬥：一開始左上角顯示「Stage 1 Time 0.1s 1x」；按 X 後顯示「Time 0.4s 2x」；再按 X 顯示「Time 0.7s 1x」。console 沒有錯誤。`npm run build` 成功、`npm test` 17 項通過。
+- 新增給其他角色的請求：無
+- 收尾：與 EG-004 同一次驗證，詳見 EG-004 收尾：dev server 已 `preview_stop`，分頁已 `tabs_close`，`preview_list` 為 `[]`、`tabs_context` 為 `tabs: []`。
+- 給 CEO 的注意事項：commit 範圍與 EG-004 共用 `src/scenes/Battle.jsx`、`docs/CHANGELOG.md`，建議兩個任務一起 commit。任務提到「若 CEO 判斷屬於 UI 請轉交」：這行只是改傳入的資料來源（邏輯部分），`draw.js` 沒動。
 
 ### 審核（CEO 填寫）
+- 2026-09-27 通過。改用 `timeScaleRef.current`，有實機確認 1x/2x 切換顯示正確。
+

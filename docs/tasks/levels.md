@@ -101,7 +101,7 @@
 
 
 ## [LV-003] 章節環境數值調整（EC-001 試玩結果）
-- 狀態：待處理
+- 狀態：已完成
 - 優先度：中
 - 來自：經濟（2026-09-27）
 - 依賴：EC-001（**CEO 已於 2026-09-27 核准數值，可以開工**）
@@ -125,11 +125,35 @@ EC-001 用模擬（重用真實引擎，比較同一玩家強度下「有環境 
 - 同步更新 `docs/PROJECT_MAP.md` §5 的逐關 env 表。
 
 ### 回報（負責角色填寫）
-- 修改檔案：
+- 修改檔案：`src/data/stages.js`、`src/data/spawns.js`、`docs/PROJECT_MAP.md` §5、`docs/CHANGELOG.md`
 - 做了什麼：
+  1. `stages.js` 的 `CHAPTER_ENV[1]`：`enemyAtkMul` 1.2 → 1.15、`enemySpeedMul` 1.15 → 1.1、`bountyMul` 1.5 → 1.75；其他欄位（`dayLength` 45、`nightLength` 25、`warnTime` 5、`startPhase`）不動。
+  2. `spawns.js` 第 4 關：`reward` 下方加上 `env: { dayLength: 70 }`。
+  3. 第二章：`CHAPTER_ENV[2]` 和各關覆寫（2-1 false、2-15/2-17 pushSpeed 20、2-20 calmLength 20）都沒動；各關 `reward` 和出怪排程也都沒動。
+  4. `PROJECT_MAP.md` §5 逐關 env 表：把 1-4 單獨拆成一列（`dayLength: 70`），預設列改為 1-5 起，並註明新的夜晚倍率。
 - 如何驗證：
-- 新增給其他角色的請求：
-- 收尾：
+  - Node 列出 `stageConfig(n, ch).env`（相同的連續關卡合併列出）：
+  ```
+  1-1 ~ 1-3: null
+  1-4: dayNight dayLength=70 nightLength=25 warnTime=5 enemyAtkMul=1.15 enemySpeedMul=1.1 bountyMul=1.75 startPhase=day
+  1-5 ~ 1-14, 1-16 ~ 1-18: dayNight dayLength=45 nightLength=25 warnTime=5 enemyAtkMul=1.15 enemySpeedMul=1.1 bountyMul=1.75 startPhase=day
+  1-15: dayNight dayLength=45 nightLength=30 （其餘同上）
+  1-19: dayNight dayLength=45 nightLength=35 （其餘同上）
+  1-20: dayNight dayLength=40 nightLength=35 （其餘同上）
+  2-1: null
+  2-2 ~ 2-14, 2-16, 2-18, 2-19: tide calmLength=24 surgeLength=6 warnTime=4 pushSpeed=32
+  2-15, 2-17: tide calmLength=24 surgeLength=6 warnTime=4 pushSpeed=20
+  2-20: tide calmLength=20 surgeLength=6 warnTime=4 pushSpeed=32
+  ```
+  - 修改回傳的 env 不會影響其他關（用 1-5 檢查 `dayLength === 45` → true）；敵人 key 檢查仍是 `checked 246, bad 0`。
+  - `npm run build` 成功；`npm test` 通過：2 個測試檔、14 個測試（`environment.test.js` 13 個 + `App.test.jsx` 1 個）。
+  - 搜尋 `src/` 有沒有寫死舊夜晚倍率：`src/ui/envInfo.js` 的說明只有質性描述（「敵人更兇、魚變多」），沒寫數字，所以 UI 不用改。`environment.test.js` 用測試自己的參數（1.2/1.15/1.5），與 `CHAPTER_ENV` 無關，照任務說明不受影響。
+- 新增給其他角色的請求：無
+- 收尾：未使用瀏覽器（沒有開 dev server、瀏覽器分頁或背景程序；build / test 都是前景指令，已結束）。回報前確認：`preview_list` 回傳 `[]`、`tabs_context` 為 `browserOpen: false, tabs: []`，都是空的。
 - 給 CEO 的注意事項：
+  - commit 範圍：`src/data/stages.js`、`src/data/spawns.js`，以及 `docs/PROJECT_MAP.md` §5 逐關 env 表、`docs/CHANGELOG.md` 的 LV-003 那一行。
+  - `docs/design/chapter-environment.md` §2.1 表格（第 33 行「敵人攻擊 ×1.2、移動速度 ×1.15；擊殺賞金 ×1.5」）和 §4.1 程式碼範例（第 82 行）還是初版數值。§3 已經有調整註記；設計文件由 CEO 維護，要不要同步更新請 CEO 決定。
 
 ### 審核（CEO 填寫）
+- 2026-09-27 通過。數值與核准內容一致，其他關覆寫與第二章未動；build、test 通過；收尾欄確實填寫。設計文件 §2.1、§4.1 已由 CEO 同步為新數值。
+

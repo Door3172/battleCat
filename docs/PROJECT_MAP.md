@@ -144,7 +144,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 每幀（dt 上限 0.05s × 倍速 1x/2x）：
 1. 時間、魚收入、大砲 CD、各貓召喚 CD 遞減
 2. `spawnBossIfNeeded`（依 `boss.time` 與 `boss.hp` 條件）
-3. 依關卡 `schedule` 生怪（見 §5）
+3. 依關卡 `schedule` 生怪（見 §5）：`ai.js` 的 `stepSchedule(world, spawn)`（EG-004 從 `Battle.jsx` 移出）。先用 `while` 依 `nextEnemyIdx` 處理單次 `time` 條目（遇到 `hp` 條件未達會停在這筆），再用 `for` 處理所有條目的時間 / 週期 / `hp` 條件；每筆以 `_spawned` / `_next` 記錄，**單次條目最多生成一次**（`while` 會跳過已被 `for` 生成的條目）。沒有 `schedule` 時回傳 `false`，改走舊的 `enemyClock` 固定頻率。
 3.5 `stepEnv(w, dt)` 推進章節環境（含潮汐推力），再用 `pollEnvCues(w)` 取得本幀的音效提示，呼叫 `audio.playEnvCue?.(kind)`（見 §4.6）
 4. `stepUnits`：能力處理 → 找最近敵人 → 攻擊 → 移動 → 清屍、計算擊殺賞金（加到**魚**）
 5. 勝負判定：敵堡 HP≤0 勝 / 我堡 HP≤0 敗 → 300ms 後回大廳
@@ -196,7 +196,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 
 ---
 
-> 🌗🌊 **章節環境機制（已實作，平衡試玩中）**（第一章晝夜、第二章潮汐），設計見 [design/chapter-environment.md](design/chapter-environment.md)，任務 LV-002、EG-003、UI-007、AU-005、EC-001。
+> 🌗🌊 **章節環境機制（已實作，完成首輪平衡）**（第一章晝夜、第二章潮汐），設計見 [design/chapter-environment.md](design/chapter-environment.md)，任務 LV-002、EG-003、UI-007、AU-005、EC-001。
 
 ## 5. 關卡 — `spawns.js` / `spawns2.js` / `stages.js`
 
@@ -221,7 +221,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 ```
 - `type` 必須是 `ENEMIES` 或 `BOSSES` 的 **key**（不是中文名）；找不到會**默默變成 dog**。
 - `multiplier`：百分比，**同時放大 HP 與攻擊**（不是數量）。
-- 可選 `count`：週期出怪的總次數上限（有 `interval` 時預設無限，否則為 1；實作在 `Battle.jsx` 生怪迴圈）。
+- 可選 `count`：週期出怪的總次數上限（有 `interval` 時預設無限，否則為 1；實作在 `ai.js` 的 `stepSchedule`（EG-004））。
 - 檢查方式：用 Node 匯入 `SPAWNS`/`SPAWNS2`/`ENEMIES`/`BOSSES`，確認每個 `schedule[].type` 與 `boss.key` 都存在於 `ENEMIES` 或 `BOSSES`（2026-09-27 檢查 246 筆，全部合法）。
 - 排程出的敵人**不套用**難度成長；BOSS（`boss` 欄位）**會套用** `computeScale`：每關 +8%、每秒 +0.4%（上限 180s）、每已出怪 +1.5%（上限 +45%）。
 - 關卡解鎖：勝利後 `highestUnlocked[章] = min(最大關, max(原值, 本關+1))`。已通關的關卡可重複刷獎勵。
@@ -235,7 +235,8 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 | 關卡 | env |
 |---|---|
 | 1-1 ~ 1-3 | `false`（新手教學） |
-| 1-4 ~ 1-14、1-16 ~ 1-18 | 章節預設（白天 45 / 夜晚 25） |
+| 1-4 | `dayLength: 70`（LV-003：第一次夜晚延後，避開開場最重的一波） |
+| 1-5 ~ 1-14、1-16 ~ 1-18 | 章節預設（白天 45 / 夜晚 25；夜晚敵人攻擊 ×1.15、速度 ×1.1、賞金 ×1.75） |
 | 1-15（星眼巨像） | `nightLength: 30` |
 | 1-19（野豬王） | `nightLength: 35` |
 | 1-20（機甲巨像，章末） | `dayLength: 40, nightLength: 35` |

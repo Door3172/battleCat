@@ -141,6 +141,60 @@ export function spawnBossIfNeeded(world, getCanvasWidth, getCanvasHeight, onEnem
   onEnemySeen && onEnemySeen(scaled.name);
 }
 
+// 依關卡 schedule 生怪（每幀呼叫）。spawn(type, multiplier) 負責實際生成。
+// schedule 為空或不存在時回傳 false（交給舊的 enemyClock 路徑）。
+// 1) while：依 nextEnemyIdx 處理有 time 的單次條目（schedule 已依 time 排序）；有 hp 條件時會停在這一筆等敵堡 HP 降下來
+// 2) for：處理所有條目的時間 / 週期 / hp 條件
+// 每筆條目用 _spawned / _next 記錄進度，單次條目最多生成一次
+export function stepSchedule(world, spawn) {
+  const schedule = world.cfg.schedule;
+  if (!Array.isArray(schedule)) return false;
+
+  while (world.nextEnemyIdx < schedule.length) {
+    const entry = schedule[world.nextEnemyIdx];
+    if (entry.time === undefined) {
+      world.nextEnemyIdx += 1;
+      continue;
+    }
+    // while 被前面的 hp 條目卡住時，這筆可能已由下方 for 生成過 → 跳過，避免重複生成（EG-004）
+    if (entry._spawned > 0) {
+      world.nextEnemyIdx += 1;
+      continue;
+    }
+    if (world.time >= entry.time) {
+      if (typeof entry.hp === 'number' && world.rightHp > entry.hp) break;
+      // 標記已生成，避免下方 for 再次生成
+      spawn(entry.type, entry.multiplier ?? 100);
+      entry._spawned = (entry._spawned || 0) + 1;
+      entry._next = Infinity;
+      world.nextEnemyIdx += 1;
+      continue;
+    }
+    break;
+  }
+
+  for (const e of schedule) {
+    const start = e.start ?? e.time ?? 0;
+    const end = e.until ?? Infinity;
+    const interval = e.interval;
+    const maxSpawn = e.count ?? (interval ? Infinity : 1);
+    if (e._next == null) e._next = start;
+    if (e._spawned == null) e._spawned = 0;
+    if (world.time >= e._next && world.time <= end && e._spawned < maxSpawn) {
+      if (typeof e.hp !== 'number' || world.rightHp <= e.hp) {
+        spawn(e.type, e.multiplier ?? 100);
+        e._spawned += 1;
+        if (interval && world.time + interval <= end && e._spawned < maxSpawn) {
+          e._next = world.time + interval;
+        } else if (e._spawned >= maxSpawn || (interval && world.time + interval > end)) {
+          e._next = Infinity;
+        }
+      }
+    }
+  }
+  return true;
+}
+
 export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt) {
   const leftX = 50;
   const rightX = leftX + world.cfg.towerDistance;

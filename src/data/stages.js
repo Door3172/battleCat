@@ -12,7 +12,7 @@ const SPAWNS_MAP = {
 // 每關可在關卡物件加上 env：省略 → 章節預設；false → 不啟用；物件 → 覆寫部分參數
 export const CHAPTER_ENV = {
   1: { type: 'dayNight', dayLength: 45, nightLength: 25, warnTime: 5,
-       enemyAtkMul: 1.2, enemySpeedMul: 1.15, bountyMul: 1.5, startPhase: 'day' },
+       enemyAtkMul: 1.15, enemySpeedMul: 1.1, bountyMul: 1.75, startPhase: 'day' },
   2: { type: 'tide', calmLength: 24, surgeLength: 6, warnTime: 4, pushSpeed: 32 },
 };
 
