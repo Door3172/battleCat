@@ -301,7 +301,7 @@ export default function App() {
         type="button"
         aria-label="開啟設定"
         className="ui-btn ui-corner-btn absolute right-4 top-4 z-20"
-        onClick={() => setShowSettings(true)}
+        onClick={() => { audio.playClick(); setShowSettings(true); }}
       >
         <span className="icon">設定</span>
       </button>

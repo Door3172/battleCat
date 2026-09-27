@@ -10,7 +10,7 @@ import Button from '../ui/Button.jsx';
 import Pill from '../ui/Pill.jsx';
 import { fmt } from '../utils/number.js';
 import { createWorld } from '../game/world.js';
-import { spawnEnemy, stepUnits, stepSchedule, groundY, makeUnit, spawnBossIfNeeded } from '../game/ai.js';
+import { spawnEnemy, stepUnits, stepSchedule, applyCannon, groundY, makeUnit, spawnBossIfNeeded } from '../game/ai.js';
 import { drawAll } from '../game/draw.js';
 import { stepEnv, pollEnvCues } from '../game/environment.js';
 import { rand } from '../utils/math.js';
@@ -201,7 +201,7 @@ export default function Battle({
     const w = ensureWorld();
     if (w.state !== 'running' || w.cannonCd > 0) return;
     const dmg = (60 + (cannonLv - 1) * 10) * (w.cfg.difficulty || 1); const knock = 60;
-    w.units.forEach(u => { if (u.team === -1) { u.hp -= dmg; u.x += knock; } });
+    applyCannon(w, dmg, knock); // 套用閃避、護盾、擊退免疫與主堡邊界（ai.js）
     w.cannonCd = 20;
     draw();
   };

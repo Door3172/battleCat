@@ -77,6 +77,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 - 共用 class：`.ui-btn`（`-primary/-accent/-ghost`）、`.ui-card`/`.ui-card-dark`、`.ui-pill`、`.ui-divider`、`.ui-dialog(-backdrop)`、`.ui-select`、`.hero-banner`/`.hero-title`/`.hero-sub`/`.hero-chip`、`.stage-btn`（`.locked` 顯示 🔒 / `.boss`）、`.slot-tray`、`.hud-stat`、`.unit-card`、`.gacha-*`、`.game-background`、`.text-sub`/`.text-mute`/`.text-highlight`。
 - **元件重點**：
   - `Button`：`tone` = default/primary/ghost/accent，`size` = sm/md/lg；同時綁 `onPointerUp` 與 `onClick`，用 120ms 鎖防止重複觸發。可傳 `aria-label`。點擊時呼叫 `audio.playClick()`（disabled 不播）。
+  - 不是 `Button` 元件、但也有點擊音效的原生按鈕：App 右上「設定」（`.ui-corner-btn`）、關卡格（`.stage-btn`，只有已解鎖才播）。之後新增原生 `<button>` 時記得自己呼叫 `audio.playClick()`。
   - `SettingsDialog`：六條分類音量滑桿（主音量 / 背景音樂 / 召喚 / 按鈕 / 勝敗 / 環境提示音，定義在 `VOLUME_ROWS`；直接呼叫 `audio.getVolumes()` / `audio.setVolume()`，除音樂外都有 ▶ 試聽）＋風格選單。只收 `show`、`onClose`、`audio`、`theme`、`setTheme`。
   - `Card`：`tone` light/dark。
   - `Dialog`：`fullscreen` 決定 fixed/absolute，Esc 或點背景呼叫 `onClose`。`fullscreen` 時用 portal 掛到 `document.body`（外框 `.game-background` 有 backdrop-filter，會讓 fixed 改成相對外框定位）。
@@ -89,7 +90,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
   - **章節環境**（UI-007，設計文件 `docs/design/chapter-environment.md`）：
     - `envInfo.js`：各環境 / 階段的圖示與文字（`ENV_TYPES`、`ENV_PHASES`、`envWarningText()`），以及首次說明的已看紀錄 `hasSeenEnvTip()` / `markEnvTipSeen()`（localStorage `envTipsSeen`，陣列，玩家進度、不在 `PRESERVED_KEYS`）。
     - `EnvIndicator`：疊在戰場 Canvas 上方中央；顯示目前階段圖示＋剩餘秒數（依階段換底色），預告期間顯示閃爍橫幅（夜晚／漲潮紅色、退潮綠色，含方向箭頭）。自己每 100ms 讀 `world.env`，不經過戰鬥主迴圈；`Battle.jsx` 只在 JSX 放 `<EnvIndicator getEnv={() => worldRef.current?.env ?? null} />`。
-    - 關卡選擇：有環境的關卡左下角顯示 🌗／🌊，下方說明列出本章環境；點到**首次遇到**的環境類型時，先跳說明視窗，按「知道了，開始戰鬥」才記錄並進入戰鬥（按返回則不記錄）。
+    - 關卡選擇：關卡格只綁 `onClick`（滑鼠、觸控、鍵盤 Enter／空白鍵都只觸發一次），未解鎖的關卡點了沒反應也沒聲音（`aria-disabled`，仍可被 Tab 聚焦以便讀出「未解鎖」）；每格有 `aria-label`（例如「第 4 關（晝夜）（未解鎖）」）。有環境的關卡左下角顯示 🌗／🌊，下方說明列出本章環境；點到**首次遇到**的環境類型時，先跳說明視窗，按「知道了，開始戰鬥」才記錄並進入戰鬥（按返回則不記錄）。
     - 章節選擇：卡片下方顯示「戰場規則」說明（讀 `stages.js` 的 `CHAPTER_ENV`）。`Codex.jsx` 的 `typeMap` 名稱對不上的問題仍在。
   - `GachaMachine`：CSS 扭蛋機外觀（顏色跟主題 secondary），無動畫/邏輯。
 - 戰場畫面**不是 DOM**，是 Canvas（見 §4 draw.js），天空/地面/文字顏色讀 `SKIN.field.*`。**貓咪**用 `public/pic/<unit.key>.webp` 角色圖（高 38px，`draw.js` 載入時預載），圖未載入完成或沒有圖時退回色塊 + 耳朵；**敵人**仍是色塊。
@@ -158,7 +159,13 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 - 目標在射程內（且 ≥ `aoeMinRadius`）或敵堡在射程內就攻擊。
 - 非 AOE：打目標，否則打主堡。AOE：對半徑內所有敵人（最多 `maxTargets`），名額有剩且主堡在範圍內也打主堡。
 - 移動：與目標距離 ≤ `range*0.98` 停下；貼太近（< BODY_W*0.9）停下；抵達敵堡前 18px 停下。
-- **貓咪砲**（`fireCannon`）：全體敵人扣 `60 + (cannonLv-1)*10` HP 並擊退 60px，CD 20 秒。**無視護盾、閃避、擊退免疫**。
+- **貓咪砲**（`Battle.jsx` `fireCannon` → `ai.js` `applyCannon(world, dmg, knock)`）：對所有存活敵人造成 `(60 + (cannonLv-1)*10) × (cfg.difficulty || 1)` 傷害並往右推 60px，CD 20 秒。套用能力系統（EG-006）：
+  - **閃避**：擲中 `dodge.chance` → 這發完全無效（不扣血、不推）。
+  - **護盾**：`shieldHp` 先吸收，吸不完的才扣 HP。**被護盾完全吸收仍會被推開**（CEO 規則只把閃避與擊退免疫列為不被推的條件；一般攻擊的擊退則要 `dealt > 0` 才會觸發，兩者不同）。
+  - **擊退免疫**：照常受傷，不被推。
+  - 推開限制在主堡邊界 `[68, 50+towerDistance-18]`（`pushWithinBounds`，與一般移動、潮汐相同）；原本就在邊界外的不會被拉回。
+  - 死亡、復活、擊殺賞金照舊由下一幀 `stepUnits` 的清屍流程處理。
+- **傷害共用規則**（`ai.js` 匯出）：`rollDodge(target)`（閃避判定）、`absorbDamage(target, dmg)`（護盾吸收 → 扣 HP，回傳實際扣血量）。`stepUnits` 的一般攻擊與貓咪砲共用；**改傷害規則時改這兩個函式即可**。一般攻擊的擊退（`knockback` 能力）目前仍是直接 `x +=`，沒有邊界限制（維持原行為）。
 - **戰鬥中收入升級**（HUD 按鈕，標籤寫「研究力」但其實是戰鬥內收入）：花 `incomeCost` 魚，收入 +`3 + 1.5*(researchLv-1)`；cost 從 100 起，每次 += `100*(新等級-1)`。
 
 ### 4.4 能力系統（`abilities`，貓敵共用，說明也寫在 `ai.js` 開頭註解）
@@ -338,13 +345,13 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 | 6 | UI | 圖鑑 `Codex.jsx` 的 `typeMap` 名稱對不上（寫「忍者貓」等，實際是「忍者喵」）；`UnitCard` 樣式與假數值已於 CEO-004 修正 | `Codex.jsx` | — |
 | 7 | UI | ~~戰鬥 HUD 的「研究力」按鈕其實是戰鬥內收入升級，與大廳升級的「研究力」名稱衝突~~ ✅ 已修（2026-09-27） | `HudInfo.jsx` | UI-001 |
 | 8 | 引擎 | `world.js`/`ai.js` 有未使用的舊生怪路徑（`firstDelay`、`spawnRate`、`pool`、`sequence`、`maxEnemies`、`difficulty` 皆未定義），`maxEnemies` 未定義 → 敵人數量無上限 | `ai.js`、`world.js` | — |
-| 9 | 引擎 | 貓咪砲無視護盾/閃避/擊退免疫 | `Battle.jsx` `fireCannon` | — |
+| 9 | 引擎 | ~~貓咪砲無視護盾/閃避/擊退免疫~~ ✅ 已修（2026-09-28） | `Battle.jsx` `fireCannon` | EG-006 |
 | 10 | 關卡 | ~~`spawns.js` 註解說 multiplier 是「數量倍率」，實際是能力值倍率~~ ✅ 已修（2026-09-27） | `spawns.js` | LV-001 |
 | 11 | 敵人 | `metal` 金屬怪已定義但沒有任何關卡使用 | `enemies.js` | — |
 | 12 | 測試 | ~~本機 node_modules 缺 vitest，`npm test` 失敗；測試覆蓋率極低~~ ✅ 執行 `npm install` 後 `npm test` 可通過（2026-09-27）；測試覆蓋率仍極低 | — | — |
 | 13 | UI | ~~關卡選擇的 BOSS ⭐ 用 `n%10` 寫死，未讀取關卡 `boss` 設定（1-15、1-19 也有 BOSS 卻沒標）~~ ✅ 已修（2026-09-27） | `LevelSelect.jsx` | UI-002 |
 | 14 | UI | ~~設定按鈕（App.jsx）與召喚欄（Battle.jsx）用 CSS 選擇器 / `!important` 硬蓋樣式，屬權宜作法~~ ✅ 已修（UI-003） | `styles.css` | UI-003 |
-| 15 | UI | App 右上「設定」按鈕與關卡格（`.stage-btn`）是原生 `<button>`，沒有點擊音效 | `App.jsx`、`LevelSelect.jsx` | — |
+| 15 | UI | ~~App 右上「設定」按鈕與關卡格（`.stage-btn`）是原生 `<button>`，沒有點擊音效~~ ✅ 已修（2026-09-28） | `App.jsx`、`LevelSelect.jsx` | UI-009 |
 | 16 | 音效 | ~~「清除存檔」會清掉 localStorage 的 `audioVolumes`，但記憶體中的音量保留，直到下次調整才重寫；主題 `theme` 也有同樣問題~~ ✅ 已修（AU-004：清除存檔保留音量與主題） | `App.jsx` `handleReset` | AU-004 |
 | 17 | 引擎/UI | 貓咪攻擊動畫靠「`atkCd` 被重設變大」推算出手時機（UI-006）；引擎若修改攻擊冷卻的寫法，動畫會失效，改動前須通知 UI | `ai.js`、`draw.js` | — |
 | 18 | 經濟/關卡 | ~~第一章難度在 1-7 出現斷層：勝率 ≥50% 所需預算從 1-6 的約 1800 跳到約 4000（首通累積預算的 ×3），玩家約需重刷 1-6 九次（EC-002 模擬）~~ ➖ 不處理：使用者 2026-09-28 實際試玩後認為難度可接受 | `spawns.js` 1-7、各關 `reward` | — |

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { stepSchedule } from './ai.js';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { stepSchedule, stepUnits, makeUnit, absorbDamage, applyCannon, pushWithinBounds } from './ai.js';
 import { stageConfig } from '../data/stages.js';
 
 // 以固定步長推進 stepSchedule；hpAt(t) 決定敵堡 HP。回傳生成紀錄 [{ type, mult, t }]
@@ -45,5 +45,97 @@ describe('stepSchedule 單次出怪（EG-004）', () => {
 
   it('沒有 schedule 時回傳 false（交給舊的固定頻率路徑）', () => {
     expect(stepSchedule({ cfg: {}, time: 0, nextEnemyIdx: 0 }, () => {})).toBe(false);
+  });
+});
+
+// ── EG-006：貓咪砲套用護盾 / 閃避 / 擊退免疫 / 邊界 ──
+const tpl = (o = {}) => ({ hp: 1000, attack: 50, speed: 10, range: 20, atkRate: 1, color: '#000', name: 'x', ...o });
+const mkWorld = (units = [], towerDistance = 750) => ({ units, cfg: { towerDistance }, leftHp: 1000, rightHp: 1000, time: 0 });
+
+describe('absorbDamage（護盾先吸收）', () => {
+  it('護盾吸得完：只扣護盾，回傳 0', () => {
+    const u = makeUnit(-1, 400, 0, tpl()); u.shieldHp = 100;
+    expect(absorbDamage(u, 80)).toBe(0);
+    expect([u.shieldHp, u.hp]).toEqual([20, 1000]);
+  });
+  it('護盾吸不完：護盾歸零，剩下的扣 HP', () => {
+    const u = makeUnit(-1, 400, 0, tpl()); u.shieldHp = 50;
+    expect(absorbDamage(u, 80)).toBe(30);
+    expect([u.shieldHp, u.hp]).toEqual([0, 970]);
+  });
+});
+
+describe('applyCannon（貓咪砲）', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('一般敵人：扣血並往右推 60；我方與死亡單位不受影響', () => {
+    const foe = makeUnit(-1, 400, 0, tpl());
+    const cat = makeUnit(1, 300, 0, tpl());
+    const dead = makeUnit(-1, 500, 0, tpl()); dead.hp = 0;
+    applyCannon(mkWorld([foe, cat, dead]), 60, 60);
+    expect([foe.hp, foe.x]).toEqual([940, 460]);
+    expect([cat.hp, cat.x]).toEqual([1000, 300]);
+    expect([dead.hp, dead.x]).toEqual([0, 500]);
+  });
+
+  it('有護盾：護盾先吸收，HP 不變（仍被推開）', () => {
+    const crab = makeUnit(-1, 400, 0, tpl({ abilities: { shield: { interval: 45, amount: 500 } } }));
+    crab.shieldHp = 500;
+    applyCannon(mkWorld([crab]), 60, 60);
+    expect([crab.shieldHp, crab.hp, crab.x]).toEqual([440, 1000, 460]);
+    crab.shieldHp = 20; // 吸不完的部分扣 HP
+    applyCannon(mkWorld([crab]), 60, 60);
+    expect([crab.shieldHp, crab.hp]).toEqual([0, 960]);
+  });
+
+  it('擊退免疫：照常受傷，位置不變', () => {
+    const whale = makeUnit(-1, 400, 0, tpl({ abilities: { knockbackImmune: true } }));
+    applyCannon(mkWorld([whale]), 60, 60);
+    expect([whale.hp, whale.x]).toEqual([940, 400]);
+  });
+
+  it('閃避：擲中時完全無效（不扣血、不推）；沒擲中照常', () => {
+    const shark = makeUnit(-1, 400, 0, tpl({ abilities: { dodge: { chance: 0.2 } } }));
+    vi.spyOn(Math, 'random').mockReturnValue(0.1); // < 0.2 → 閃避
+    applyCannon(mkWorld([shark]), 60, 60);
+    expect([shark.hp, shark.x]).toEqual([1000, 400]);
+    Math.random.mockReturnValue(0.5); // ≥ 0.2 → 命中
+    applyCannon(mkWorld([shark]), 60, 60);
+    expect([shark.hp, shark.x]).toEqual([940, 460]);
+  });
+
+  it('推開不超過主堡邊界（右邊界 50+750-18 = 782），已在邊界外的不會被拉回', () => {
+    const near = makeUnit(-1, 760, 0, tpl());
+    const out = makeUnit(-1, 800, 0, tpl());
+    applyCannon(mkWorld([near, out], 750), 60, 60);
+    expect(near.x).toBe(782);
+    expect(out.x).toBe(800);
+    expect([near.hp, out.hp]).toEqual([940, 940]); // 傷害照常
+  });
+
+  it('pushWithinBounds 往左推也受左邊界 68 限制', () => {
+    const u = makeUnit(1, 90, 0, tpl());
+    pushWithinBounds(mkWorld(), u, -60);
+    expect(u.x).toBe(68);
+  });
+});
+
+describe('一般攻擊仍套用相同規則（stepUnits）', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('打有護盾的敵人：先扣護盾', () => {
+    const cat = makeUnit(1, 400, 0, tpl({ attack: 50 }));
+    const foe = makeUnit(-1, 410, 0, tpl({ attack: 0 }));
+    foe.shieldHp = 30;
+    stepUnits(mkWorld([cat, foe]), () => 900, () => 400, 0.01);
+    expect([foe.shieldHp, foe.hp]).toEqual([0, 980]);
+  });
+
+  it('打會閃避的敵人：擲中時不扣血', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.1);
+    const cat = makeUnit(1, 400, 0, tpl({ attack: 50 }));
+    const foe = makeUnit(-1, 410, 0, tpl({ attack: 0, abilities: { dodge: { chance: 0.2 } } }));
+    stepUnits(mkWorld([cat, foe]), () => 900, () => 400, 0.01);
+    expect(foe.hp).toBe(1000);
   });
 });

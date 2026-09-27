@@ -308,3 +308,50 @@ AU-005 新增了音量分類 `env`（章節環境提示音：晝夜、潮汐的�
 ### 審核（CEO 填寫）
 - 2026-09-27 通過。只加一列設定，試聽用 `?.` 防呆；build、test 通過。
 
+
+## [UI-009] 「設定」按鈕與關卡格補上點擊音效
+- 狀態：已完成
+- 優先度：低
+- 來自：CEO（2026-09-28，PROJECT_MAP §11 #15）
+- 依賴：無
+
+**需求**
+其他按鈕都透過 `src/ui/Button.jsx` 播 `audio.playClick()`（歸在 `ui` 音量分類），但下面兩個是原生 `<button>`，按了沒聲音：
+1. `src/App.jsx` 約第 300 行：右上角「設定」按鈕。**CEO 授權本任務修改 `App.jsx` 這一個按鈕**（只限這個按鈕，其他部分不要動）。
+2. `src/scenes/LevelSelect.jsx` 約第 56 行：關卡格 `.stage-btn`。**未解鎖的關卡不要播音效**（跟 `Button` disabled 時不播一致）。
+- 做法自由：可以改用 `Button` 元件，或直接在 handler 裡呼叫 `audio.playClick()`。外觀不能改變（`.ui-corner-btn`、`.stage-btn` 樣式維持）。
+- 順便處理：關卡格目前只綁 `onPointerUp`，用鍵盤（Tab + Enter/空白鍵）按不下去。請改成鍵盤也能選關，且同一次點擊不會觸發兩次選關或兩次音效。
+
+**完成條件**
+- 按「設定」、按已解鎖的關卡都會播點擊音效，且受設定畫面「按鈕音效」音量控制；按未解鎖的關卡沒有聲音、也不會進關。
+- 鍵盤可以選關；滑鼠、觸控各只觸發一次。
+- `npm run build`、`npm test` 通過；更新 PROJECT_MAP 自己領域的章節與 CHANGELOG。
+
+### 回報（負責角色填寫）
+- 修改檔案：`src/App.jsx`（授權範圍：只改「開啟設定」按鈕的 `onClick`）、`src/scenes/LevelSelect.jsx`、`docs/PROJECT_MAP.md`（§2）、`docs/CHANGELOG.md`、本任務檔
+- 做了什麼：
+  1. `App.jsx`「設定」按鈕：`onClick` 改為 `() => { audio.playClick(); setShowSettings(true); }`（`audio` 是 App 原本就有的 `useAudio()`）。`aria-label`、`className`、內容都沒動，外觀不變。
+  2. `LevelSelect.jsx` 關卡格：
+     - 拿掉 `onPointerUp`，改只用 `onClick`：滑鼠、觸控、鍵盤（Enter／空白鍵）每次操作都只會觸發一次，不會重複選關或重複播音效。
+     - 已解鎖：先 `audio.playClick()` 再選關；未解鎖：直接 return，不播音效、不進關。
+     - 未解鎖改標 `aria-disabled`（沒有用 `disabled`，才不會改到外觀、也仍可被 Tab 聚焦並讀出「未解鎖」）；補 `type="button"` 與 `aria-label`（例如「第 4 關（晝夜）（未解鎖）」「第 10 關（BOSS）（晝夜）」）。
+     - `.stage-btn` 的 class 與樣式都沒改。
+  3. 音效走 `audio.playClick()`，所以跟其他按鈕一樣歸在 `ui` 分類，受設定畫面「按鈕音效」音量控制。
+- 如何驗證：
+  - `npm run build` 成功；`npm test` 通過（3 個測試檔、27 個測試）。
+  - 瀏覽器中攔截 `window.audio.playClick` 計算呼叫次數（測試前暫時把 `highestUnlocked` 設為第一章只開到第 3 關）：
+    - 真實滑鼠點「設定」→ 1 次，設定視窗打開。
+    - 真實滑鼠點未解鎖的第 4 關 → 0 次，仍停在關卡選擇。
+    - 真實滑鼠點已解鎖的第 3 關 → 1 次，進入戰鬥。
+    - 鍵盤：聚焦第 2 關按空白鍵 → 1 次，進入戰鬥；聚焦第 1 關按 Enter 也成功進入戰鬥。
+    - 手機模式（375×812、觸控模擬）點第 1 關 → 1 次，進入戰鬥。註：瀏覽器工具的點擊仍以滑鼠事件送出，沒有真正的觸控手勢；但現在只綁 `onClick`，觸控也只會產生一次 click。
+  - 測完已把 `highestUnlocked` 還原為 `{"1":20,"2":20}`、`envTipsSeen` 為 `["dayNight","tide"]`（測試前的值），視窗大小也還原為 desktop。
+- 新增給其他角色的請求：無
+- 收尾：已 `preview_stop` 自己開的 dev server（fa8bbd10…），並停掉之前連線別人伺服器時留下的「Browser」預覽項目（browser-preview-1790512883924-2）；關閉分頁。最後 `preview_list` 回傳 `[]`、`tabs_context` 回傳 `browserOpen: false, tabs: []`，都已清空。
+- 給 CEO 的注意事項：
+  - commit 範圍：`src/App.jsx`、`src/scenes/LevelSelect.jsx`、`docs/PROJECT_MAP.md`、`docs/CHANGELOG.md`、`docs/tasks/ui.md`。
+  - PROJECT_MAP §11 #15 可標為已處理（§11 由 CEO 維護，我沒改）。
+  - 空白鍵選關後會直接進戰鬥，而戰鬥中空白鍵是「貓咪砲」。實測進場時戰鬥是「即將開始」狀態，沒有誤發大砲；如果之後戰鬥改成一進場就開始，可能需要引擎留意這個按鍵的 keyup / keydown 時序。
+
+### 審核（CEO 填寫）
+- 2026-09-28 通過。`App.jsx` 只改設定按鈕的 `onClick`，在授權範圍內；關卡格改 `onClick` 並補 `aria-disabled` / `aria-label`，外觀不變；build、test 通過，收尾確認為空。

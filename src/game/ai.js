@@ -195,6 +195,46 @@ export function stepSchedule(world, spawn) {
   return true;
 }
 
+// ── 傷害 / 位移共用規則（一般攻擊與貓咪砲共用，避免規則分岔；EG-006）──
+
+// 閃避判定：有 dodge 且擲中機率 → true（這次攻擊完全無效）
+export function rollDodge(target) {
+  const dodge = target.abilities?.dodge;
+  return !!(dodge && Math.random() < dodge.chance);
+}
+
+// 護盾先吸收，吸不完的扣 HP；回傳實際扣到 HP 的傷害
+export function absorbDamage(target, dmg) {
+  if (target.shieldHp > 0) {
+    const sh = target.shieldHp - dmg;
+    if (sh >= 0) { target.shieldHp = sh; return 0; }
+    target.shieldHp = 0; dmg = -sh;
+  }
+  if (dmg > 0) { target.hp -= dmg; return dmg; }
+  return 0;
+}
+
+// 推動單位 dx（正 = 往右），限制在主堡邊界 [50+18, 50+towerDistance-18] 內（與一般移動、潮汐相同）。
+// 只阻止被推過邊界；原本就在邊界外的單位不會被拉回
+export function pushWithinBounds(world, u, dx) {
+  const lo = 50 + 18;
+  const hi = 50 + world.cfg.towerDistance - 18;
+  if (dx < 0) { if (u.x > lo) u.x = Math.max(lo, u.x + dx); }
+  else if (dx > 0 && u.x < hi) u.x = Math.min(hi, u.x + dx);
+}
+
+// 貓咪砲：對所有存活敵人造成 dmg 並往右推 knock。
+// 閃避 → 完全無效（不扣血、不推）；護盾先吸收；擊退免疫 → 照常受傷但不推。
+// 死亡與擊殺賞金交給下一幀 stepUnits 的清屍流程（與一般攻擊相同）
+export function applyCannon(world, dmg, knock) {
+  for (const u of world.units) {
+    if (u.team !== -1 || u.hp <= 0) continue;
+    if (rollDodge(u)) continue;
+    absorbDamage(u, dmg);
+    if (!u.abilities?.knockbackImmune) pushWithinBounds(world, u, knock);
+  }
+}
+
 export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt) {
   const leftX = 50;
   const rightX = leftX + world.cfg.towerDistance;
@@ -210,15 +250,7 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt) {
 
     let dealt = 0;
     if (target) {
-      const dodge = target.abilities?.dodge;
-      if (!(dodge && Math.random() < dodge.chance)) {
-        if (target.shieldHp > 0) {
-          const sh = target.shieldHp - dmg;
-          if (sh >= 0) { target.shieldHp = sh; dmg = 0; }
-          else { target.shieldHp = 0; dmg = -sh; }
-        }
-        if (dmg > 0) { target.hp -= dmg; dealt = dmg; }
-      }
+      if (!rollDodge(target)) dealt = absorbDamage(target, dmg);
     } else {
       dealt = dmg;
     }

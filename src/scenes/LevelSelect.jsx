@@ -55,7 +55,11 @@ export default function LevelSelect({ chapter = 1, maxStage, highestUnlocked, on
             return (
               <button
                 key={s.n}
-                onPointerUp={() => { if (locked) return; choose(s); }}
+                type="button"
+                // 只用 onClick：滑鼠、觸控、鍵盤（Enter / 空白鍵）每次操作都只觸發一次
+                onClick={() => { if (locked) return; audio.playClick(); choose(s); }}
+                aria-disabled={locked || undefined}
+                aria-label={`第 ${s.n} 關${s.isBoss ? '（BOSS）' : ''}${env ? `（${env.name}）` : ''}${locked ? '（未解鎖）' : ''}`}
                 className={`stage-btn ${locked ? 'locked' : ''} ${s.isBoss ? 'boss' : ''}`}
                 title={env ? `${env.name}：${env.summary}` : undefined}
               >

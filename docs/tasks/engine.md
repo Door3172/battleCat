@@ -207,3 +207,57 @@ UI-004 要在戰場 Canvas 用角色圖畫貓咪，`draw.js` 需要知道每個�
 ### 審核（CEO 填寫）
 - 2026-09-27 通過。改用 `timeScaleRef.current`，有實機確認 1x/2x 切換顯示正確。
 
+
+## [EG-006] 貓咪砲要套用護盾、閃避、擊退免疫
+- 狀態：已完成
+- 優先度：中
+- 來自：CEO（2026-09-28，PROJECT_MAP §11 #9）
+- 依賴：無
+
+**需求**
+`src/scenes/Battle.jsx` 的 `fireCannon`（約第 200 行）目前直接 `u.hp -= dmg; u.x += knock;`，完全跳過能力系統。CEO 決定規則如下：
+1. **護盾**：`shieldHp` 先吸收砲擊傷害，吸不完的才扣 HP（和 `ai.js` 一般攻擊的算法一樣）。
+2. **閃避**：有 `dodge` 的敵人照機率閃掉砲擊（和一般攻擊一致）。
+3. **擊退免疫**：有 `knockbackImmune` 的敵人不被砲擊推開，但照常受傷。
+4. 砲擊推開的位移要限制在主堡邊界內（和一般移動／潮汐推力的邊界相同），目前沒有限制。
+- 建議做法：把 `ai.js` 裡「閃避 → 護盾 → 扣血」這段抽成一個匯出函式（例如 `applyDamage(target, dmg)`），`stepUnits` 和 `fireCannon` 共用，避免兩邊規則再次分岔。擊退可以視情況一起抽。
+- 傷害公式（含 `w.cfg.difficulty` 倍率）、冷卻 20 秒、推開距離 60 **維持不變**。
+- 擊殺賞金、死亡處理照原本流程，不要重複計算。
+
+**授權範圍**：`src/game/ai.js`、`src/scenes/Battle.jsx` 的 `fireCannon`；可新增測試（例如 `src/game/ai.test.js`）。
+
+**完成條件**
+- 對有護盾的敵人開砲：先扣護盾；對擊退免疫的敵人開砲：位置不變、HP 有扣。
+- 一般攻擊的行為沒有改變（現有測試通過）。
+- 有單元測試涵蓋護盾吸收、擊退免疫不被推、推開不超過邊界。
+- `npm run build`、`npm test` 通過；更新 PROJECT_MAP 自己領域的章節與 CHANGELOG。
+
+### 回報（負責角色填寫）
+- 修改檔案：`src/game/ai.js`、`src/scenes/Battle.jsx`（`fireCannon` 1 行＋import）、`src/game/ai.test.js`（新增 10 項）、`docs/PROJECT_MAP.md`（§4.3 貓咪砲）、`docs/CHANGELOG.md`、本任務檔
+- 做了什麼：
+  - `ai.js` 新增 4 個匯出函式：
+    - `rollDodge(target)`：閃避判定。
+    - `absorbDamage(target, dmg)`：護盾先吸收、吸不完扣 HP，回傳實際扣血量。
+    - `pushWithinBounds(world, u, dx)`：推動並限制在主堡邊界 `[68, 50+towerDistance-18]`；只阻止被推過邊界，原本在邊界外的不會被拉回（與潮汐相同）。
+    - `applyCannon(world, dmg, knock)`：貓咪砲本體。對每個存活敵人：閃避擲中 → 跳過（不扣血、不推）；否則 `absorbDamage`；非擊退免疫才 `pushWithinBounds`。
+  - `stepUnits` 的 `dealAttack` 改用 `rollDodge` + `absorbDamage`。這是機械式抽出，判斷順序與 `Math.random` 呼叫次數都和原本相同，一般攻擊行為不變。
+  - `Battle.jsx` `fireCannon`：`w.units.forEach(u => { u.hp -= dmg; u.x += knock; })` 改成 `applyCannon(w, dmg, knock)`。傷害公式（含 `difficulty`）、CD 20 秒、推開 60 都沒改。
+  - 死亡、復活、擊殺賞金沒有另外處理，照舊由下一幀 `stepUnits` 的清屍流程處理，不會重複計算。`applyCannon` 會跳過 `hp ≤ 0` 的單位（實際上砲擊發生在兩幀之間，場上不會有未清的屍體）。
+- 如何驗證：
+  - `npm test`：27 項全過（`ai.test.js` 從 3 項增加到 13 項）。新增的 10 項：
+    - absorbDamage：護盾 100 吃 80 → 護盾 20、HP 不變；護盾 50 吃 80 → 護盾 0、HP −30。
+    - applyCannon：一般敵人 HP −60、x +60，我方與死亡單位不受影響；護盾 500 → 440、HP 不變、仍被推 60；護盾 20 → 0、HP −40；擊退免疫 HP −60、x 不變；閃避擲中 → HP、x 都不變，沒擲中 → 照常；x=760 被推到右邊界 782、x=800（邊界外）不動、兩者傷害照常；往左推停在 68。
+    - 一般攻擊（`stepUnits`）：打護盾 30 的敵人（攻擊 50）→ 護盾 0、HP −20；閃避擲中 → HP 不變。
+  - 原有 17 項（含潮汐推力、EG-004 排程）全部照舊通過。`npm run build` 成功。
+  - 瀏覽器：連到另一個對話開的 dev server（5173），進入 1-1 按 Space，大砲冷卻從 OK 變成 19.0s，console 沒有錯誤。當時場上沒有敵人，所以命中敵人的各種情況是由上述單元測試驗證。
+- 新增給其他角色的請求：無
+- 收尾：5173 的 dev server 是別的對話開的，沒有去關，直接連它的網址。自己開的 `Browser` 類型預覽程序（`browser-preview-1790539760814-4`）已 `preview_stop`，分頁 `seed` 已 `tabs_close`。最後 `preview_list` 回傳 `[]`、`tabs_context` 回傳 `tabs: []`（browserOpen: false），確認都是空的。沒有背景程序。
+- 給 CEO 的注意事項：
+  - **需要 CEO 確認的規則**：護盾把砲擊**完全吸收**時，敵人**仍會被推開**。我照任務字面實作：CEO 只把閃避和擊退免疫列為不被推的條件。但一般攻擊的 `knockback` 能力要 `dealt > 0`（真的扣到血）才會觸發，兩者不同。影響：寄居蟹護盾 500、巨龍蝦 300，砲擊 60~150，前幾發會打在護盾上。若 CEO 希望「護盾吸完就不推」，只要在 `applyCannon` 加一個條件，請開任務給我。
+  - 一般攻擊的 `knockback` 能力推開目前**沒有**邊界限制（原行為，這次依「一般攻擊行為不變」沒動）。若要統一，可改用 `pushWithinBounds`，需要另外開任務。
+  - commit 範圍：`src/game/ai.js`、`src/game/ai.test.js`、`src/scenes/Battle.jsx`、`docs/PROJECT_MAP.md`、`docs/CHANGELOG.md`、`docs/tasks/engine.md`。
+  - 工作目錄中 `src/App.jsx`、`src/scenes/LevelSelect.jsx` 的改動（按鈕音效、關卡按鈕 onClick）**不是我改的**，應屬其他角色（UI／音效），請勿併入本任務的 commit。
+  - 請 CEO 更新 PROJECT_MAP §11 #9（CEO 維護的表），標為已修（EG-006）。
+
+### 審核（CEO 填寫）
+- 2026-09-28 通過。傷害規則抽成 `rollDodge` / `absorbDamage` 共用，一般攻擊判斷順序不變；新增 10 項測試，build、test（27 項）通過，範圍正確。CEO 決定：**護盾完全吸收時仍會被推開**維持現狀（砲擊是爆風，和一般攻擊的擊退能力分開看）；一般攻擊擊退沒有邊界限制目前不處理。
