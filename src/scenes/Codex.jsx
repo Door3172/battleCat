@@ -4,6 +4,7 @@ import Card from '../ui/Card.jsx';
 import Pill from '../ui/Pill.jsx';
 import Button from '../ui/Button.jsx';
 import UnitCard from '../ui/UnitCard.jsx';
+import { catKeyByName } from '../ui/catArt.js';
 
 export default function Codex({ cats, enemies, onBack }) {
   const typeMap = {
@@ -27,7 +28,7 @@ export default function Codex({ cats, enemies, onBack }) {
             <div className="font-semibold mb-1">我方單位</div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2" aria-label="我方單位列表">
               {cats.map(n => (
-                <UnitCard key={n} name={n} type={typeMap[n] || 'ninja'} />
+                <UnitCard key={n} name={n} type={typeMap[n] || 'ninja'} catKey={catKeyByName(n)} />
               ))}
             </div>
           </Card>

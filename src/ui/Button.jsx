@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { cn } from '../utils/cn.js';
+import { useAudio } from '../audio/useAudio.js';
 
 // 外觀全部由 styles.css 的 .ui-btn* 與主題 CSS 變數決定，切換主題即時生效。
 const SIZES = {
@@ -29,11 +30,13 @@ export default function Button({
 }) {
   const s = { ...SIZES, ...sizeMap }[size] || SIZES.md;
   const btnLock = useRef(false);
+  const audio = useAudio();
 
   const handler = (e)=>{
     if(disabled) return;
     if(btnLock.current) return;
     btnLock.current = true;
+    audio.playClick(); // 按鈕音效（disabled 時上面已 return，不會播）
     try{ onClick && onClick(e); }
     finally{ setTimeout(()=>(btnLock.current=false), 120); }
   };

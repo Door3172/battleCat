@@ -2,6 +2,13 @@
 
 格式：`日期｜角色｜摘要`，新的寫在最上面。
 
+- 2026-09-27｜CEO｜審核 AU-001、AU-002、AU-003、EG-002、UI-004、UI-005 全數通過；修正 package-lock.json 專案名稱；PROJECT_MAP §0、§11 更新（新增 #15、#16）。
+- 2026-09-27｜音效｜AU-001：刪除未使用的 `public/audio/廢棄.mp3`（4.9MB）。
+- 2026-09-27｜UI｜UI-005：設定改為五條分類音量滑桿（含試聽）、`Button` 加點擊音效；App 移除舊 `volume` state；全螢幕 `Dialog` 改用 portal 掛到 body（修正長頁面時設定視窗跑出畫面）。
+- 2026-09-27｜UI｜UI-004：角色圖壓成 256px WebP（16 張共約 270KB）；戰場貓咪改畫角色圖（無圖退回色塊），隊伍編成/升級/商店/召喚欄/圖鑑加頭像（新元件 `CatAvatar`、`catArt.js`）。
+- 2026-09-27｜音效｜AU-002、AU-003：音量分成 master/music/summon/ui/result 並存到 `audioVolumes`（自動轉移舊 `volume`）、新增 `playClick()` 合成按鈕音效；修正回大廳音樂被淡出計時器關掉、大廳沒音樂、切畫面音樂重播、首次戰鬥音樂延遲（背景預載）。
+- 2026-09-27｜引擎｜EG-002：戰場單位新增 `unit.key`（貓 = cats key、敵人 = ENEMIES key、BOSS = BOSSES key），`makeUnit` 新增第 5 參數 `key`；不影響數值與行為。
+- 2026-09-27｜CEO｜派工：AU-001（刪廢棄.mp3）、AU-002（音量分類＋按鈕音效）、AU-003（音樂播放時機）、EG-002（unit.key）、UI-004（角色圖）、UI-005（設定音量滑桿）；CEO-003 結案、CEO-001 暫緩。
 - 2026-09-27｜引擎｜EG-001：刪除 `Battle.jsx` 未使用的 `SKIN` import。
 - 2026-09-27｜CEO｜審核 EG-001 通過。
 - 2026-09-27｜CEO｜CLAUDE.md 註明：CEO 寫進任務檔的任務即為對所列檔案的正式授權。

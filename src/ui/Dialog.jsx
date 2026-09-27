@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function Dialog({ show, onClose, children, fullscreen = true }) {
   useEffect(() => {
@@ -10,7 +11,7 @@ export default function Dialog({ show, onClose, children, fullscreen = true }) {
     return () => document.removeEventListener('keydown', onKey);
   }, [show, onClose]);
 
-  return (
+  const node = (
     <div
       className={`ui-dialog-backdrop ${show ? 'is-open' : ''} ${fullscreen ? 'fixed' : 'absolute'} inset-0 grid place-items-center p-4 transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       onClick={() => { if (show) onClose?.(); }}
@@ -25,4 +26,9 @@ export default function Dialog({ show, onClose, children, fullscreen = true }) {
       </div>
     </div>
   );
+
+  // 全螢幕對話框掛到 body：外框 .game-background 有 backdrop-filter，
+  // 會讓 position: fixed 改成相對外框定位，頁面一長對話框就跑到畫面外。
+  if (fullscreen && typeof document !== 'undefined') return createPortal(node, document.body);
+  return node;
 }

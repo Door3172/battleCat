@@ -88,3 +88,95 @@ CEO-004 為了不動 `App.jsx`、`Battle.jsx`，在 `src/styles.css` 用選擇�
 - 2026-09-27 通過。App.jsx 只改設定按鈕 className、Battle.jsx 只改召喚欄單格 className/style，完全在授權範圍內；兩組覆寫與 `!important` 已移除；build 成功。
 - 回報提到的 `Battle.jsx` 未使用 `SKIN` import：已派工給戰鬥引擎（EG-001）。
 
+## [UI-004] 使用 public/pic 角色圖顯示貓咪
+- 狀態：已完成
+- 優先度：中
+- 來自：CEO（2026-09-27，使用者決定：角色圖交給 UI）
+- 依賴：戰場 Canvas 部分依賴 EG-002（unit.key）；其他畫面可先做
+
+**需求**
+`public/pic/` 有 16 張貓咪 PNG（透明背景、約 900×900、每張 0.3~1.1MB，共約 12MB），檔名就是貓的 key：white, tank, archer, giant, bird, fish, lizard, ninja, knight, mage, samurai, sumo, viking, cow, void, azurePhantom。`jaycat`、`jay` **沒有圖**。
+
+1. **先壓縮**：縮成適合遊戲的尺寸（建議最長邊 256px），格式 WebP 或 PNG 皆可，目標總量 < 1.5MB。原始大圖不要留在 `public/`（會被部署）；如果想保留原檔，放到 repo 外或寫進回報讓 CEO 決定。
+2. **顯示位置**：
+   - 戰場 Canvas（`draw.js`）：貓咪用圖片取代色塊，保留血條與名字；圖片預先載入，未載入完成或沒有圖時退回原本的色塊畫法。需要 `unit.key`（EG-002）。
+   - 隊伍編成、升級、商店、戰鬥召喚欄：卡片 / 按鈕上加頭像。
+   - 圖鑑：我方單位卡加頭像（圖鑑存的是中文名，可唯讀使用 `cats.js` 由名稱反查 key）。
+3. 圖片路徑要加 `import.meta.env.BASE_URL`（線上是 `/battleCat/` 子路徑）。
+4. 沒有圖的貓（jaycat、jay）要有得體的替代顯示，不能出現破圖。
+
+**限制**：`cats.js` / `world.js` 等資料只可唯讀使用。不需要改 `App.jsx`、`Battle.jsx` 的邏輯；若召喚欄加頭像需要改 `Battle.jsx` 的 JSX，只限 `BattleControls` 內召喚欄單格的內容（授權），召喚邏輯不動。
+
+**完成條件**
+- 上述畫面都顯示頭像，四種主題下都好看；戰場貓咪顯示為圖片。
+- `public/pic` 總大小符合目標；`npm run build` 成功。
+- 更新 `docs/PROJECT_MAP.md` §2；驗證完關閉 dev server 與瀏覽器。
+
+### 回報（負責角色填寫）
+- 修改檔案：
+  - 新增：`public/pic/*.webp`（16 張）、`src/ui/catArt.js`、`src/ui/CatAvatar.jsx`
+  - 修改：`src/game/draw.js`、`src/styles.css`、`src/ui/UnitCard.jsx`、`src/scenes/Lineup.jsx`、`src/scenes/Upgrade.jsx`、`src/scenes/Shop.jsx`、`src/scenes/Codex.jsx`、`src/scenes/Battle.jsx`（授權範圍：召喚欄單格內容＋新增一行 `import CatAvatar`）、`docs/PROJECT_MAP.md` §2、`docs/CHANGELOG.md`
+- 做了什麼：
+  1. **壓縮**：16 張 PNG 用 Pillow 縮成最長邊 256px、WebP（quality 86），總量約 **270KB**（原 12MB）。原始 PNG 已**備份到 repo 外** `C:\Users\User\Desktop\BattleCats_pic_originals\`（16 張），git 歷史中也有。
+  2. **戰場 Canvas**（`draw.js`）：模組載入時 `preloadCatArt()` 預載；`drawUnit` 對貓咪用 `getCatImage(u.key)` 畫圖（高 38px、腳底對齊原色塊底部），名字移到圖上方，血條不變；沒 key、沒圖、或未載入完成 → 原本色塊畫法。敵人不變。使用 EG-002 的 `unit.key`。
+  3. **頭像**：新元件 `CatAvatar`，套用於隊伍編成（按鈕內頭像＋已選順序 #1~#5）、升級、商店、戰鬥召喚欄（改為直式：頭像＋快捷鍵編號、名稱、🐟 成本、「召喚 / 冷卻 Ns」按鈕）、圖鑑（`catKeyByName` 以中文名反查 key）。
+  4. **jaycat / jay 沒有圖**：顯示名字首字「禁」的主題色漸層圓形徽章；圖片載入失敗（`onError`）也會退回這個樣式，不會破圖。
+  5. 路徑一律 `import.meta.env.BASE_URL + 'pic/<key>.webp'`。
+  6. 深色主題（modern/neon）頭像底改為亮色（`--avatar-bg`），因為角色圖是黑色線條。
+- 如何驗證：`npm run build` 成功。dev server 上解鎖全部商店貓後檢查：隊伍編成、商店、圖鑑、戰鬥召喚欄都顯示頭像，jaycat/jay 顯示「禁」徽章；戰場召喚白喵後畫成角色圖。4 種主題逐一切換，以計算後樣式確認頭像底色與徽章配色正確，且所有 `<img>` 的 `naturalWidth > 0`（16 張都載入成功）。驗證完已關閉自己開的 dev server 與瀏覽器分頁。
+- 新增給其他角色的請求：無
+- 給 CEO 的注意事項：
+  - **原始 PNG 已刪除**：第一次刪除被權限擋下，之後**使用者在對話中明確同意**，已從工作目錄刪除 `public/pic/*.png`（16 張）。刪除前確認 repo 外備份 `C:\Users\User\Desktop\BattleCats_pic_originals\` 有 16 張。只刪了檔案、**沒有 `git rm` / 沒有動 index**，commit 時請一併 `git add -A public/pic`（會記錄 16 個 PNG 刪除＋16 個 WebP 新增）。目前 `public/pic` 約 300KB（磁碟佔用），符合 < 1.5MB。程式已不再引用任何 `.png`。
+  - `Battle.jsx` 目前同時有 EG-002（引擎，`spawnCat` 那一行）與本任務（召喚欄單格、import）的改動，commit 時請留意。
+  - 為了在召喚欄用 `CatAvatar`，`Battle.jsx` 開頭多了一行 `import CatAvatar`，這在「單格內容」授權之外但無法避免，請確認。
+  - 召喚欄按鈕文字由「貓名（冷卻 Ns）」改為「召喚」/「冷卻 Ns」（貓名已顯示在上方）。
+  - 驗證時為了看全部頭像，我在預覽瀏覽器（localhost:5173）的 localStorage 寫入測試存檔（全部商店貓解鎖、lineup 含 jay/void、圖鑑 5 隻）。只影響本機預覽用的瀏覽器，其他角色測試時看到的存檔可能是這份。
+  - 驗證途中另一個對話的 dev server 被關掉，導致部分圖片暫時連線失敗；改開自己的伺服器重測後全部正常，非程式問題。
+  - 工作目錄中 `src/scenes/Lobby.jsx`、`src/audio/*` 的改動是音效角色的，不屬於本任務。
+
+### 審核（CEO 填寫）
+- 2026-09-27 通過。Battle.jsx 多一行 `import CatAvatar` 雖在字面授權外，但為召喚欄頭像所必需，予以追認。public/pic 由 12MB 降到約 300KB；原始 PNG 備份於 repo 外 `C:\Users\User\Desktop\BattleCats_pic_originals\`（16 張，git 歷史也有）。
+
+
+## [UI-005] 設定畫面：分類音量滑桿 + 按鈕音效
+- 狀態：已完成
+- 優先度：中
+- 來自：CEO（2026-09-27，使用者需求）
+- 依賴：**AU-002 完成後再做**（使用它提供的 API）
+
+**需求**
+1. `SettingsDialog.jsx`：把單一音量滑桿改成五條：主音量、背景音樂、召喚音效、按鈕音效、勝敗音效，對應 `audio.getVolumes()` / `audio.setVolume(category, value)`（category：`master` / `music` / `summon` / `ui` / `result`）。每條旁邊有試聽（音樂那條可省略）。
+2. `Button.jsx`：點擊時呼叫 `audio.playClick()`（disabled 時不播）。
+3. **授權的跨檔修改**：`src/App.jsx` 只可移除舊的單一音量邏輯——`volume` state、存 `volume` 的 useEffect、`setMasterVolume` 的 useEffect，以及傳給 `SettingsDialog` 的 `volume` / `setVolume` props。其他（包含主題、存檔、場景切換）一律不動。音量的保存改由音訊模組負責（AU-002）。
+
+**完成條件**
+- 五條滑桿都即時生效、重新整理後保留；按鈕有點擊音效。
+- `npm run build` 成功；`npm test`（若可跑）中「開啟設定」測試仍通過。
+- 更新 `docs/PROJECT_MAP.md` §1（localStorage 表的 `volume` → `audioVolumes`）與 §2；驗證完關閉 dev server 與瀏覽器。
+
+### 回報（負責角色填寫）
+- 修改檔案：`src/ui/SettingsDialog.jsx`、`src/ui/Button.jsx`、`src/ui/Dialog.jsx`、`src/styles.css`、`src/App.jsx`（授權範圍）、`docs/PROJECT_MAP.md` §1 §2、`docs/CHANGELOG.md`
+- 做了什麼：
+  1. `SettingsDialog.jsx`：單一音量改成五條滑桿（主音量 / 背景音樂 / 召喚音效 / 按鈕音效 / 勝敗音效），用 `audio.getVolumes()` 初始化、每次打開重新讀取，拖動時 `audio.setVolume(category, value)` 即時生效並由音訊模組存檔。每條顯示百分比；除背景音樂外都有 ▶ 試聽（主音量、召喚 → `sfx_summon`；按鈕 → `playClick()`；勝敗 → `sfx_win`）。props 只剩 `show`、`onClose`、`audio`、`theme`、`setTheme`。
+  2. `Button.jsx`：點擊（通過 disabled 檢查與 120ms 鎖之後）呼叫 `audio.playClick()`；disabled 不播。
+  3. `App.jsx`（僅授權範圍）：移除 `volume` state、存 `volume` 的 useEffect、`setMasterVolume` 的 useEffect、傳給 `SettingsDialog` 的 `volume` / `setVolume`。其他未動。
+  4. `styles.css`：新增 `.volume-row` 等樣式（窄螢幕時標籤換行）。
+  5. **順手修的問題（UI 範圍內）**：`Dialog` 在 `fullscreen` 時改用 `createPortal` 掛到 `document.body`。原因：CEO-004 給外框 `.game-background` 加了 `backdrop-filter`，會讓裡面的 `position: fixed` 改成相對外框定位，**在商店等長頁面打開設定時，視窗會跑到畫面外**。戰鬥中的非全螢幕 Dialog 不受影響。
+- 如何驗證：
+  - `npm run build` 成功；`npm test` 通過（1/1，「開啟設定」按鈕）。本機原本缺 `jsdom`，依 CLAUDE.md 跑了 `npm install`。
+  - 瀏覽器：用 JS 把五條滑桿設成 90/35/60/25/70% → `localStorage.audioVolumes` 立即寫入對應值；重新整理後打開設定，五條值都保留。
+  - 攔截 `AudioContext.createOscillator` 計數：點一般按鈕（關閉、商店）各產生一次按鈕音效；對 disabled 按鈕送出點擊，計數不增加；按鈕音效的試聽會響。
+  - 在商店頁捲動後打開設定，視窗正確置中（portal 修正後）；neon / warm 主題下外觀正常。
+  - 「實際用耳朵聽」各分類音量的效果沒有做（驗證環境無法確認聲音輸出），只確認了數值與呼叫。
+  - 驗證完已關閉自己開的 dev server 與瀏覽器分頁。
+- 新增給其他角色的請求：無
+- 給 CEO 的注意事項：
+  - commit 範圍：上列檔案＋`docs/tasks/ui.md`。
+  - `npm install` 會把 `package-lock.json` 的專案名稱從 `battlecats-v4.8` 自動改成 `battlecats-v5.9`（因 `package.json` 名稱已變）。這不是我的範圍，我已用 `git checkout` 還原；之後任何人跑 `npm install` 都會再出現這個 1 行差異，建議 CEO 決定是否直接 commit。
+  - App 右上角「設定」按鈕是 App 裡的原生 `<button>`，不是 `Button` 元件，所以**沒有**點擊音效；關卡格（`.stage-btn`）也是原生按鈕，同樣沒有。如需要，要另外授權修改 `App.jsx` / `LevelSelect.jsx`（後者是 UI 範圍，可再開任務）。
+  - AU-002 回報提到「清除存檔（`localStorage.clear()`）會清掉 `audioVolumes`，但記憶體中的音量保留」，UI-005 沒有改變這個行為。
+  - 驗證時瀏覽器 localStorage 的 `audioVolumes` 被我設成測試值（90/35/60/25/70%）。
+
+### 審核（CEO 填寫）
+- 2026-09-27 通過。App.jsx 只移除授權的音量邏輯；Dialog 改用 portal 修正長頁面設定視窗跑出畫面，屬 UI 範圍，接受。`package-lock.json` 名稱差異由 CEO 直接修正並 commit。設定按鈕與關卡格沒有點擊音效，列入 PROJECT_MAP §11 #15。
+

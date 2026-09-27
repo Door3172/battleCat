@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import HeroBanner from '../ui/HeroBanner.jsx';
+import CatAvatar from '../ui/CatAvatar.jsx';
 import SlotTray from '../ui/SlotTray.jsx';
 import HudInfo from '../ui/HudInfo.jsx';
 import Dialog from '../ui/Dialog.jsx';
@@ -177,7 +178,7 @@ export default function Battle({
     if (w.units.filter(u => u.team === 1).length > 70) return;
     w.fish -= tpl.cost; w.summonCd[key] = tpl.cd;
     const y = groundY(getWorldHeight) - 8 + rand(-3, 3);
-    w.units.push(makeUnit(1, 80 + rand(-6, 6), y, tpl));
+    w.units.push(makeUnit(1, 80 + rand(-6, 6), y, tpl, key));
     audio.playSfx('sfx_summon'); // 召喚叮一聲
   };
 
@@ -312,16 +313,17 @@ export default function Battle({
                 className="slot-card"
                 role="listitem"
               >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="font-semibold text-[13px] leading-tight text-ink break-words">
-                    <span className="mr-1">{i + 1}️⃣</span>
-                    <span>{w.catsTpl[k]?.name || k}</span>
-                  </div>
-                  <Pill tone="sub">{w.catsTpl[k]?.cost ?? '?'}</Pill>
+                <div className="flex flex-col items-center gap-1 text-center">
+                  <span className="relative">
+                    <CatAvatar catKey={k} name={w.catsTpl[k]?.name} size={48} />
+                    <span className="slot-num">{i + 1}</span>
+                  </span>
+                  <div className="w-full font-semibold text-[13px] leading-tight text-ink truncate">{w.catsTpl[k]?.name || k}</div>
+                  <Pill tone="sub">🐟 {w.catsTpl[k]?.cost ?? '?'}</Pill>
                 </div>
                 <div className="mt-2">
                   <Button onClick={summon(k)} disabled={disabled} size="sm" block>
-                    {w.catsTpl[k]?.name || k}{cd > 0 ? `（${cd.toFixed(1)}s）` : ''}
+                    {cd > 0 ? `冷卻 ${cd.toFixed(1)}s` : '召喚'}
                   </Button>
                 </div>
               </div>

@@ -13,8 +13,8 @@ vite.config.js             base '/battleCat/'、vitest 用 jsdom
 tailwind.config.js         顏色對應 CSS 變數（primary/secondary/ink/bg/ok/warn/danger）
 .github/workflows/deploy-pages.yml   push main → build → GitHub Pages
 public/
-  audio/                   bgm_lobby_v2 / bgm_battle_v2 / sfx_summon / sfx_win / sfx_lose（廢棄.mp3 未使用）
-  pic/                     16 張角色 PNG（目前程式碼「完全沒用到」）
+  audio/                   bgm_lobby_v2 / bgm_battle_v2 / sfx_summon / sfx_win / sfx_lose
+  pic/                     16 張角色 WebP（256px，約 300KB；UI-004 起用於戰場與各畫面頭像）
   ui-redesign.html         tools/generate_ui.py 產生的 UI 草稿，與遊戲無關
 src/
   main.jsx                 React 掛載
@@ -58,7 +58,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 | `researchLv` / `cannonLv` / `castleLv` | 1 | 研究力 / 貓砲 / 主堡 等級（上限 10） |
 | `currentChapter` / `currentStage` | 1 | 目前選擇 |
 | `highestUnlocked` | `{1:1, 2:1}` | 各章已解鎖的最高關 |
-| `volume` | 1 | 主音量 |
+| `audioVolumes` | `{master:1, music:.8, summon:.8, ui:.8, result:.8}` | 分類音量，**由音訊模組讀寫**（見 §8），App 不管理。舊 key `volume` 已不再使用（首次載入會被轉成 master） |
 | `theme` | `'minimal'` | `minimal` / `modern` / `warm` / `neon` |
 
 「清除存檔」= `handleReset()`，把以上全部重設。
@@ -76,15 +76,18 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 - **Tailwind** 顏色對應 CSS 變數（`text-ink`、`bg-ok` 等）。
 - 共用 class：`.ui-btn`（`-primary/-accent/-ghost`）、`.ui-card`/`.ui-card-dark`、`.ui-pill`、`.ui-divider`、`.ui-dialog(-backdrop)`、`.ui-select`、`.hero-banner`/`.hero-title`/`.hero-sub`/`.hero-chip`、`.stage-btn`（`.locked` 顯示 🔒 / `.boss`）、`.slot-tray`、`.hud-stat`、`.unit-card`、`.gacha-*`、`.game-background`、`.text-sub`/`.text-mute`/`.text-highlight`。
 - **元件重點**：
-  - `Button`：`tone` = default/primary/ghost/accent，`size` = sm/md/lg；同時綁 `onPointerUp` 與 `onClick`，用 120ms 鎖防止重複觸發。可傳 `aria-label`。
+  - `Button`：`tone` = default/primary/ghost/accent，`size` = sm/md/lg；同時綁 `onPointerUp` 與 `onClick`，用 120ms 鎖防止重複觸發。可傳 `aria-label`。點擊時呼叫 `audio.playClick()`（disabled 不播）。
+  - `SettingsDialog`：五條分類音量滑桿（主音量 / 背景音樂 / 召喚 / 按鈕 / 勝敗，直接呼叫 `audio.getVolumes()` / `audio.setVolume()`，除音樂外都有 ▶ 試聽）＋風格選單。只收 `show`、`onClose`、`audio`、`theme`、`setTheme`。
   - `Card`：`tone` light/dark。
-  - `Dialog`：`fullscreen` 決定 fixed/absolute，Esc 或點背景呼叫 `onClose`。
+  - `Dialog`：`fullscreen` 決定 fixed/absolute，Esc 或點背景呼叫 `onClose`。`fullscreen` 時用 portal 掛到 `document.body`（外框 `.game-background` 有 backdrop-filter，會讓 fixed 改成相對外框定位）。
   - `HeroBanner`：每個場景的頂部標題列；`right` 內容會包在半透明膠囊 `.hero-chip` 裡。
   - 各場景的「← 返回」按鈕放在橫幅**上方**一列（ghost/sm），右上角留給 App 的「設定」按鈕。
   - `HudInfo`（不再自帶 Card）/ `SlotTray` / `Toolbar`（`lg` 以上左 1.6 : 右 1）：戰鬥畫面下方控制區。
-  - `UnitCard`：圖鑑用，只顯示名稱＋左側類型色條（已移除原本寫死的假攻擊/血量）。`Codex.jsx` 的 `typeMap` 名稱對不上的問題仍在。
+  - `CatAvatar`（`catKey`, `name`, `size`）：圓形貓咪頭像；沒有圖（`jaycat`、`jay`）或載入失敗時顯示名字首字的漸層徽章。用於隊伍編成、升級、商店、戰鬥召喚欄、圖鑑。深色主題（modern/neon）頭像底色用 `--avatar-bg` 亮色，避免黑線條看不清。
+  - `catArt.js`：`CAT_ART_KEYS`（有圖的貓）、`catArtUrl(key)`（含 `import.meta.env.BASE_URL`）、`catKeyByName(中文名)`（圖鑑用，唯讀 `cats.js`）、`preloadCatArt()` / `getCatImage(key)`（Canvas 用）。**新增角色圖**：放 `public/pic/<key>.webp`（最長邊 256px）並把 key 加進 `CAT_ART_KEYS`。
+  - `UnitCard`：圖鑑用，頭像＋名稱＋左側類型色條（已移除原本寫死的假攻擊/血量）。`Codex.jsx` 的 `typeMap` 名稱對不上的問題仍在。
   - `GachaMachine`：CSS 扭蛋機外觀（顏色跟主題 secondary），無動畫/邏輯。
-- 戰場畫面**不是 DOM**，是 Canvas（見 §4 draw.js），天空/地面/文字顏色讀 `SKIN.field.*`。角色是色塊 + 耳朵，沒有用 `public/pic` 圖片。
+- 戰場畫面**不是 DOM**，是 Canvas（見 §4 draw.js），天空/地面/文字顏色讀 `SKIN.field.*`。**貓咪**用 `public/pic/<unit.key>.webp` 角色圖（高 38px，`draw.js` 載入時預載），圖未載入完成或沒有圖時退回色塊 + 耳朵；**敵人**仍是色塊。
 
 ---
 
@@ -128,6 +131,8 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 - 我方主堡 HP = `1000 + (castleLv-1)*100`；敵方主堡 HP = 關卡 `enemyBaseHp`。
 - 初始魚 150，收入 `7.5 + 4.5*(researchLv-1)` 魚/秒。
 - `units` 陣列中 `team: 1` 是貓，`team: -1` 是敵人。
+- 單位由 `ai.js` 的 `makeUnit(team, x, y, tpl, key)` 建立，主要欄位：`id`、`key`、`team`、`x`/`y`、`hp`/`maxHp`、`speed`/`baseSpeed`、`atk`/`baseAtk`、`range`、`atkRate`/`atkCd`、`color`、`name`、`bounty`、`aoe*`/`maxTargets`、`abilities`、`effects`、`shieldHp`/`shieldCd`、`revived`。
+- **`unit.key`**（EG-002）：模板 key。貓 = cats key（`'white'`、`'ninja'`…，來自 `spawnCat(key)`）；敵人 = `ENEMIES` key；BOSS = `BOSSES` key。找不到 key 而退回預設時，`key` 也跟著是退回後的 `'dog'` / `'boarKing'`，與實際外觀數值一致。可供 `draw.js` 選角色圖。
 
 ### 4.2 主迴圈 — `Battle.jsx` `loop()`
 每幀（dt 上限 0.05s × 倍速 1x/2x）：
@@ -246,11 +251,16 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 
 ## 8. 音效 — `src/audio/`
 
-- `AudioManager` 單例（Web Audio API）：master / music / sfx 三個 gain。
-- 註冊的 key：`bgm_lobby`、`bgm_battle`、`sfx_summon`、`sfx_win`、`sfx_lose`（路徑經 `import.meta.env.BASE_URL` 處理）。
-- `playMusic`（硬切）、`crossfadeMusic`（淡入淡出）、`fadeOutMusic`、`playSfx`（預設 80ms 冷卻）。用 token 機制讓「最後一次請求」生效，避免競態。
-- 瀏覽器需使用者互動才能播放：App 在第一次 pointerdown/keydown/touchstart 時 `audio.resume()`。
-- 播放時機：ChapterSelect / LevelSelect → bgm_lobby；Battle 進場 → bgm_battle、離場 → bgm_lobby；召喚 → sfx_summon；勝/敗 → 淡出 + sfx。Lobby 本身不主動播。
+- `AudioManager` 單例（Web Audio API）。節點：`musicFade`（淡入淡出用）→ `music` 分類 gain → `master`；`summon` / `ui` / `result` 分類 gain → `master`。淡入淡出只動 `musicFade`，不會改到使用者設定的音量。
+- **音量分類**（AU-002）：`master` 總音量、`music` 背景音樂、`summon` 召喚音效、`ui` 按鈕音效、`result` 勝敗音效。
+  - 由音訊模組自己存到 localStorage `audioVolumes`（`{ master, music, summon, ui, result }`，0~1；預設 master 1、其他 0.8）。沒有 `audioVolumes` 時會把舊 key `volume` 轉成 `master`（舊 key 不刪）。
+  - 對外 API：`audio.getVolumes()`、`audio.setVolume(category, value)`（立即生效並存檔；AudioContext 尚未建立也可呼叫，建立時套用）、`audio.playClick()`（按鈕音效，60ms 冷卻）。舊的 `setMasterVolume` / `setMusicVolume` / `setSfxVolume` 保留為相容用（轉呼叫 `setVolume`）。
+  - 音效 → 分類：`sfx_summon`→summon、`sfx_click`→ui、`sfx_win`/`sfx_lose`→result；其他 key 預設 summon，可用 `audio.register(key, url, { category })` 指定。
+- 註冊的 key：`bgm_lobby`、`bgm_battle`、`sfx_summon`、`sfx_win`、`sfx_lose`（路徑經 `import.meta.env.BASE_URL` 處理），在 `useAudio.js` 模組載入時註冊。`sfx_click` 不是音檔，是振盪器即時合成（三角波 1100→650Hz、約 70ms）。
+- **預載**：`resume()` 第一次建立 AudioContext 後，依註冊順序在背景下載＋解碼所有音檔（載入失敗會還原成 URL，下次可重試）。
+- `playMusic`（硬切；**同一首正在播就不重播**，只取消進行中的淡出；`{ restart: true }` 可強制重播）、`crossfadeMusic`（淡入淡出）、`fadeOutMusic`（淡出後停止；之後若有新的播放請求，停止動作會被取消）、`playSfx`（預設 80ms 冷卻）。播放 / 淡出都走 token 機制，「最後一次請求」生效，避免競態。所有公開方法失敗只 `console.warn`，不支援 Web Audio 的環境（測試）不會報錯。
+- 瀏覽器需使用者互動才能播放：App 在第一次 pointerdown/keydown/touchstart 時 `audio.resume()`；在那之前的播放請求會等到解鎖後才開始。
+- 播放時機：Lobby / ChapterSelect / LevelSelect → bgm_lobby（同一首不重播）；Battle 進場 → bgm_battle、離場 → bgm_lobby；召喚 → sfx_summon；勝/敗 → 淡出 + sfx。
 
 ---
 
@@ -275,13 +285,15 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 | 2 | 經濟 | 轉蛋池 `GACHA_CHARACTERS` 為空，轉蛋功能實際無作用 | `gachaPool.js` | CEO-001 |
 | 3 | 友軍 | ~~新增商店貓需手動改 `buildCatsTpl`，容易漏~~ ✅ 已修（2026-09-27） | `world.js` | AL-001 |
 | 4 | 專案 | `node_modules/`（約 4,000 檔）被 commit 進 git，雖然 `.gitignore` 有寫 | repo | CEO-002 |
-| 5 | 美術 | `public/pic/*.png`（16 張，約 12MB）與 `public/audio/廢棄.mp3`（4.9MB）未被使用，但會被部署 | `public/` | CEO-003 |
+| 5 | 美術 | ~~`public/pic/*.png`（16 張，約 12MB）與 `public/audio/廢棄.mp3`（4.9MB）未被使用，但會被部署~~ ✅ 已處理（AU-001 刪除、UI-004 啟用並壓縮） | `public/` | CEO-003 |
 | 6 | UI | 圖鑑 `Codex.jsx` 的 `typeMap` 名稱對不上（寫「忍者貓」等，實際是「忍者喵」）；`UnitCard` 樣式與假數值已於 CEO-004 修正 | `Codex.jsx` | — |
 | 7 | UI | ~~戰鬥 HUD 的「研究力」按鈕其實是戰鬥內收入升級，與大廳升級的「研究力」名稱衝突~~ ✅ 已修（2026-09-27） | `HudInfo.jsx` | UI-001 |
 | 8 | 引擎 | `world.js`/`ai.js` 有未使用的舊生怪路徑（`firstDelay`、`spawnRate`、`pool`、`sequence`、`maxEnemies`、`difficulty` 皆未定義），`maxEnemies` 未定義 → 敵人數量無上限 | `ai.js`、`world.js` | — |
 | 9 | 引擎 | 貓咪砲無視護盾/閃避/擊退免疫 | `Battle.jsx` `fireCannon` | — |
 | 10 | 關卡 | ~~`spawns.js` 註解說 multiplier 是「數量倍率」，實際是能力值倍率~~ ✅ 已修（2026-09-27） | `spawns.js` | LV-001 |
 | 11 | 敵人 | `metal` 金屬怪已定義但沒有任何關卡使用 | `enemies.js` | — |
-| 12 | 測試 | 本機 node_modules 缺 vitest，`npm test` 失敗；測試覆蓋率極低 | — | — |
+| 12 | 測試 | ~~本機 node_modules 缺 vitest，`npm test` 失敗；測試覆蓋率極低~~ ✅ 執行 `npm install` 後 `npm test` 可通過（2026-09-27）；測試覆蓋率仍極低 | — | — |
 | 13 | UI | ~~關卡選擇的 BOSS ⭐ 用 `n%10` 寫死，未讀取關卡 `boss` 設定（1-15、1-19 也有 BOSS 卻沒標）~~ ✅ 已修（2026-09-27） | `LevelSelect.jsx` | UI-002 |
-| 14 | UI | 設定按鈕（App.jsx）與召喚欄（Battle.jsx）用 CSS 選擇器 / `!important` 硬蓋樣式，屬權宜作法 | `styles.css` | UI-003 |
+| 14 | UI | ~~設定按鈕（App.jsx）與召喚欄（Battle.jsx）用 CSS 選擇器 / `!important` 硬蓋樣式，屬權宜作法~~ ✅ 已修（UI-003） | `styles.css` | UI-003 |
+| 15 | UI | App 右上「設定」按鈕與關卡格（`.stage-btn`）是原生 `<button>`，沒有點擊音效 | `App.jsx`、`LevelSelect.jsx` | — |
+| 16 | 音效 | 「清除存檔」會清掉 localStorage 的 `audioVolumes`，但記憶體中的音量保留，直到下次調整才重寫 | `App.jsx` `handleReset` | — |

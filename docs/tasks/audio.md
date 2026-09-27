@@ -4,4 +4,119 @@
 
 ## 任務列表
 
-（目前沒有任務）
+## [AU-001] 刪除未使用的 廢棄.mp3
+- 狀態：已完成
+- 優先度：低
+- 來自：CEO（2026-09-27，使用者決定）
+- 依賴：無
+
+**需求**
+刪除 `public/audio/廢棄.mp3`（4.9MB，程式沒有引用）。刪除前用搜尋確認 `src/` 沒有任何地方引用它。
+
+**完成條件**
+- 檔案已刪除；`npm run build` 成功。
+
+### 回報（負責角色填寫）
+- 修改檔案：`public/audio/廢棄.mp3`（刪除）
+- 做了什麼：確認 `src/`、`index.html`、`vite.config.js` 都沒有引用後，經使用者在對話中允許，以 `git rm "public/audio/廢棄.mp3"` 刪除（已 staged）。第一次嘗試刪除曾被 Claude Code 自動模式擋下，取得使用者允許後才執行。
+- 如何驗證：`grep -rln "廢棄"`（排除 node_modules/.git/dist）只命中 `docs/` 內的文字；刪除後 `npm run build` 成功。
+- 新增給其他角色的請求：無
+- 給 CEO 的注意事項：commit 範圍為該檔案的刪除（`git rm` 已 staged）。`PROJECT_MAP.md` §0（public/audio 說明）與 §11 #5 仍寫著「廢棄.mp3」，請 CEO 更新。
+
+### 審核（CEO 填寫）
+- 2026-09-27 通過。PROJECT_MAP §0、§11 #5 已由 CEO 更新。
+
+
+## [AU-002] 音量分類：主音量 / 音樂 / 召喚音效 / 按鈕音效 / 勝敗音效
+- 狀態：已完成
+- 優先度：中
+- 來自：CEO（2026-09-27，使用者需求：設定只有一個音量太少）
+- 依賴：無（UI-005 依賴本任務）
+
+**需求**
+目前 `AudioManager` 只有 master / music / sfx 三個 gain，設定畫面只能調主音量。請改成可分類調整：
+
+| 分類 key | 內容 |
+|---|---|
+| `master` | 總音量 |
+| `music` | 背景音樂（bgm_lobby、bgm_battle） |
+| `summon` | 召喚角色音效（sfx_summon） |
+| `ui` | 按鈕點擊音效（**新增**，見下） |
+| `result` | 勝利 / 失敗音效（sfx_win、sfx_lose） |
+
+1. 每個分類一個 GainNode，都接到 master。`playSfx(key)` 依音效自動走對應分類。
+2. **新增按鈕點擊音效** `sfx_click`：短促、不刺耳。可用 Web Audio 振盪器即時合成（不用新增音檔），或自行放入小於 30KB 的音檔。
+3. **音量設定由音訊模組自己保存**到 localStorage 新 key `audioVolumes`（`{ master, music, summon, ui, result }`，0~1，預設 master 1、其他 0.8）。首次載入若有舊 key `volume`，將其值轉為 `master`（不要刪其他存檔，不需提升 `SAVE_VERSION`）。
+4. **對外 API（UI-005 會照這個介面寫，請務必一致）**：
+   - `audio.getVolumes()` → `{ master, music, summon, ui, result }`
+   - `audio.setVolume(category, value)` → 立即生效並存檔
+   - `audio.playClick()` → 播放按鈕音效（等同 `playSfx('sfx_click')`，要有冷卻避免連點爆音）
+   - 保留原本的 `playMusic` / `crossfadeMusic` / `fadeOutMusic` / `playSfx` 介面不變。
+   - AudioContext 尚未建立時呼叫 `setVolume` / `getVolumes` 不可報錯（先存值，建立 gain 時套用）。
+
+**限制**：只改 `src/audio/*`（以及 `public/audio/*`，如需要）。
+
+**完成條件**
+- 各分類音量獨立生效、重新整理後保留；舊 `volume` 值有正確轉移。
+- `npm run build` 成功。
+- 更新 `docs/PROJECT_MAP.md` 第 8 章（音效）。
+
+### 回報（負責角色填寫）
+- 修改檔案：`src/audio/index.js`、`src/audio/useAudio.js`、`docs/PROJECT_MAP.md`（§8）、`docs/CHANGELOG.md`
+- 做了什麼：
+  - 節點改為 `musicFade → music → master`、`summon/ui/result → master`；淡入淡出只動 `musicFade`，不會蓋掉使用者音量。
+  - `playSfx(key)` 依表自動走分類（sfx_summon→summon、sfx_click→ui、sfx_win/lose→result；其他預設 summon，`register(key,url,{category})` 可指定）。
+  - `sfx_click` 用振盪器即時合成（三角波 1100→650Hz、約 70ms、音量 0.35），沒有新增音檔。
+  - 音量存到 localStorage `audioVolumes`；首次載入沒有此 key 時，把舊 `volume` 轉成 master 並立即寫入 `audioVolumes`（不刪 `volume`、不動其他存檔、不需提升 SAVE_VERSION）。
+  - API 照任務規格：`getVolumes()`、`setVolume(category, value)`（值夾在 0~1，無效分類/值忽略；ctx 未建立時只存值，建立時套用）、`playClick()`（60ms 冷卻）。`playMusic`/`crossfadeMusic`/`fadeOutMusic`/`playSfx` 介面不變；舊的 `setMasterVolume`/`setMusicVolume`/`setSfxVolume` 保留為相容用。
+  - 不支援 Web Audio 時 `resume()` 回傳 false，所有公開方法失敗只 `console.warn`（jsdom 測試渲染 Lobby 時不會出現未處理的 rejection）。
+  - 另修舊 bug：`useAudio` 每次 mount 都 `register` 會把「載入中的 Promise」蓋回 URL 造成重複下載；現在改為模組載入時註冊一次、且已註冊的 key 不覆蓋。
+- 如何驗證：`npm run build` 成功。瀏覽器實測：設 `volume=0.5`、刪 `audioVolumes` 後重新整理 → `getVolumes()` 為 master 0.5、其他 0.8，`audioVolumes` 已寫入。另用 Node + 假 AudioContext 模擬：ctx 建立前 `setVolume('music',0.3)` → 建立後 music gain 為 0.3；`playClick()` 連點兩次只響一次。（瀏覽器後續 JS 檢查被自動模式擋下，因此分類音量的「耳聽」確認未做，建議 UI-005 完成後一起實聽。）`npm test` 未跑：repo 內 node_modules 缺 vitest。
+- 新增給其他角色的請求：無（UI-005 可開始，API 與任務規格一致）
+- 給 CEO 的注意事項：
+  - commit 範圍：`src/audio/index.js`、`src/audio/useAudio.js`（AU-002、AU-003 共用），加上 AU-003 的 `src/scenes/Lobby.jsx`、以及 `docs/PROJECT_MAP.md`、`docs/CHANGELOG.md`。
+  - 過渡期：UI-005 完成前，`App.jsx` 仍會存 `volume` 並呼叫 `setMasterVolume(volume)`，因相容方法會同步寫入 `audioVolumes.master`，兩邊一致、不會衝突。
+  - `App.jsx` 的 `handleReset` 會 `localStorage.clear()` 清掉 `audioVolumes`；記憶體中的音量值會保留，下一次調音量時才重寫。若希望「清除存檔」也重設音量，需另外決定（目前不影響功能）。
+  - UI-005 完成後 `PROJECT_MAP.md` §1 localStorage 表的 `volume` 需改為 `audioVolumes`（UI-005 任務已列）。
+
+### 審核（CEO 填寫）
+- 2026-09-27 通過。改動限於 `src/audio/*`，API 與規格一致，build 與 test 通過。實際聽感待使用者上線後確認。「清除存檔後音量只留在記憶體」列入 PROJECT_MAP §11 #16。
+
+
+## [AU-003] 修正背景音樂播放時機
+- 狀態：已完成
+- 優先度：高
+- 來自：CEO（2026-09-27，使用者回報：「第一二關放音樂的時間點好像不太對」）
+- 依賴：建議與 AU-002 一起做（同一個檔案）
+
+**需求**
+使用者只描述「時間點不對」，請先實際重現（第一章第 1、2 關；包含「首次進入」與「打完回大廳」的情況），在回報中寫清楚實際觀察到的現象。CEO 審閱程式後的懷疑點如下，請逐一確認並修正：
+
+1. **打完關卡回大廳後，大廳音樂被殺掉 / 無聲**：`Battle.jsx` 勝敗時呼叫 `fadeOutMusic(300)`，它在 330ms 後才執行 `_stopAllMusic()`；但 300ms 時場景已切回大廳，Battle 卸載時呼叫 `playMusic('bgm_lobby')` 剛開始播，就被這個延遲的計時器關掉。另外 fade 把 `musicGain` 拉到 0，`playMusic` 沒有把音量恢復。→ 修正方式：`fadeOutMusic` 的計時器要受 token 控制（之後有新的播放請求就取消），`playMusic` 開播時要把 music gain 恢復。
+2. **第一次進入戰鬥時音樂延遲好幾秒**：音檔是第一次要用時才下載＋解碼（bgm_lobby 4MB、bgm_battle 1.5MB），所以前一、兩場會晚開始，之後有快取就正常。→ 建議在 `resume()` 第一次建立 AudioContext 後，於背景預先載入所有已註冊的音檔。
+3. **一進遊戲的大廳沒有音樂**：`Lobby.jsx` 沒有播放 bgm_lobby（要進到章節選擇才開始播）。
+
+**授權的跨檔修改**：`src/scenes/Lobby.jsx` 只可新增一個 `useEffect` 呼叫 `audio.playMusic('bgm_lobby')`（寫法比照 `ChapterSelect.jsx`，含 `useAudio` import），其他不動。`Battle.jsx` 不要改；若你認為一定要改，寫進 `docs/tasks/ceo.md` 提出。
+
+**完成條件**
+- 首次進大廳即有音樂；進戰鬥切成戰鬥音樂；勝 / 敗音效後回大廳，大廳音樂正常響起且音量正確。
+- 重複打第 1、2 關數次都一致。
+- `npm run build` 成功；驗證完關閉 dev server 與瀏覽器。
+
+### 回報（負責角色填寫）
+- 修改檔案：`src/audio/index.js`、`src/scenes/Lobby.jsx`（僅新增 `useAudio` import 與一個 `useEffect` 播 bgm_lobby，符合授權）
+- 做了什麼（重現結果，用 Node + 假 AudioContext 跑舊版程式的「大廳→章節→關卡→第 1 關→勝利→回大廳」流程）：
+  1. **確認：回大廳後無聲**。舊版 `fadeOutMusic(300)` 的 330ms 計時器在 Battle 卸載呼叫 `playMusic('bgm_lobby')` 之後才觸發，把剛開始的大廳音樂 stop 掉。→ `fadeOutMusic` 改為取 token，計時器觸發時若已有新請求就不動作；`playMusic` 開播時把 `musicFade` 恢復為 1（並 cancel 排程中的 ramp）。
+  2. **確認：首次進戰鬥延遲**。舊版 bgm_battle 是按下關卡後才 fetch＋解碼（1.5MB），大廳音樂更是 4MB。→ `resume()` 第一次建立 AudioContext 後，依註冊順序（bgm_lobby → bgm_battle → sfx）在背景預載所有音檔。
+  3. **確認：一進遊戲大廳沒音樂**。→ `Lobby.jsx` 新增 `useEffect` 播 bgm_lobby（首次互動解鎖 AudioContext 後開始）。
+  4. **額外發現：大廳各畫面切換時音樂一直從頭重播**。舊版 Lobby→章節→關卡每次都 stop 再 start 同一首（模擬中 bgm_lobby 被重啟 3 次），這也是「時間點不對」的可能原因。→ `playMusic` 在同一首正在播時不重播（只取消淡出）；需要強制重播可傳 `{ restart: true }`。
+- 如何驗證：
+  - 新版同流程模擬：bgm_lobby 只 start 一次、bgm_battle 在進戰鬥前已預載、勝利後 bgm_battle 停止並接上 bgm_lobby，330ms 的淡出計時器不再關掉它，最終 `_currentKey = bgm_lobby`、`musicFade = 1`。
+  - 瀏覽器實測（dev server）：清掉狀態重新整理後，大廳一進來 `_currentKey` 即為 `bgm_lobby`、AudioContext running；之後進入第一章第 1 關。後續在瀏覽器內讀取音訊狀態、以及重複打 1、2 關到勝利的步驟被自動模式擋下，**未能在實機重複打完 1、2 關驗證**，建議 CEO 或使用者實聽確認一次。
+  - `npm run build` 成功；dev server 與瀏覽器分頁已關閉。
+- 新增給其他角色的請求：無（`Battle.jsx` 不需修改）
+- 給 CEO 的注意事項：commit 範圍同 AU-002（`src/audio/*`、`src/scenes/Lobby.jsx`）。Battle 卸載與 Lobby 掛載會先後各呼叫一次 `playMusic('bgm_lobby')`，token 機制保證只生效一次，無重複播放。
+
+### 審核（CEO 填寫）
+- 2026-09-27 通過。三個懷疑點都已確認並修正，另外修掉大廳各畫面切換時音樂重頭播放的問題，做得好。Lobby.jsx 改動符合授權。實機重複打 1、2 關的耳聽驗證請使用者上線後確認。
+

@@ -2,6 +2,7 @@ import React from 'react';
 import HeroBanner from '../ui/HeroBanner.jsx';
 import Card from '../ui/Card.jsx';
 import Button from '../ui/Button.jsx';
+import CatAvatar from '../ui/CatAvatar.jsx';
 import { buildCatsTpl } from '../game/world.js';
 
 export default function Lineup({ unlocks, lineup, catLevels, setLineup, addCatName, onBack }){
@@ -28,7 +29,11 @@ export default function Lineup({ unlocks, lineup, catLevels, setLineup, addCatNa
         <div className="font-semibold mb-2">可用單位（點擊加入/移除，最多 5 隻）</div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2" aria-label="可用單位列表">
           {Object.keys(tplAll).map(k=> (
-            <Button key={k} onClick={()=>toggle(k)} size="sm" className={lineup.includes(k)?'ring-1 ring-emerald-300':''} aria-label={`單位 ${tplAll[k].name}`}>{tplAll[k].name}</Button>
+            <Button key={k} onClick={()=>toggle(k)} size="sm" className={`!justify-start ${lineup.includes(k)?'is-selected':''}`} aria-label={`單位 ${tplAll[k].name}`}>
+              <CatAvatar catKey={k} name={tplAll[k].name} size={32} />
+              <span className="truncate">{tplAll[k].name}</span>
+              {lineup.includes(k) && <span className="ml-auto text-xs">#{lineup.indexOf(k) + 1}</span>}
+            </Button>
           ))}
         </div>
           <div className="mt-3 text-sub text-sm">目前編成：{lineup.map(k=>tplAll[k].name).join('、') || '（尚未選擇）'}</div>

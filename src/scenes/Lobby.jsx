@@ -1,12 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import HeroBanner from '../ui/HeroBanner.jsx';
 import Card from '../ui/Card.jsx';
 import Button from '../ui/Button.jsx';
 import Pill from '../ui/Pill.jsx';
 import { fmt } from '../utils/number.js';
 import { IconCoin } from '../ui/Icons.jsx';
+import { useAudio } from '../audio/useAudio.js';
 
 export default function Lobby({ coins, highestUnlocked, goChapter, goLineup, goShop, goUpgrade, goCodex, goGacha, onReset }){
+  const audio = useAudio();
+
+  useEffect(() => {
+    audio.playMusic('bgm_lobby');
+  }, [audio]);
+
   return (
       <div className="space-y-4">
         <HeroBanner

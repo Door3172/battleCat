@@ -1,5 +1,12 @@
 import { SKIN } from '../data/skin.js';
 import { BODY_W } from './world.js';
+import { getCatImage, preloadCatArt } from '../ui/catArt.js';
+
+preloadCatArt();
+
+// 角色圖在戰場上的高度（px），腳底對齊原本色塊底部
+const ART_H = 38;
+const ART_BOTTOM = 9;
 
 export function drawCatBase(ctx,x,ground,left,hpPct){
   ctx.save();
@@ -31,14 +38,23 @@ export function drawUnit(ctx,u){
   ctx.save();
   ctx.translate(u.x,u.y);
   const isCat=u.team===1;
-  ctx.fillStyle=u.color; ctx.strokeStyle=SKIN.field.stroke; ctx.lineWidth=2;
-  roundRect(ctx,-BODY_W/2,-16,BODY_W,24,6); ctx.fill(); ctx.stroke();
-  ctx.beginPath();
-  if(isCat){ ctx.moveTo(-8,-16); ctx.lineTo(-2,-24); ctx.lineTo(0,-16); ctx.moveTo(8,-16); ctx.lineTo(2,-24); ctx.lineTo(0,-16);} else { ctx.moveTo(-6,-16); ctx.lineTo(0,-22); ctx.lineTo(6,-16);} ctx.stroke();
+  const img = isCat ? getCatImage(u.key) : null;
+  let labelY = -6;
+  if (img) {
+    // 有角色圖：畫圖取代色塊（沒圖或未載入完成時走下面的色塊畫法）
+    const h = ART_H, w = h * img.naturalWidth / img.naturalHeight;
+    ctx.drawImage(img, -w/2, ART_BOTTOM - h, w, h);
+    labelY = ART_BOTTOM - h - 1;
+  } else {
+    ctx.fillStyle=u.color; ctx.strokeStyle=SKIN.field.stroke; ctx.lineWidth=2;
+    roundRect(ctx,-BODY_W/2,-16,BODY_W,24,6); ctx.fill(); ctx.stroke();
+    ctx.beginPath();
+    if(isCat){ ctx.moveTo(-8,-16); ctx.lineTo(-2,-24); ctx.lineTo(0,-16); ctx.moveTo(8,-16); ctx.lineTo(2,-24); ctx.lineTo(0,-16);} else { ctx.moveTo(-6,-16); ctx.lineTo(0,-22); ctx.lineTo(6,-16);} ctx.stroke();
+  }
   const hpPct=Math.max(0,Math.min(1,u.hp/u.maxHp));
   ctx.fillStyle=SKIN.field.hpTrack; ctx.fillRect(-BODY_W/2,12,BODY_W,4);
   ctx.fillStyle= hpPct>0.5?SKIN.color.ok: hpPct>0.2?SKIN.color.warn:SKIN.color.danger; ctx.fillRect(-BODY_W/2,12,BODY_W*hpPct,4);
-  ctx.fillStyle = SKIN.field.text; ctx.font = '600 11px ui-sans-serif, system-ui'; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText(isCat?u.name:'敵', 0, -6);
+  ctx.fillStyle = SKIN.field.text; ctx.font = '600 11px ui-sans-serif, system-ui'; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText(isCat?u.name:'敵', 0, labelY);
   ctx.restore();
 }
 

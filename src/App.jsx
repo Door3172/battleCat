@@ -83,10 +83,6 @@ export default function App() {
       return { 1: 1, 2: 1 };
     });
   const [showSettings, setShowSettings] = useState(false);
-  const [volume, setVolume] = useState(() => {
-    const saved = localStorage.getItem('volume');
-    return saved ? Number(saved) : 1;
-  });
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved ? saved : 'minimal';
@@ -130,12 +126,6 @@ export default function App() {
     useEffect(() => {
       localStorage.setItem('highestUnlocked', JSON.stringify(highestUnlocked));
     }, [highestUnlocked]);
-  useEffect(() => {
-    localStorage.setItem('volume', String(volume));
-  }, [volume]);
-  useEffect(() => {
-    audio.setMasterVolume(volume);
-  }, [audio, volume]);
   useEffect(() => {
     document.body.classList.remove('theme-modern', 'theme-warm', 'theme-minimal', 'theme-neon');
     document.body.classList.add(`theme-${theme}`);
@@ -309,8 +299,6 @@ export default function App() {
         show={showSettings}
         onClose={() => setShowSettings(false)}
         audio={audio}
-        volume={volume}
-        setVolume={setVolume}
         theme={theme}
         setTheme={setTheme}
       />

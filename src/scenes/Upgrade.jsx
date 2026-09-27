@@ -4,6 +4,7 @@ import Card from '../ui/Card.jsx';
 import Button from '../ui/Button.jsx';
 import Pill from '../ui/Pill.jsx';
 import Divider from '../ui/Divider.jsx';
+import CatAvatar from '../ui/CatAvatar.jsx';
 import { buildCatsTpl } from '../game/world.js';
 import { upgradeCost } from '../data/cats.js';
 import { fmt } from '../utils/number.js';
@@ -31,8 +32,13 @@ export default function Upgrade({ coins, setCoins, unlocks, catLevels, setCatLev
           const canUpgrade = lv < 10 && coins >= cost;
           return (
             <Card key={key}>
-                <div className="font-semibold">{tpl.name}</div>
-                <div className="text-sub text-sm mt-1">Lv.{lv} HP {tpl.hp} / ATK {tpl.attack}</div>
+              <div className="flex items-center gap-3">
+                <CatAvatar catKey={key} name={tpl.name} size={52} />
+                <div className="min-w-0">
+                  <div className="font-semibold">{tpl.name}</div>
+                  <div className="text-sub text-sm mt-1">Lv.{lv} HP {tpl.hp} / ATK {tpl.attack}</div>
+                </div>
+              </div>
               <Divider />
               <div className="flex gap-2 items-center flex-wrap">
                 <Button

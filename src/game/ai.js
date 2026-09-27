@@ -31,9 +31,10 @@ export function groundY(getCanvasHeight) {
   return getCanvasHeight() * 0.72;
 }
 
-export function makeUnit(team, x, y, tpl) {
+export function makeUnit(team, x, y, tpl, key) {
   return {
     id: Math.random().toString(36).slice(2),
+    key, // 模板 key（貓：cats key；敵人：ENEMIES / BOSSES key）
     team, x, y,
     hp: tpl.hp, maxHp: tpl.hp,
     speed: tpl.speed, baseSpeed: tpl.speed,
@@ -92,13 +93,14 @@ export function spawnEnemy(world, getCanvasWidth, getCanvasHeight, onEnemySeen, 
       maxHp: Math.round(base.hp * sc * statMultiplier / 100),
       attack: Math.round(base.attack * (1.0 + (sc - 1) * 0.6) * statMultiplier / 100)
     };
-    world.units.push(makeUnit(-1, rightX - 30, gy - 8, tpl));
+    world.units.push(makeUnit(-1, rightX - 30, gy - 8, tpl, key));
     world.bossSpawned = true;
     onEnemySeen && onEnemySeen(base.name);
     return;
   }
 
-  const base = ENEMIES[key] || ENEMIES.dog;
+  if (!ENEMIES[key]) key = 'dog';
+  const base = ENEMIES[key];
   const sc = applyScale ? computeScale(cfg, world) : 1;
   const tpl = {
     ...base,
@@ -107,7 +109,7 @@ export function spawnEnemy(world, getCanvasWidth, getCanvasHeight, onEnemySeen, 
     attack: Math.round(base.attack * (applyScale ? (0.9 + (sc - 1) * 0.5) : 1) * statMultiplier / 100) // 無隨機因子
   };
 
-  world.units.push(makeUnit(-1, rightX - 30, gy - 8, tpl));
+  world.units.push(makeUnit(-1, rightX - 30, gy - 8, tpl, key));
   onEnemySeen && onEnemySeen(base.name);
 }
 
@@ -123,7 +125,8 @@ export function spawnBossIfNeeded(world, getCanvasWidth, getCanvasHeight, onEnem
   const gy = groundY(getCanvasHeight);
   const leftX = 50;
   const rightX = leftX + world.cfg.towerDistance;
-  const base = BOSSES[cfg.bossKey] || BOSSES.boarKing;
+  const bossKey = BOSSES[cfg.bossKey] ? cfg.bossKey : 'boarKing';
+  const base = BOSSES[bossKey];
   const sc = computeScale(cfg, world);
   const mult = cfg.bossMultiplier ?? 100;
   const scaled = {
@@ -132,7 +135,7 @@ export function spawnBossIfNeeded(world, getCanvasWidth, getCanvasHeight, onEnem
     maxHp: Math.round(base.hp * sc * mult / 100),
     attack: Math.round(base.attack * (1.0 + (sc - 1) * 0.6) * mult / 100)
   };
-  world.units.push(makeUnit(-1, rightX - 30, gy - 8, scaled));
+  world.units.push(makeUnit(-1, rightX - 30, gy - 8, scaled, bossKey));
   world.bossSpawned = true;
   onEnemySeen && onEnemySeen(scaled.name);
 }

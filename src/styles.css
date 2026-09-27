@@ -759,6 +759,10 @@ body.theme-neon .ui-btn:not(.ui-btn-primary):not(.ui-btn-accent):hover {
 }
 
 /* Modern / Neon 的深色卡片不透明度不足，Dialog 需要更實 */
+/* 深色主題：角色圖是黑色線條，頭像底要亮 */
+body.theme-modern { --avatar-bg: radial-gradient(circle at 50% 35%, #f8fafc, #c7d2fe); }
+body.theme-neon { --avatar-bg: radial-gradient(circle at 50% 35%, #ecfeff, #a5f3fc); }
+
 body.theme-modern .ui-dialog { background: linear-gradient(180deg, #1e293b, #0f172a); }
 body.theme-neon .ui-dialog { background: linear-gradient(180deg, #0c1228, #06091a); }
 
@@ -879,8 +883,9 @@ body.theme-neon .ui-dialog { background: linear-gradient(180deg, #0c1228, #06091
 .unit-card {
   position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
   padding: 10px 12px 10px 16px;
   border-radius: calc(var(--radius-card) - 4px);
   border: 1px solid var(--color-line);
@@ -1089,4 +1094,97 @@ input:focus-visible {
 }
 .hud-stat dd {
   margin: 0;
+}
+
+/* ==========================================================================
+   貓咪頭像（CatAvatar）
+   ========================================================================== */
+
+.cat-avatar {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--avatar-bg, radial-gradient(circle at 50% 35%, var(--color-card-top), var(--color-inset)));
+  border: 1px solid var(--color-line);
+  overflow: hidden;
+}
+
+.cat-avatar img {
+  width: 86%;
+  height: 86%;
+  object-fit: contain;
+  transform: translateY(4%);
+  user-select: none;
+}
+
+.cat-avatar-fallback {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  border-color: transparent;
+  color: var(--color-primary-ink);
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* 召喚欄頭像上的快捷鍵編號 */
+.slot-num {
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 800;
+  background: var(--color-primary);
+  color: var(--color-primary-ink);
+  box-shadow: 0 0 0 2px var(--color-card-top);
+}
+
+/* ==========================================================================
+   設定：分類音量
+   ========================================================================== */
+
+.volume-row {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr 3rem 36px;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: calc(var(--radius-card) - 6px);
+  background: var(--color-inset);
+  border: 1px solid var(--color-line);
+}
+
+.volume-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.volume-pct {
+  font-size: 12px;
+  text-align: right;
+  color: var(--color-ink-sub);
+}
+
+.ui-btn.volume-test,
+.volume-test {
+  width: 36px;
+  min-height: 32px;
+}
+
+@media (max-width: 420px) {
+  .volume-row {
+    grid-template-columns: 1fr 3rem 36px;
+  }
+  .volume-label {
+    grid-column: 1 / -1;
+  }
 }
