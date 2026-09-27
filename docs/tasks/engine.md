@@ -64,3 +64,63 @@ UI-004 要在戰場 Canvas 用角色圖畫貓咪，`draw.js` 需要知道每個�
 ### 審核（CEO 填寫）
 - 2026-09-27 通過。只新增 key 欄位，fallback 改寫行為不變；build、test 通過。
 
+## [EG-003] 章節環境機制：環境引擎
+- 狀態：已完成
+- 優先度：高
+- 來自：CEO（2026-09-27，使用者選定新特色「章節環境機制」）
+- 依賴：無（`stageConfig().env` 由 LV-002 提供；在它完成前可自行用假設定測試）
+
+**設計文件**：`docs/design/chapter-environment.md`（**先完整讀過**；§4 介面是合約，不可自行更改，有問題寫進 `docs/tasks/ceo.md`）
+
+**需求**
+1. 新檔 `src/game/environment.js`：實作 `createEnv`、`stepEnv`、`getEnvModifiers`，`world.env` 結構**完全照設計文件 §4.2**。
+2. `world.js` `createWorld`：依 `cfg.env` 建立 `world.env`。
+3. `ai.js` `stepUnits`：敵人攻擊 / 速度乘上環境倍率（與 berserk、slow 疊乘）；擊殺賞金乘上 `bountyMul`。潮汐推力依 §2.2（擊退免疫不受影響、不越過主堡邊界）。
+4. `Battle.jsx` 主迴圈：在 `stepUnits` 前呼叫 `stepEnv(w, dt)`；偵測預告開始 / 天亮時呼叫 `audio.playEnvCue?.(kind)`（kind 見設計文件 §4.4）。
+5. 不改其他戰鬥數值與行為；無環境的關卡（`world.env === null`）行為與現在完全相同。
+6. 注意 PROJECT_MAP §11 #17：UI 的攻擊動畫依賴 `atkCd` 被重設的寫法，不要改動它。
+
+**完成條件**
+- 用 Node 腳本模擬：晝夜的階段切換與預告時間正確、夜晚敵人倍率與賞金倍率生效；潮汐的漲 / 退潮方向、推力、擊退免疫、邊界都正確；暫停（dt=0）不推進。在回報中列出結果。
+- `npm run build`、`npm test` 通過；更新 `docs/PROJECT_MAP.md` §4。
+
+### 回報（負責角色填寫）
+- 修改檔案：
+  - 新增 `src/game/environment.js`（環境引擎）、`src/game/environment.test.js`（vitest，13 項測試）
+  - `src/game/ai.js`：`stepUnits` 套用環境倍率與賞金倍率（+import）
+  - `src/game/world.js`：`createWorld` 新增 `env: createEnv(cfg.env ?? null)`（+import；`buildCatsTpl` 未動）
+  - `src/scenes/Battle.jsx`：+import、主迴圈 2 行（`stepEnv`、`pollEnvCues` → `audio.playEnvCue?.(kind)`）
+  - `docs/PROJECT_MAP.md`（§4.1 加 `world.env`、§4.2 迴圈加 3.5 步、新增 §4.6 環境引擎）、`docs/CHANGELOG.md`（1 行）、本任務檔
+- 做了什麼：
+  - `createEnv` / `stepEnv` / `getEnvModifiers` 照設計文件 §4.2 簽名實作；`world.env` 欄位**剛好**是 `type/phase/phaseLeft/phaseProgress/warning/events`（測試有檢查 key 集合）。參數一律從 `world.cfg.env`（`stageConfig().env`）讀，`world.env` 只放狀態。
+  - 晝夜：day ⇄ night，只在夜晚前預告（`warning.next = 'night'`）。潮汐：calm → flood → calm → ebb → …，下一波方向由 `events` 推算，潮水前預告並帶方向。
+  - 一幀跨越階段邊界時逐段計算，潮汐推力只算落在潮水期間的時間（2x 或卡頓時也精準）。`dt ≤ 0` 直接 return。
+  - 潮汐推力：存活、非 `knockbackImmune` 的單位 ±`pushSpeed×dt`；邊界 `[68, 50+towerDistance-18]` 與一般移動相同。**只阻止被推過邊界，原本就在邊界外的單位不會被拉回**（例如被大砲擊退到敵堡後方的敵人，不會因漲潮開始而被瞬移到邊界上）。凍結中的單位也會被推（設計寫「所有存活單位」）。
+  - `stepUnits`：在 slow（速度）與 berserk（攻擊）之後，對敵人乘 `enemySpeedMul` / `enemyAtkMul`；賞金 `Math.round(killBounty × bountyMul)`。倍率在 `stepUnits` 開頭取一次。我方不受影響。
+  - 音效時機：新增輔助函式 `pollEnvCues(world)`（設計文件 §4.2 以外的**額外匯出**，不改動合約中的三個函式），回傳本幀新出現的 `nightWarn` / `dayStart` / `floodWarn` / `ebbWarn`，每次預告、每次天亮各一次；進度記在 `world.envCueSeen`（在 `world` 頂層，不放進 `world.env`）。`Battle.jsx` 以 `audio.playEnvCue?.(kind)` 呼叫。
+  - 沒有動 `atkCd` 的寫法（§11 #17），沒有改其他數值與行為。
+- 如何驗證：
+  - `npm test`：14 項全過（新增的 `environment.test.js` 13 項 + 原有 App 測試 1 項）。測試直接跑真正的 `environment.js` 與 `ai.js` 的 `stepUnits`、`makeUnit`，參數用設計文件 §3 的初版數值：
+    - 晝夜：t=39.9 無預告；t=40.1 `warning={next:'night', in≈4.9}`、`phaseProgress≈40.1/45`；t=45.1 `night`、events=1；t=70.1 天亮、events=2、白天前不預告。150 秒內的音效提示依序為 `nightWarn, dayStart, nightWarn, dayStart`。
+    - 夜晚倍率：`getEnvModifiers` 白天全 1、夜晚 1.2/1.15/1.5；敵人 berserk(×2)＋夜晚 → atk=10×2×1.2；slow(×0.5)＋夜晚 → speed=10×0.5×1.15；我方 atk/speed 不變。賞金：白天 18 → 夜晚 27（=round(18×1.5)），無環境與白天相同。
+    - 潮汐：100 秒內階段依序 calm, flood, calm, ebb, calm, flood, calm；t=20.1 預告 flood；t=50.1 預告 ebb、`in≈3.9`；125 秒內音效提示 `floodWarn, ebbWarn, floodWarn, ebbWarn`。
+    - 推力：漲潮 1 秒 → 貓 400→368、敵 500→468；擊退免疫（抹香鯨型）與死亡單位不動；平靜期不動；再經整段漲潮＋平靜＋退潮 1 秒 → 240 / 340。一幀 1 秒跨越「平靜 0.5 + 漲潮 0.5」→ 只推 16px。
+    - 邊界：x=75 的貓漲潮後停在 68；x=800（邊界外）的敵人漲潮往左推回場內（→608）；x=60（左邊界外）的敵人漲潮時不動、退潮時往右推；x=770 的貓退潮停在 782。
+    - 暫停：dt=0 呼叫 100 次，`world.env` 與單位位置完全不變。2x（dt=0.1）與 1x 跑同樣遊戲時間，結果一致。
+    - 無環境：`world.env === null` 時 `stepEnv` 無作用、倍率全 1、無音效提示。
+  - 與 LV-002 的資料接起來測試（LV-002 的改動尚未 commit，用目前工作目錄的版本）：`createWorld` 對 1-1、2-1 產生 `env=null`；1-4、1-10 產生 dayNight（phase=day、phaseLeft=45）；2-2 產生 tide（phase=calm、phaseLeft=24）。
+  - `npm run build` 成功（含其他角色目前在工作目錄中的改動）。
+  - 未做瀏覽器實測：另一個對話的 dev server 占用 5173，我這邊的瀏覽器連不到；另開伺服器需要改共用的 `.claude/launch.json`（不在我的範圍），所以沒有開。已關閉自己開的瀏覽器分頁。
+- 新增給其他角色的請求：無。
+  - 給 UI-007 / AU-005 參考（已寫在 PROJECT_MAP §4.6）：`world.env.warning.in` 就是 `phaseLeft`；判斷「剛切換」用 `events` 變化；音效由引擎呼叫 `audio.playEnvCue?.(kind)`，音效角色不必改 `Battle.jsx`。
+- 給 CEO 的注意事項：
+  - **commit 範圍**：`src/game/environment.js`、`src/game/environment.test.js`、`src/game/ai.js`、`src/game/world.js`、`src/scenes/Battle.jsx`、`docs/PROJECT_MAP.md`、`docs/CHANGELOG.md`、`docs/tasks/engine.md`。
+  - **`Battle.jsx` 同時有 UI-007 的改動**：`import EnvIndicator` 與 JSX 中 `<EnvIndicator … />` 兩行不是我改的。我的只有 `import { stepEnv, pollEnvCues }` 與主迴圈兩行。審核時請跟 UI-007 一起處理（或用 `git add -p` 拆開）。`PROJECT_MAP.md`、`CHANGELOG.md` 也有其他角色的改動。
+  - **合約以外的新增**：`pollEnvCues` 匯出與 `world.envCueSeen` 欄位。沒有改動 §4.2 的三個函式簽名，也沒有改 `world.env` 的結構。若 CEO 認為要寫進設計文件，請更新 §4.4。
+  - **新增測試檔**：`src/game/environment.test.js` 是我這個模組的測試，放在 `src/game/`。若 CEO 認為測試檔歸屬要另外規定，請告知。
+  - **沒有依賴 LV-002 的完成**：若環境設定缺少某個參數，`environment.js` 有 fallback（設計文件 §3 初版值），但正常情況下應由 `stageConfig().env` 提供完整設定。
+
+### 審核（CEO 填寫）
+- 2026-09-27 通過。三個合約函式與 `world.env` 結構照設計；倍率每幀由 base 值重算不會累乘；13 項單元測試涵蓋階段、倍率、推力、邊界、暫停、2x，做得很紮實。
+- 合約外新增的 `pollEnvCues` / `world.envCueSeen` 接受，CEO 已補進設計文件 §4.4。測試檔放在模組旁、由模組負責角色維護，CEO 已寫進 CLAUDE.md。
+

@@ -39,3 +39,63 @@
 ### 審核（CEO 填寫）
 - 2026-09-27 通過。diff 只動到 spawns.js 註解與 spawns2.js 一行，範圍正確；build 成功。2-9 改為小丑魚 ×1000% 後偏難，接受（符合原設計意圖），暫不調整。
 - 2026-09-27 補註：LV-001 已完成後補寫「給 CEO 的注意事項」，所列事項（commit 範圍、§11 #1/#10 更新、難度疑慮）皆已於前次審核處理完畢，無需再動作。
+
+## [LV-002] 章節環境機制：關卡資料
+- 狀態：已完成
+- 優先度：高
+- 來自：CEO（2026-09-27，使用者選定新特色「章節環境機制」）
+- 依賴：無（可與 EG-003 同時進行）
+
+**設計文件**：`docs/design/chapter-environment.md`（**先完整讀過**；§4 介面是合約，不可自行更改，有問題寫進 `docs/tasks/ceo.md`）
+
+**需求**
+1. `src/data/stages.js`：新增並匯出 `CHAPTER_ENV`（內容照設計文件 §4.1）；`stageConfig()` 回傳值新增 `env`（章節預設與關卡 `env` 合併後的物件；`env: false` 或該章無預設時為 `null`）。
+2. `spawns.js` / `spawns2.js`：依設計文件 §3 的建議設定每關 `env`（第一章 1~3 關、第二章第 1 關 `env: false`），BOSS 關可視情況調整參數。每個調整在回報中說明理由。
+3. 目前**先不要**為了環境大改出怪排程；等 EC-001 試玩後再平衡。
+
+**完成條件**
+- 用 Node 列出兩章每關的 `stageConfig(n, ch).env`，貼在回報中。
+- `npm run build`、`npm test` 通過；更新 `docs/PROJECT_MAP.md` §5。
+
+### 回報（負責角色填寫）
+- 修改檔案：`src/data/stages.js`、`src/data/spawns.js`、`src/data/spawns2.js`、`docs/PROJECT_MAP.md` §5、`docs/CHANGELOG.md`
+- 做了什麼：
+  1. `stages.js`：新增並匯出 `CHAPTER_ENV`（內容與設計文件 §4.1 完全相同）；新增內部函式 `resolveEnv(chapter, stageEnv)`；`stageConfig()` 回傳值新增 `env`。規則：該章沒有預設或關卡 `env === false` → `null`；關卡 `env` 為物件 → `{ ...章節預設, ...關卡 env }`；省略 → 章節預設的副本。每次都回傳新物件，引擎改它不會影響 `CHAPTER_ENV`。
+  2. `spawns.js` / `spawns2.js`：只在需要的關卡加 `env`，其他沿用章節預設。**出怪排程、HP、獎勵都沒動**。
+     - 1-1、1-2、1-3：`env: false`，照設計文件 §3，留給新手熟悉基本操作。
+     - 1-10（第一隻 BOSS 野豬王）：沿用預設。這是玩家第一次打 BOSS，不額外加難度。
+     - 1-15：`nightLength: 30`。星眼巨像在第 45 秒出場，剛好是第一次夜晚開始的時間（白天 45 秒），玩家會在預告中看到 BOSS 和夜晚一起來；夜晚拉長 5 秒，讓這個「BOSS 夜襲」更有壓力，賞金 ×1.5 的時間也多一點。
+     - 1-19：`nightLength: 35`。野豬王在第 40 秒出場，第 45 秒入夜，BOSS 到前線時正好是夜晚；夜晚拉長讓這關成為「撐過長夜」的關卡。
+     - 1-20（章末）：`dayLength: 40, nightLength: 35`。章末關夜晚佔比提高（約 47%，預設約 36%），並讓夜晚更早來。
+     - 2-1：`env: false`，照設計文件 §3。
+     - 2-10（章魚王）：沿用預設。
+     - 2-15、2-17：`pushSpeed: 20`。這兩關兩堡距離只有 350px，預設推力 32 × 6 秒 = 192px，超過整張地圖一半，一次漲潮幾乎就能把敵人送到我方主堡前；降到 20（一波 120px，約 1/3 張地圖）。
+     - 2-20（章末，幽靈鯊）：`calmLength: 20`，潮水更頻繁。幽靈鯊有擊退免疫、不會被潮水推，潮汐只會推動雙方小兵和我方貓，BOSS 關特別考驗看潮水的時機。
+  3. `spawns.js` 開頭的格式註解補上 `env` 欄位說明。
+- 如何驗證：
+  - `npm run build` 成功；`npm test` 通過（1 passed）。
+  - 用 Node 腳本 import `stageConfig` / `getMaxStage`，列出兩章每關的 `stageConfig(n, ch).env`（下方）。另外確認：修改回傳的 env 不會影響其他關（`mutation-safe: true`）；不存在的第 3 章回傳 `null`；LV-001 的敵人 key 檢查重跑仍是 `checked 246, bad 0`。
+  ```
+  1-1 ~ 1-3: null
+  1-4 ~ 1-14, 1-16 ~ 1-18: dayNight dayLength=45 nightLength=25 warnTime=5 enemyAtkMul=1.2 enemySpeedMul=1.15 bountyMul=1.5 startPhase=day
+  1-15: dayNight dayLength=45 nightLength=30 warnTime=5 enemyAtkMul=1.2 enemySpeedMul=1.15 bountyMul=1.5 startPhase=day
+  1-19: dayNight dayLength=45 nightLength=35 warnTime=5 enemyAtkMul=1.2 enemySpeedMul=1.15 bountyMul=1.5 startPhase=day
+  1-20: dayNight dayLength=40 nightLength=35 warnTime=5 enemyAtkMul=1.2 enemySpeedMul=1.15 bountyMul=1.5 startPhase=day
+  2-1: null
+  2-2 ~ 2-14, 2-16, 2-18, 2-19: tide calmLength=24 surgeLength=6 warnTime=4 pushSpeed=32
+  2-15: tide calmLength=24 surgeLength=6 warnTime=4 pushSpeed=20
+  2-17: tide calmLength=24 surgeLength=6 warnTime=4 pushSpeed=20
+  2-20: tide calmLength=20 surgeLength=6 warnTime=4 pushSpeed=32
+  ```
+  （原始輸出是逐關 40 行，內容相同，這裡把相同的連續關卡合併列出。）
+- 新增給其他角色的請求：無
+- 給 CEO 的注意事項：
+  - commit 範圍：`src/data/stages.js`、`src/data/spawns.js`、`src/data/spawns2.js`，以及 `docs/PROJECT_MAP.md` §5 新增的「章節環境機制」小節、`docs/CHANGELOG.md` 的 LV-002 那一行。
+  - 沒有更動 §4 介面合約。`env` 物件會多帶一個 `type` 欄位，也是照 §4.1 的 `CHAPTER_ENV` 原樣。
+  - EG-003 的 `createEnv(envCfg)` 會直接收到 `stageConfig().env`，關卡不啟用時是 `null`。
+  - 引擎還沒完成，這些環境參數只驗證過資料正確，還沒實際試玩。1-15/1-19/1-20 的夜晚長度和 2-15/2-17 的推力都要等 EC-001 試玩後確認。
+  - 除了 env 之外，出怪排程完全沒改（依需求第 3 點）。
+
+### 審核（CEO 填寫）
+- 2026-09-27 通過。CHAPTER_ENV 與合約一致；各關調整都有理由（2-15、2-17 小地圖降低推力的判斷很好）；build、test 通過。實際手感交由 EC-001 試玩。
+

@@ -165,3 +165,48 @@
 ### 審核（CEO 填寫）
 - 2026-09-27 通過。App.jsx 只改兩處清除邏輯並新增共用函式與保留清單，符合授權；清除存檔與版本重置兩種情境都有實測；build、test 通過。
 
+## [AU-005] 章節環境機制：環境提示音
+- 狀態：已完成
+- 優先度：中
+- 來自：CEO（2026-09-27，使用者選定新特色「章節環境機制」）
+- 依賴：無（引擎用 `audio.playEnvCue?.()` 呼叫，你先完成也不會出錯）
+
+**設計文件**：`docs/design/chapter-environment.md`（**先完整讀過**；§4 介面是合約，不可自行更改，有問題寫進 `docs/tasks/ceo.md`）
+
+**需求**（詳見設計文件 §4.4）
+1. `src/audio/index.js` 新增 `playEnvCue(kind)`，kind：`nightWarn`、`dayStart`、`floodWarn`、`ebbWarn`。用振盪器 / 雜訊合成：夜晚低沉鐘聲感、天亮輕快、漲潮與退潮水聲感（兩者可用音高或方向感區分）。
+2. 音量分類由你決定：沿用現有分類，或新增 `env` 分類。**若新增分類**，在 `docs/tasks/ui.md` 新增任務請 UI 在設定畫面加一條滑桿。
+3. 要有冷卻，避免重複觸發疊音。
+
+**完成條件**
+- 四種提示音可用瀏覽器 console 直接呼叫試聽，聽感彼此可區分。
+- `npm run build`、`npm test` 通過；更新 `docs/PROJECT_MAP.md` §8。
+
+### 回報（負責角色填寫）
+- 修改檔案：`src/audio/index.js`、`docs/PROJECT_MAP.md`（§8）、`docs/CHANGELOG.md`、`docs/tasks/ui.md`（新增 UI-008）
+- 做了什麼：
+  - 依設計文件 §4.4 合約新增 `audio.playEnvCue(kind)`，`kind`：`nightWarn` / `dayStart` / `floodWarn` / `ebbWarn`；其他值直接忽略（不報錯）。另匯出常數 `ENV_CUES`。
+  - 全部用振盪器 / 雜訊即時合成，**沒有新增音檔**：
+    - `nightWarn` 夜晚預告：低沉鐘聲（G2 98Hz 基音＋0.5/2/2.76/5.4 倍泛音），敲兩下，約 2.7 秒。
+    - `dayStart` 天亮：三角波上行琶音 C5-E5-G5-C6，約 0.5 秒，輕快。
+    - `floodWarn` 漲潮預告：帶通白雜訊浪聲（濾波 1800→350Hz），聲像由右往左（潮水往我方推），加 110→70Hz 低沉下滑音，約 1.5 秒。
+    - `ebbWarn` 退潮預告：同樣的浪聲但濾波 350→1800Hz、聲像由左往右，加輕的 440→660Hz 上滑音。漲潮/退潮用音高走向＋左右方向區分。
+  - **新增音量分類 `env`**（預設 0.8）。理由：環境提示音是戰鬥中的遊戲提示，玩家可能想單獨調大或關掉；放在「勝敗音效」下會讓滑桿意義混淆。舊存檔的 `audioVolumes` 沒有 `env` 時自動補預設值，不需轉移、不需提升 SAVE_VERSION。`getVolumes()` 會多回傳 `env`。
+  - 冷卻：同一種提示音 1.5 秒內重複觸發會被忽略（走既有 `playSfx` 冷卻機制，內部 key `env_<kind>`）。
+  - 開發模式下把單例掛到 `window.audio`，符合「可用瀏覽器 console 直接呼叫試聽」：`npm run dev` → 點一下頁面 → console 輸入 `audio.playEnvCue('nightWarn')`。有 `import.meta.env.DEV` 判斷，正式建置不會掛。
+- 如何驗證：
+  - `npm run build` 成功；`npx vitest run` 全部通過（2 個檔案、14 tests，含引擎角色新增、尚未審核的 `environment.test.js`）。
+  - dev server 用 OfflineAudioContext 實際渲染四種聲音並量測：長度 nightWarn 2.74s / dayStart 0.53s / floodWarn 1.46s / ebbWarn 1.48s；聲像（每 250ms，負＝左、正＝右）floodWarn `0.00 0.15 -0.18 -0.22`（往左）、ebbWarn `-0.22 -0.22 0.18 0.71`（往右），其餘置中。第一版潮汐浪聲偏小（峰值 0.17），已把雜訊包絡拉高，調整後四者發聲期間 RMS 在 0.041~0.068，響度相近、無削波（峰值 ≤ 0.57）。
+  - 即時 AudioContext：四種 `playEnvCue` 皆無警告；1.5 秒內重播被冷卻擋下；`playEnvCue('bogus')`、`playEnvCue()` 不報錯；`setVolume('env', 0.35)` 會存進 `audioVolumes.env`，播放時 env gain 為設定值。
+  - **未做耳聽確認**（我無法實際聽聲音），聽感是否「可區分、不刺耳」建議 CEO 或使用者在 console 試聽一次。
+  - 驗證完已關閉 dev server 與瀏覽器分頁。
+- 新增給其他角色的請求：`docs/tasks/ui.md` 新增 **UI-008**（設定畫面加「環境提示音」`env` 滑桿），請通知 UI 角色。
+- 給 CEO 的注意事項：
+  - commit 範圍：`src/audio/index.js`、`docs/PROJECT_MAP.md`、`docs/CHANGELOG.md`、`docs/tasks/audio.md`、`docs/tasks/ui.md`。
+  - 未改 `Battle.jsx`；EG-003 照合約以 `audio.playEnvCue?.(kind)` 呼叫即可。
+  - 設計文件 §4.4 只說「若新增分類要告知 UI」，已照做（UI-008），介面沒有變動。
+  - 量測時發現 Chrome 對沒有聲音流過的 GainNode 不會更新 `.value` 讀值（有聲音播放時才是設定值），這不是 bug，只是之後若有人用 console 讀 gain 值檢查，別被誤導。
+
+### 審核（CEO 填寫）
+- 2026-09-27 通過。四種提示音純合成、有冷卻，新增 `env` 分類並依規則開了 UI-008；`window.audio` 只在開發模式掛載。耳聽確認請使用者上線後試聽。
+

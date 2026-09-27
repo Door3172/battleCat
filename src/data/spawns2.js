@@ -6,6 +6,7 @@ export const SPAWNS2 = {
         enemyBaseHp: 1500,
         towerDistance: 600,
         reward: 250,
+        env: false,
         schedule: [
             { start: 10, interval: 15, type: 'clownfish', multiplier: 150 },
             { start: 30, interval: 40, type: 'clownfish', multiplier: 175 },
@@ -175,6 +176,7 @@ export const SPAWNS2 = {
         enemyBaseHp: 3000,
         towerDistance: 350,
         reward: 1000,
+        env: { pushSpeed: 20 },
         schedule: [
             { time: 5, type: 'spermWhale', multiplier: 100 },
         ],
@@ -194,6 +196,7 @@ export const SPAWNS2 = {
         enemyBaseHp: 2500,
         towerDistance: 350,
         reward: 800,
+        env: { pushSpeed: 20 },
         schedule: [
             { time: 5, type: 'colossalLobster', multiplier: 100 },
             { time: 10, type: 'pufferfish', multiplier: 400 },
@@ -223,6 +226,7 @@ export const SPAWNS2 = {
         enemyBaseHp: 5000,
         towerDistance: 750,
         reward: 1500,
+        env: { calmLength: 20 },
         boss: { time: 60, key: 'ghostShark' },
         schedule: [
             { time: 15, type: 'hermitCrab', multiplier: 200 },

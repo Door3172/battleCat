@@ -1,5 +1,6 @@
 import { stageConfig } from '../data/stages.js';
 import { BASE_CATS, SHOP_UNLOCKS, GACHA_UNLOCKS } from '../data/cats.js';
+import { createEnv } from './environment.js';
 
 export function buildCatsTpl(unlocks, catLevels = {}) {
   const gacha = Object.fromEntries(
@@ -51,6 +52,7 @@ export function createWorld(currentStage, unlocks, catLevels, researchLv = 1, ca
     nextEnemyIdx: 0,
     cfg, catsTpl: buildCatsTpl(unlocks, catLevels),
     bossSpawned: false, summonCd: {},
+    env: createEnv(cfg.env ?? null), // 章節環境（無環境時為 null），參數在 cfg.env
   };
 }
 

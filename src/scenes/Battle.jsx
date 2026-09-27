@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import HeroBanner from '../ui/HeroBanner.jsx';
 import CatAvatar from '../ui/CatAvatar.jsx';
+import EnvIndicator from '../ui/EnvIndicator.jsx';
 import SlotTray from '../ui/SlotTray.jsx';
 import HudInfo from '../ui/HudInfo.jsx';
 import Dialog from '../ui/Dialog.jsx';
@@ -11,6 +12,7 @@ import { fmt } from '../utils/number.js';
 import { createWorld } from '../game/world.js';
 import { spawnEnemy, stepUnits, groundY, makeUnit, spawnBossIfNeeded } from '../game/ai.js';
 import { drawAll } from '../game/draw.js';
+import { stepEnv, pollEnvCues } from '../game/environment.js';
 import { rand } from '../utils/math.js';
 import { useAudio } from '../audio/useAudio.js';
 import { stageConfig, getMaxStage } from '../data/stages.js';
@@ -259,6 +261,8 @@ export default function Battle({
         w.enemyClock = w.cfg.spawnRate; // 固定頻率
       }
     }
+    stepEnv(w, dt); // 章節環境：推進階段、潮汐推力
+    for (const kind of pollEnvCues(w)) audio.playEnvCue?.(kind);
     const bountyGain = stepUnits(w, getWorldWidth, getWorldHeight, dt);
     if (bountyGain > 0) w.fish += bountyGain;
     if (w.rightHp <= 0) { w.state = 'win'; awardWin(); }
@@ -345,6 +349,7 @@ export default function Battle({
       <HeroBanner title="貓咪大戰爭" subtitle="1~5 召喚、Space 大砲、X 1x/2x、P 暫停、R 重開" />
       <div ref={wrapRef} className="relative w-full overflow-hidden">
         <canvas ref={canvasRef} className="rounded-2xl border shadow w-full block mx-auto" />
+        <EnvIndicator getEnv={() => worldRef.current?.env ?? null} />
         {ui.state === 'prestart' && <div className="fixed inset-0 bg-black/50 pointer-events-none" />}
         <Dialog fullscreen={false} show={['ready', 'paused', 'win', 'lose'].includes(ui.state)}>
           {ui.state === 'ready' && <div className="text-lg font-semibold">戰鬥即將自動開始（亦可按下 1~5 任一鍵或點下方按鈕提前開始）</div>}

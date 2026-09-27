@@ -8,6 +8,21 @@ const SPAWNS_MAP = {
   2: SPAWNS2,
 };
 
+// 各章節的環境機制預設值（設計文件 docs/design/chapter-environment.md §4.1）
+// 每關可在關卡物件加上 env：省略 → 章節預設；false → 不啟用；物件 → 覆寫部分參數
+export const CHAPTER_ENV = {
+  1: { type: 'dayNight', dayLength: 45, nightLength: 25, warnTime: 5,
+       enemyAtkMul: 1.2, enemySpeedMul: 1.15, bountyMul: 1.5, startPhase: 'day' },
+  2: { type: 'tide', calmLength: 24, surgeLength: 6, warnTime: 4, pushSpeed: 32 },
+};
+
+// 合併章節預設與關卡 env，回傳完整設定或 null（不啟用）
+function resolveEnv(chapter, stageEnv) {
+  const base = CHAPTER_ENV[chapter];
+  if (!base || stageEnv === false) return null;
+  return { ...base, ...(stageEnv && typeof stageEnv === 'object' ? stageEnv : {}) };
+}
+
 // 取得指定章節的最大關卡數
 export function getMaxStage(chapter = 1) {
   const spawns = SPAWNS_MAP[chapter] || {};
@@ -51,6 +66,9 @@ export function stageConfig(stage, chapter = 1){
   const bossHp = bossCfg?.hp;
   const bossMultiplier = bossCfg?.multiplier;
 
+  // 章節環境機制
+  const env = resolveEnv(chapter, stageSpawn?.env);
+
   return {
     stageIndex,
     enemyBaseHp,
@@ -62,5 +80,6 @@ export function stageConfig(stage, chapter = 1){
     bossHp,
     bossMultiplier,
     rewardCoins,
+    env,
   };
 }

@@ -1,5 +1,6 @@
 import { ENEMIES, BOSSES } from '../data/enemies.js';
 import { BODY_W } from './world.js';
+import { getEnvModifiers } from './environment.js';
 
 /*
 能力設定 (abilities key 說明)
@@ -144,6 +145,7 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt) {
   const leftX = 50;
   const rightX = leftX + world.cfg.towerDistance;
   let bounty = 0;
+  const env = getEnvModifiers(world); // 章節環境倍率（無環境時全為 1）
 
   function dealAttack(attacker, target) {
     let dmg = attacker.atk;
@@ -246,6 +248,12 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt) {
       }
     }
 
+    // 章節環境（夜晚）：敵人攻擊 / 速度加成，與 berserk、slow 疊乘
+    if (u.team === -1) {
+      u.atk *= env.enemyAtkMul;
+      u.speed *= env.enemySpeedMul;
+    }
+
     // 最近目標
     let target = null, best = 1e9;
     for (let j = 0; j < world.units.length; j++) {
@@ -319,7 +327,7 @@ export function stepUnits(world, getCanvasWidth, getCanvasHeight, dt) {
         u.revived = true;
         next.push(u);
       } else if (u.team === -1) {
-        bounty += killBounty(u, world.cfg);
+        bounty += Math.round(killBounty(u, world.cfg) * env.bountyMul);
       }
     }
   }

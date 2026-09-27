@@ -158,6 +158,135 @@ export function drawUnit(ctx,u,t=0){
   ctx.restore();
 }
 
+// ---- 章節環境（晝夜 / 潮汐）畫面 ----
+// 只讀 world.env（docs/design/chapter-environment.md §4.2）。
+// 過場用的平滑數值存在 WeakMap（以 world 為 key），用 world.time 推進：暫停時不變、2x 加速。
+const envFx = new WeakMap();
+
+function approach(v, target, dt, tau) {
+  return v + (target - v) * Math.min(1, dt / tau);
+}
+
+function envState(world) {
+  const env = world.env;
+  let st = envFx.get(world);
+  if (!st || world.time < st.t) {
+    st = { t: world.time, night: 0, water: 0, flow: 0, wave: 0 };
+    if (env?.phase === 'night') st.night = 1;
+    envFx.set(world, st);
+  }
+  const dt = Math.max(0, world.time - st.t);
+  st.t = world.time;
+  if (!env) return st;
+  const warn = env.warning;
+  if (env.type === 'dayNight') {
+    let target = env.phase === 'night' ? 1 : 0;
+    if (warn?.next === 'night') target = 0.18;          // 預告：天色開始轉暗
+    if (warn?.next === 'day') target = 0.8;             // 預告：天快亮
+    st.night = approach(st.night, target, dt, 1.2);
+  } else if (env.type === 'tide') {
+    const surge = env.phase === 'flood' || env.phase === 'ebb';
+    let wTarget = surge ? 1 : 0;
+    let fTarget = env.phase === 'flood' ? -1 : env.phase === 'ebb' ? 1 : 0;
+    if (!surge && warn) { wTarget = 0.2; fTarget = warn.next === 'flood' ? -0.4 : 0.4; }
+    st.water = approach(st.water, wTarget, dt, 0.9);
+    st.flow = approach(st.flow, fTarget, dt, 0.6);
+    st.wave += dt * (0.6 + 2.4 * Math.abs(st.flow)) * (st.flow < 0 ? -1 : 1);
+  }
+  return st;
+}
+
+// 固定位置的星星（避免每幀亂跳）
+const STARS = Array.from({ length: 40 }, (_, i) => {
+  const r = (n) => { const x = Math.sin(i * 12.9898 + n * 78.233) * 43758.5453; return x - Math.floor(x); };
+  return { x: r(1), y: r(2), s: 0.6 + r(3) * 1.4, tw: r(4) * 6.28 };
+});
+
+// 背景層（在主堡、單位之前）：太陽
+function drawEnvBack(ctx, world, st, W, H) {
+  if (world.env?.type !== 'dayNight') return;
+  const a = 1 - st.night;
+  if (a <= 0.01) return;
+  ctx.save();
+  ctx.globalAlpha = a;
+  const x = W * 0.82, y = H * 0.16 + st.night * H * 0.2, r = Math.max(12, H * 0.055);
+  const glow = ctx.createRadialGradient(x, y, r * 0.4, x, y, r * 2.6);
+  glow.addColorStop(0, 'rgba(255,214,102,0.55)'); glow.addColorStop(1, 'rgba(255,214,102,0)');
+  ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(x, y, r * 2.6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ffd166'; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+// 前景層（在單位之後）：夜色、星月、潮水
+function drawEnvFront(ctx, world, st, W, H, ground) {
+  const env = world.env;
+  if (!env) return;
+  const t = world.time;
+  if (env.type === 'dayNight' && st.night > 0.01) {
+    const n = st.night;
+    ctx.save();
+    ctx.fillStyle = `rgba(16, 28, 96, ${0.48 * n})`;
+    ctx.fillRect(0, 0, W, H);
+    // 星星（只在天空）
+    for (const s of STARS) {
+      const tw = 0.55 + 0.45 * Math.sin(t * 2 + s.tw);
+      ctx.globalAlpha = n * tw;
+      ctx.fillStyle = '#fff8dc';
+      ctx.beginPath(); ctx.arc(s.x * W, s.y * (ground - 90) + 10, s.s, 0, Math.PI * 2); ctx.fill();
+    }
+    // 月亮
+    const mx = W * 0.8, my = H * 0.14 + (1 - n) * H * 0.2, mr = Math.max(10, H * 0.045);
+    ctx.globalAlpha = n;
+    const glow = ctx.createRadialGradient(mx, my, mr * 0.5, mx, my, mr * 3);
+    glow.addColorStop(0, 'rgba(226,232,255,0.45)'); glow.addColorStop(1, 'rgba(226,232,255,0)');
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(mx, my, mr * 3, 0, Math.PI * 2); ctx.fill();
+    // 月牙：左半外圓 + 內側橢圓圍出的區域
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.arc(mx, my, mr, Math.PI / 2, Math.PI * 1.5, false);
+    ctx.ellipse(mx, my, mr * 0.4, mr, 0, Math.PI * 1.5, Math.PI / 2, true);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  if (env.type === 'tide') {
+    const level = 5 + 26 * st.water;              // 水深（px）
+    const base = ground + 12;
+    const top = base - level;
+    const amp = 1.5 + 3 * st.water;
+    const waveY = (x, k, ph) => top + Math.sin(x * k + ph) * amp;
+    ctx.save();
+    // 水體
+    const g = ctx.createLinearGradient(0, top - amp, 0, base + 20);
+    g.addColorStop(0, `rgba(56, 189, 248, ${0.35 + 0.2 * st.water})`);
+    g.addColorStop(1, `rgba(14, 116, 144, ${0.45 + 0.2 * st.water})`);
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.moveTo(0, base + 20);
+    for (let x = 0; x <= W; x += 8) ctx.lineTo(x, waveY(x, 0.045, -st.wave * 3));
+    ctx.lineTo(W, base + 20); ctx.closePath(); ctx.fill();
+    // 浪花線
+    ctx.strokeStyle = 'rgba(240, 253, 255, 0.85)'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let x = 0; x <= W; x += 8) { const y = waveY(x, 0.045, -st.wave * 3); x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    ctx.stroke();
+    // 流向箭頭（潮水期間）
+    const f = st.flow;
+    if (Math.abs(f) > 0.25) {
+      const dir = f < 0 ? -1 : 1;
+      const gap = 90, off = ((st.wave * 40) % gap + gap) % gap;
+      ctx.globalAlpha = Math.min(1, (Math.abs(f) - 0.25) / 0.5);
+      ctx.strokeStyle = '#f0fdff'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      const y = top + level * 0.5 + 2, sz = 5 + 3 * st.water;
+      for (let x = off - gap; x < W + gap; x += gap) {
+        for (const d of [0, 10]) {
+          const cx = x + d * dir;
+          ctx.beginPath(); ctx.moveTo(cx - sz * dir, y - sz); ctx.lineTo(cx, y); ctx.lineTo(cx - sz * dir, y + sz); ctx.stroke();
+        }
+      }
+    }
+    ctx.restore();
+  }
+}
+
 export function drawAll(ctx, world, getCanvasWidth, getCanvasHeight, currentStage, timeScale, viewX = 0){
   ctx.save();
   ctx.translate(-viewX, 0);
@@ -165,6 +294,8 @@ export function drawAll(ctx, world, getCanvasWidth, getCanvasHeight, currentStag
   const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,SKIN.field.skyTop); g.addColorStop(1,SKIN.field.skyBottom);
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
   const ground= H*0.72;
+  const envSt = envState(world);
+  drawEnvBack(ctx, world, envSt, W, H);
   ctx.fillStyle=SKIN.field.ground; ctx.fillRect(0,ground+12,W,H-(ground+12));
   ctx.fillStyle=SKIN.field.groundEdge; for(let x=0;x<W;x+=18) ctx.fillRect(x, ground+10+((x/18)%2)*2, 14,4);
   drawCatBase(ctx, 50,  ground, true,  world.leftHp / world.leftMaxHp);
@@ -172,6 +303,7 @@ export function drawAll(ctx, world, getCanvasWidth, getCanvasHeight, currentStag
   for(const u of world.units){
     drawUnit(ctx,u,world.time);
   }
+  drawEnvFront(ctx, world, envSt, W, H, ground);
   ctx.restore();
   const screenW=getCanvasWidth(), screenH=getCanvasHeight();
   ctx.fillStyle=SKIN.field.text; ctx.font='bold 14px ui-sans-serif, system-ui';

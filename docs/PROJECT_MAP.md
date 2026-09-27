@@ -85,7 +85,12 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
   - `HudInfo`（不再自帶 Card）/ `SlotTray` / `Toolbar`（`lg` 以上左 1.6 : 右 1）：戰鬥畫面下方控制區。
   - `CatAvatar`（`catKey`, `name`, `size`）：圓形貓咪頭像；沒有圖（`jaycat`、`jay`）或載入失敗時顯示名字首字的漸層徽章。用於隊伍編成、升級、商店、戰鬥召喚欄、圖鑑。深色主題（modern/neon）頭像底色用 `--avatar-bg` 亮色，避免黑線條看不清。
   - `catArt.js`：`CAT_ART_KEYS`（有圖的貓）、`catArtUrl(key)`（含 `import.meta.env.BASE_URL`）、`catKeyByName(中文名)`（圖鑑用，唯讀 `cats.js`）、`preloadCatArt()` / `getCatImage(key)`（Canvas 用）。**新增角色圖**：放 `public/pic/<key>.webp`（最長邊 256px）並把 key 加進 `CAT_ART_KEYS`。
-  - `UnitCard`：圖鑑用，頭像＋名稱＋左側類型色條（已移除原本寫死的假攻擊/血量）。`Codex.jsx` 的 `typeMap` 名稱對不上的問題仍在。
+  - `UnitCard`：圖鑑用，頭像＋名稱＋左側類型色條（已移除原本寫死的假攻擊/血量）。
+  - **章節環境**（UI-007，設計文件 `docs/design/chapter-environment.md`）：
+    - `envInfo.js`：各環境 / 階段的圖示與文字（`ENV_TYPES`、`ENV_PHASES`、`envWarningText()`），以及首次說明的已看紀錄 `hasSeenEnvTip()` / `markEnvTipSeen()`（localStorage `envTipsSeen`，陣列，玩家進度、不在 `PRESERVED_KEYS`）。
+    - `EnvIndicator`：疊在戰場 Canvas 上方中央；顯示目前階段圖示＋剩餘秒數（依階段換底色），預告期間顯示閃爍橫幅（夜晚／漲潮紅色、退潮綠色，含方向箭頭）。自己每 100ms 讀 `world.env`，不經過戰鬥主迴圈；`Battle.jsx` 只在 JSX 放 `<EnvIndicator getEnv={() => worldRef.current?.env ?? null} />`。
+    - 關卡選擇：有環境的關卡左下角顯示 🌗／🌊，下方說明列出本章環境；點到**首次遇到**的環境類型時，先跳說明視窗，按「知道了，開始戰鬥」才記錄並進入戰鬥（按返回則不記錄）。
+    - 章節選擇：卡片下方顯示「戰場規則」說明（讀 `stages.js` 的 `CHAPTER_ENV`）。`Codex.jsx` 的 `typeMap` 名稱對不上的問題仍在。
   - `GachaMachine`：CSS 扭蛋機外觀（顏色跟主題 secondary），無動畫/邏輯。
 - 戰場畫面**不是 DOM**，是 Canvas（見 §4 draw.js），天空/地面/文字顏色讀 `SKIN.field.*`。**貓咪**用 `public/pic/<unit.key>.webp` 角色圖（高 38px，`draw.js` 載入時預載），圖未載入完成或沒有圖時退回色塊 + 耳朵；**敵人**仍是色塊。
 
@@ -130,6 +135,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 - 我方主堡 x=50，敵方主堡 x=`50 + towerDistance`。地面 y = 畫布高 × 0.72。
 - 我方主堡 HP = `1000 + (castleLv-1)*100`；敵方主堡 HP = 關卡 `enemyBaseHp`。
 - 初始魚 150，收入 `7.5 + 4.5*(researchLv-1)` 魚/秒。
+- `world.env`：章節環境狀態，由 `createEnv(cfg.env)` 建立；無環境的關卡為 `null`（見 §4.6）。
 - `units` 陣列中 `team: 1` 是貓，`team: -1` 是敵人。
 - 單位由 `ai.js` 的 `makeUnit(team, x, y, tpl, key)` 建立，主要欄位：`id`、`key`、`team`、`x`/`y`、`hp`/`maxHp`、`speed`/`baseSpeed`、`atk`/`baseAtk`、`range`、`atkRate`/`atkCd`、`color`、`name`、`bounty`、`aoe*`/`maxTargets`、`abilities`、`effects`、`shieldHp`/`shieldCd`、`revived`。
 - **`unit.key`**（EG-002）：模板 key。貓 = cats key（`'white'`、`'ninja'`…，來自 `spawnCat(key)`）；敵人 = `ENEMIES` key；BOSS = `BOSSES` key。找不到 key 而退回預設時，`key` 也跟著是退回後的 `'dog'` / `'boarKing'`，與實際外觀數值一致。可供 `draw.js` 選角色圖。
@@ -139,6 +145,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 1. 時間、魚收入、大砲 CD、各貓召喚 CD 遞減
 2. `spawnBossIfNeeded`（依 `boss.time` 與 `boss.hp` 條件）
 3. 依關卡 `schedule` 生怪（見 §5）
+3.5 `stepEnv(w, dt)` 推進章節環境（含潮汐推力），再用 `pollEnvCues(w)` 取得本幀的音效提示，呼叫 `audio.playEnvCue?.(kind)`（見 §4.6）
 4. `stepUnits`：能力處理 → 找最近敵人 → 攻擊 → 移動 → 清屍、計算擊殺賞金（加到**魚**）
 5. 勝負判定：敵堡 HP≤0 勝 / 我堡 HP≤0 敗 → 300ms 後回大廳
 6. HUD 每 0.12s 同步到 React state，Canvas 每幀重畫
@@ -171,16 +178,31 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 ### 4.5 繪製 — `draw.js`
 - `drawAll`：背景漸層、地面、兩座主堡（含血條）、所有單位、左上角資訊文字、勝敗遮罩。
 - `drawUnit(ctx, u, t)`：貓畫角色圖（無圖退回色塊 + 耳朵）、敵人畫色塊；血條；貓顯示名字，敵人一律顯示「敵」。`t` = `world.time`。
+- **章節環境畫面**（UI-007，只讀 `world.env`）：`envState` 用 `WeakMap`（key = world）存平滑過場值，以 `world.time` 推進（暫停停、2x 加速）。晝夜：白天右上太陽；夜晚整體罩深藍、星星閃爍、月牙，預告期間天色先微暗，切換約 1 秒漸變。潮汐：地面上一層水（平靜淺、潮水期間升高約 26px），浪花線與「‹‹ / ››」箭頭順著流向移動；預告期間水位微升並朝下一波方向流動。太陽畫在主堡/單位之前，夜色、星月、潮水畫在單位之後。
 - **我方貓咪動畫**（UI-006）：`draw.js` 用 `WeakMap` 另存每隻貓的動畫狀態，**只讀** unit，不改戰鬥資料。每幀比對上一幀推算：`x` 往前增加 → 走路（依移動距離推進步伐：彈跳、搖擺、落地壓扁）；`atkCd` 變大 → 剛出手（0.3 秒：蓄力後縮→前撲放大＋揮擊弧線）；`hp` 變少 → 受擊（閃紅＋後震）；都沒有 → 待機呼吸。時間用 `world.time`，暫停會停、2x 會加速。名字與血條不跟著動。敵人沒有動畫。
 - 畫布寬度 = max(towerDistance+100, 高×1.9)，支援 DPR（上限 2）。
 
+### 4.6 章節環境引擎 — `src/game/environment.js`（EG-003）
+設計與介面合約見 [design/chapter-environment.md](design/chapter-environment.md)。參數一律讀 `world.cfg.env`（`stageConfig().env`，由關卡角色提供）；`world.env` 只放狀態，結構照設計文件 §4.2，給 UI / 音效**唯讀**。
+- `createEnv(envCfg)`：`null` / `false` / 未知 `type` → `null`。晝夜從 `startPhase`（預設 `day`）開始，潮汐從 `calm` 開始。
+- `stepEnv(world, dt)`：`dt ≤ 0`（暫停）不做事。依 `dt` 推進 `phaseLeft`，歸零就切換階段、`events += 1`；一幀跨越多個階段會逐段計算。每幀重算 `phaseProgress` 與 `warning`。
+  - 晝夜：`day`(dayLength) ⇄ `night`(nightLength)；夜晚前 `warnTime` 秒 `warning = { next: 'night', in }`，天亮前不預告。
+  - 潮汐：`calm`(calmLength) → `flood`(surgeLength) → `calm` → `ebb` → …；下一波方向由 `events` 推算（平靜時已發生的潮水數為偶數 → `flood`）。潮水前 `warnTime` 秒預告。
+  - 潮汐推力：只算本幀落在潮水期間的時間，`flood` 往左、`ebb` 往右，速度 `pushSpeed` px/秒；套用在所有存活且非 `knockbackImmune` 的單位（凍結中也會被推）。邊界同一般移動：`[50+18, 50+towerDistance-18]`，只阻止「被推過」邊界，原本就在邊界外（例如被大砲擊退）的單位不會被拉回。
+- `getEnvModifiers(world)` → `{ enemyAtkMul, enemySpeedMul, bountyMul }`；只有晝夜的 `night` 階段有值，其餘全為 1。`stepUnits` 在計算完 slow（速度）與 berserk（攻擊）之後，對**敵人**再乘上倍率；擊殺賞金 `Math.round(killBounty × bountyMul)`。我方不受影響。
+- `pollEnvCues(world)`（設計文件以外的輔助函式）：回傳本幀新出現的音效提示 `kind` 陣列（`nightWarn` / `dayStart` / `floodWarn` / `ebbWarn`），每次預告、每次天亮各一次；進度記在 `world.envCueSeen`（不放進 `world.env`）。
+- 不影響 `atkCd` 的寫法（§11 #17）；`world.env === null` 時所有倍率為 1，行為與加入環境前完全相同。
+- 測試：`src/game/environment.test.js`（vitest）。
+
 ---
+
+> 🌗🌊 **章節環境機制（已實作，平衡試玩中）**（第一章晝夜、第二章潮汐），設計見 [design/chapter-environment.md](design/chapter-environment.md)，任務 LV-002、EG-003、UI-007、AU-005、EC-001。
 
 ## 5. 關卡 — `spawns.js` / `spawns2.js` / `stages.js`
 
 - **章節**：1 = 世界篇（`SPAWNS`，20 關）、2 = 未來篇（`SPAWNS2`，20 關，海洋主題敵人）。對應表在 `stages.js` 的 `SPAWNS_MAP`。
 - `getMaxStage(chapter)` = 該章最大關卡編號。
-- `stageConfig(stage, chapter)` 回傳：`enemyBaseHp`(預設1000)、`towerDistance`(預設750)、`schedule`（深拷貝、依 time 排序）、`isBoss/bossKey/bossAt/bossHp/bossMultiplier`、`rewardCoins`。
+- `stageConfig(stage, chapter)` 回傳：`enemyBaseHp`(預設1000)、`towerDistance`(預設750)、`schedule`（深拷貝、依 time 排序）、`isBoss/bossKey/bossAt/bossHp/bossMultiplier`、`rewardCoins`、`env`（章節環境，見下方）。
 
 ### 關卡資料格式
 ```js
@@ -188,6 +210,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
   enemyBaseHp: 1000,        // 敵堡 HP
   towerDistance: 800,       // 兩堡距離(px)
   reward: 250,              // 勝利金幣
+  env: { nightLength: 35 }, // 可選；章節環境（省略=章節預設、false=不啟用、物件=部分覆寫）
   boss: { time: 1, key: 'boarKing', hp: 2000, multiplier: 100 }, // 可選；time 秒後且敵堡 HP ≤ hp 才出
   schedule: [
     { time: 1, type: 'hippo', multiplier: 100 },                 // 單次
@@ -203,6 +226,23 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 - 排程出的敵人**不套用**難度成長；BOSS（`boss` 欄位）**會套用** `computeScale`：每關 +8%、每秒 +0.4%（上限 180s）、每已出怪 +1.5%（上限 +45%）。
 - 關卡解鎖：勝利後 `highestUnlocked[章] = min(最大關, max(原值, 本關+1))`。已通關的關卡可重複刷獎勵。
 - 關卡選擇畫面依 `stageConfig(n, chapter).isBoss` 標 ⭐（UI-002）；`App` 會傳 `chapter` 給 `LevelSelect`。
+
+### 章節環境機制（LV-002，設計見 `docs/design/chapter-environment.md`）
+- `stages.js` 匯出 `CHAPTER_ENV`：第 1 章 `dayNight`（晝夜）、第 2 章 `tide`（潮汐）的預設參數。
+- `stageConfig().env` = `{ ...CHAPTER_ENV[章], ...關卡 env }`（每次回傳新物件，改它不會影響預設）；關卡 `env: false` 或該章沒有預設時為 `null`。
+- 目前逐關設定：
+
+| 關卡 | env |
+|---|---|
+| 1-1 ~ 1-3 | `false`（新手教學） |
+| 1-4 ~ 1-14、1-16 ~ 1-18 | 章節預設（白天 45 / 夜晚 25） |
+| 1-15（星眼巨像） | `nightLength: 30` |
+| 1-19（野豬王） | `nightLength: 35` |
+| 1-20（機甲巨像，章末） | `dayLength: 40, nightLength: 35` |
+| 2-1 | `false`（新手教學） |
+| 2-2 ~ 2-14、2-16、2-18、2-19 | 章節預設（平靜 24 / 潮水 6 / 推力 32） |
+| 2-15、2-17（兩堡距離 350） | `pushSpeed: 20` |
+| 2-20（幽靈鯊，章末） | `calmLength: 20` |
 
 ### 新增章節需要改的地方
 `spawnsN.js` 新檔 → `stages.js` 的 `SPAWNS_MAP` → `ChapterSelect.jsx` 按鈕 → `App.jsx` 的 `highestUnlocked` 預設值與 `handleReset` → `Lobby.jsx` 右上 Pill 顯示。
@@ -252,15 +292,22 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 
 ## 8. 音效 — `src/audio/`
 
-- `AudioManager` 單例（Web Audio API）。節點：`musicFade`（淡入淡出用）→ `music` 分類 gain → `master`；`summon` / `ui` / `result` 分類 gain → `master`。淡入淡出只動 `musicFade`，不會改到使用者設定的音量。
-- **音量分類**（AU-002）：`master` 總音量、`music` 背景音樂、`summon` 召喚音效、`ui` 按鈕音效、`result` 勝敗音效。
-  - 由音訊模組自己存到 localStorage `audioVolumes`（`{ master, music, summon, ui, result }`，0~1；預設 master 1、其他 0.8）。沒有 `audioVolumes` 時會把舊 key `volume` 轉成 `master`（舊 key 不刪）。
+- `AudioManager` 單例（Web Audio API）。節點：`musicFade`（淡入淡出用）→ `music` 分類 gain → `master`；`summon` / `ui` / `result` / `env` 分類 gain → `master`。淡入淡出只動 `musicFade`，不會改到使用者設定的音量。
+- **音量分類**（AU-002）：`master` 總音量、`music` 背景音樂、`summon` 召喚音效、`ui` 按鈕音效、`result` 勝敗音效、`env` 環境提示音（AU-005）。
+  - 由音訊模組自己存到 localStorage `audioVolumes`（`{ master, music, summon, ui, result, env }`，0~1；預設 master 1、其他 0.8；舊存檔缺少的分類自動補預設值）。沒有 `audioVolumes` 時會把舊 key `volume` 轉成 `master`（舊 key 不刪）。
   - 對外 API：`audio.getVolumes()`、`audio.setVolume(category, value)`（立即生效並存檔；AudioContext 尚未建立也可呼叫，建立時套用）、`audio.playClick()`（按鈕音效，60ms 冷卻）。舊的 `setMasterVolume` / `setMusicVolume` / `setSfxVolume` 保留為相容用（轉呼叫 `setVolume`）。
-  - 音效 → 分類：`sfx_summon`→summon、`sfx_click`→ui、`sfx_win`/`sfx_lose`→result；其他 key 預設 summon，可用 `audio.register(key, url, { category })` 指定。
+  - 音效 → 分類：`sfx_summon`→summon、`sfx_click`→ui、`sfx_win`/`sfx_lose`→result、`env_*`→env；其他 key 預設 summon，可用 `audio.register(key, url, { category })` 指定。
 - 註冊的 key：`bgm_lobby`、`bgm_battle`、`sfx_summon`、`sfx_win`、`sfx_lose`（路徑經 `import.meta.env.BASE_URL` 處理），在 `useAudio.js` 模組載入時註冊。`sfx_click` 不是音檔，是振盪器即時合成（三角波 1100→650Hz、約 70ms）。
 - **預載**：`resume()` 第一次建立 AudioContext 後，依註冊順序在背景下載＋解碼所有音檔（載入失敗會還原成 URL，下次可重試）。
 - `playMusic`（硬切；**同一首正在播就不重播**，只取消進行中的淡出；`{ restart: true }` 可強制重播）、`crossfadeMusic`（淡入淡出）、`fadeOutMusic`（淡出後停止；之後若有新的播放請求，停止動作會被取消）、`playSfx`（預設 80ms 冷卻）。播放 / 淡出都走 token 機制，「最後一次請求」生效，避免競態。所有公開方法失敗只 `console.warn`，不支援 Web Audio 的環境（測試）不會報錯。
 - 瀏覽器需使用者互動才能播放：App 在第一次 pointerdown/keydown/touchstart 時 `audio.resume()`；在那之前的播放請求會等到解鎖後才開始。
+- **章節環境提示音**（AU-005，設計文件 `docs/design/chapter-environment.md` §4.4）：`audio.playEnvCue(kind)`，`kind` ∈ `ENV_CUES`＝`nightWarn` / `dayStart` / `floodWarn` / `ebbWarn`（其他值直接忽略）。全部即時合成、走 `env` 分類、同一種 1.5 秒冷卻（內部 key 為 `env_<kind>`，經 `playSfx`）。
+  - `nightWarn`：低沉鐘聲（G2 基音＋不和諧泛音），敲兩下，約 2.7 秒。
+  - `dayStart`：三角波上行琶音 C5-E5-G5-C6，約 0.5 秒。
+  - `floodWarn`：帶通雜訊浪聲，濾波頻率由高往低、聲像由右往左（潮水往我方推），加低沉下滑音，約 1.5 秒。
+  - `ebbWarn`：同上但頻率由低往高、聲像由左往右，加輕的上滑音。
+  - 由戰鬥引擎在 `Battle.jsx` 以 `audio.playEnvCue?.(kind)` 呼叫。
+- 開發模式（`npm run dev`）下單例會掛在 `window.audio`，可在瀏覽器 console 試聽，例如 `audio.playEnvCue('nightWarn')`（需先點過頁面解鎖音訊）。正式建置不會掛。
 - 播放時機：Lobby / ChapterSelect / LevelSelect → bgm_lobby（同一首不重播）；Battle 進場 → bgm_battle、離場 → bgm_lobby；召喚 → sfx_summon；勝/敗 → 淡出 + sfx。
 
 ---

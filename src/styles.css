@@ -1188,3 +1188,116 @@ input:focus-visible {
     grid-column: 1 / -1;
   }
 }
+
+/* ==========================================================================
+   章節環境 HUD（疊在戰場 Canvas 上方）
+   ========================================================================== */
+
+.env-hud {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.env-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.env-chip-icon { font-size: 15px; }
+.env-chip-time { opacity: 0.85; font-weight: 600; }
+
+.env-phase-day { background: rgba(217, 119, 6, 0.78); }
+.env-phase-night { background: rgba(30, 27, 75, 0.82); border-color: rgba(165, 180, 252, 0.5); }
+.env-phase-calm { background: rgba(14, 116, 144, 0.7); }
+.env-phase-flood { background: rgba(190, 18, 60, 0.82); }
+.env-phase-ebb { background: rgba(21, 128, 61, 0.8); }
+
+.env-warning {
+  padding: 6px 16px;
+  border-radius: 12px;
+  font-size: clamp(13px, 2.4vw, 16px);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.02em;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+  animation: envPulse 0.8s ease-in-out infinite;
+  white-space: nowrap;
+}
+
+.env-warning.is-danger {
+  background: linear-gradient(90deg, #7f1d1d, #dc2626, #7f1d1d);
+  border: 2px solid #fecaca;
+}
+
+.env-warning.is-good {
+  background: linear-gradient(90deg, #14532d, #16a34a, #14532d);
+  border: 2px solid #bbf7d0;
+}
+
+@keyframes envPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.06); opacity: 0.82; }
+}
+
+/* 關卡格上的環境小圖示 */
+.stage-env {
+  position: absolute;
+  left: 4px;
+  bottom: 2px;
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* 章節卡片上的環境規則說明 */
+.chapter-env {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+  padding: 6px 10px;
+  width: 100%;
+  border-radius: 10px;
+  background: var(--color-inset);
+  border: 1px dashed var(--color-line-strong);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+  white-space: normal;
+  color: var(--color-ink-sub);
+}
+
+.chapter-env b {
+  color: var(--color-ink);
+  font-weight: 800;
+}
+
+/* 首次環境說明視窗 */
+.env-tip-list {
+  margin: 0;
+  padding: 10px 12px 10px 28px;
+  border-radius: 12px;
+  background: var(--color-inset);
+  border: 1px solid var(--color-line);
+  font-size: 14px;
+  line-height: 1.6;
+  list-style: disc;
+}

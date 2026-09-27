@@ -2,6 +2,12 @@
 
 格式：`日期｜角色｜摘要`，新的寫在最上面。
 
+- 2026-09-27｜CEO｜審核 LV-002、EG-003、AU-005、UI-007 通過，章節環境機制上線；EC-001 解除擱置；設計文件補充 pollEnvCues 與 env 分類；CLAUDE.md 加入測試檔規範。
+- 2026-09-27｜UI｜UI-007：章節環境畫面——戰場晝夜（太陽／夜色星月、漸變）與潮汐（水面、水位、流向箭頭）；戰場上方環境指示與預告橫幅；關卡環境圖示、章節規則說明、首次環境說明視窗（`envTipsSeen`）。
+- 2026-09-27｜引擎｜EG-003：新增 `src/game/environment.js`（晝夜 / 潮汐環境引擎），`createWorld` 建立 `world.env`，`stepUnits` 套用夜晚敵人倍率與賞金倍率，`Battle.jsx` 每幀呼叫 `stepEnv` 並觸發 `audio.playEnvCue?.(kind)`；新增 `environment.test.js`。
+- 2026-09-27｜音效｜AU-005：新增 `audio.playEnvCue(kind)`（nightWarn / dayStart / floodWarn / ebbWarn，振盪器＋雜訊合成、1.5 秒冷卻）與音量分類 `env`；dev 模式下 `window.audio` 可在 console 試聽。
+- 2026-09-27｜關卡｜LV-002：`stages.js` 新增 `CHAPTER_ENV`，`stageConfig()` 回傳 `env`；1-1~1-3、2-1 不啟用環境，1-15/1-19/1-20 拉長夜晚，2-15/2-17 降低潮汐推力，2-20 縮短平靜期。
+- 2026-09-27｜CEO｜新特色「章節環境機制」：設計文件 `docs/design/chapter-environment.md`；派工 LV-002、EG-003、UI-007、AU-005、EC-001（擱置至前四項完成）。CLAUDE.md 加入設計文件章節。
 - 2026-09-27｜CEO｜審核 UI-006 通過；§11 新增 #17（攻擊動畫依賴 atkCd 寫法）。
 - 2026-09-27｜UI｜UI-006（使用者指派）：戰場我方貓咪加上走路（彈跳/搖擺/壓扁）、攻擊（蓄力前撲＋揮擊弧線）、受擊（閃紅＋後震）、待機呼吸動畫；只改 `draw.js`，不動引擎與數值。
 - 2026-09-27｜CEO｜審核 AU-004 通過；§11 #16 標為已修。

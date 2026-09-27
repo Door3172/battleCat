@@ -224,3 +224,77 @@ CEO-004 為了不動 `App.jsx`、`Battle.jsx`，在 `src/styles.css` 用選擇�
 - 2026-09-27 通過。只改 `draw.js`，以 WeakMap 另存動畫狀態、只讀 unit，未動引擎與數值；build、test 通過。使用者直接指派的任務記在自己的任務檔，流程正確。
 - 關於「請引擎記錄 `lastAttackAt` / `moving`」的建議：目前的推算方式可運作，暫不開 EG 任務；日後引擎若改動攻擊冷卻的寫法，須同步通知 UI（已記入 PROJECT_MAP §11 #17）。
 
+## [UI-007] 章節環境機制：畫面與提示
+- 狀態：已完成
+- 優先度：高
+- 來自：CEO（2026-09-27，使用者選定新特色「章節環境機制」）
+- 依賴：接上真實資料需要 EG-003（`world.env`）與 LV-002（`stageConfig().env`）；在它們完成前可以先用假資料做畫面
+
+**設計文件**：`docs/design/chapter-environment.md`（**先完整讀過**；§4 介面是合約，不可自行更改，有問題寫進 `docs/tasks/ceo.md`）
+
+**需求**（詳見設計文件 §4.3）
+1. 戰場 Canvas：晝夜（變暗偏藍、星星月亮 / 太陽，漸變過場）、潮汐（水面、漲退潮水位與流向）。
+2. HUD：目前階段圖示＋剩餘秒數；預告期間明顯警示（含方向）。
+3. 關卡選擇：有環境的關卡顯示 🌗 / 🌊 小圖示；章節選擇卡片說明環境規則。
+4. 首次遇到某種環境時，戰鬥開始前跳一次說明視窗，已看過的記在 localStorage `envTipsSeen`。
+
+**授權的跨檔修改**：`src/scenes/Battle.jsx` 只可修改 JSX 中與顯示有關的部分（HUD 環境指示、首次說明視窗）；主迴圈、召喚、勝負等邏輯一律不動。若需要戰鬥邏輯配合（例如說明視窗顯示時要暫停），寫進 `docs/tasks/engine.md` 請引擎處理。
+
+**完成條件**
+- 四種主題下晝夜、潮汐都清楚好看；預告容易注意到。
+- `npm run build`、`npm test` 通過；更新 `docs/PROJECT_MAP.md` §2、§4.5；驗證完關閉 dev server 與瀏覽器。
+
+### 回報（負責角色填寫）
+- 修改檔案：
+  - 新增：`src/ui/envInfo.js`、`src/ui/EnvIndicator.jsx`
+  - 修改：`src/game/draw.js`、`src/styles.css`、`src/scenes/LevelSelect.jsx`、`src/scenes/ChapterSelect.jsx`、`src/scenes/Battle.jsx`（授權範圍：只加 `import EnvIndicator` 與畫布下方一行 `<EnvIndicator … />`）、`docs/PROJECT_MAP.md`（§2、§4.5）、`docs/CHANGELOG.md`
+- 做了什麼（依設計文件 §4.3，全部只讀 `world.env` / `stageConfig().env`，沒有改任何合約）：
+  1. **戰場 Canvas**（`draw.js`）：
+     - 晝夜：白天右上角太陽；夜晚整體罩深藍、星星（固定位置、會閃）、月牙。預告夜晚時天色先微暗；切換約 1 秒漸變，不會瞬間跳色。
+     - 潮汐：地面有一層水；漲／退潮時水位升高、浪花線和「‹‹／››」箭頭順著流向移動；預告期間水位微升並開始朝下一波方向流動。
+     - 過場數值存在 `WeakMap`（以 world 為 key），用 `world.time` 推進（暫停會停、2x 加速、重開自動重置）。
+  2. **HUD**（`EnvIndicator`，疊在戰場上方中央）：目前階段圖示＋名稱（潮汐含 ←／→）＋剩餘秒數，底色依階段變化；預告期間顯示閃爍橫幅，例如「🌙 夜晚將在 5 秒後降臨」「🌊 漲潮將在 4 秒後來襲 ←」（危險＝紅、機會＝綠）。元件自己每 100ms 讀 `worldRef.current.env`，**不動主迴圈**。
+  3. **關卡選擇**：有環境的關卡左下角顯示 🌗／🌊（hover 顯示說明），下方列出本章環境規則。**章節選擇**：卡片加「戰場規則」說明（讀 `CHAPTER_ENV`，尚未提供時退回設計文件的章節對應）。
+  4. **首次說明視窗**：在**關卡選擇**點到首次遇到的環境類型時先跳說明（規則三點＋「返回」／「知道了，開始戰鬥」），按開始才寫入 `localStorage.envTipsSeen`（陣列，例如 `["dayNight"]`）並進入戰鬥。放在進戰鬥之前，所以**不需要引擎配合暫停**，沒有開 EG 任務。`envTipsSeen` 沒有加入 `PRESERVED_KEYS`（照設計文件）。
+- 如何驗證：
+  - `npm run build` 成功；`npm test` 通過（2 個測試檔、14 個測試，含引擎的 `environment.test.js`）。
+  - 在工作目錄中 LV-002、EG-003 的實際程式上測試：章節卡片規則說明正常；第一章第 1~3 關無圖示、第 4 關起顯示 🌗；清除 `envTipsSeen` 後點第 4 關出現說明視窗，按開始後 `envTipsSeen` = `["dayNight"]` 並進入戰鬥；戰鬥中環境標籤顯示「☀️ 白天 43s」，之後實際切換到夜晚並顯示「🌙 夜晚 18s」。
+  - 因為預覽窗格後來停止繪製（`requestAnimationFrame` 每秒 0 次，窗格被遮住），實戰中等不到預告，改用兩種方式補驗：(a) 在頁面中直接載入 `draw.js`，用假 world 畫出白天／夜晚／夜晚預告／漲潮／退潮／平靜／漲潮預告，四種主題都各看過；(b) 用相同 class 渲染預告橫幅與各階段標籤檢查文字與配色。
+  - 驗證完已關閉自己開的 dev server 與瀏覽器分頁。
+- 新增給其他角色的請求：無
+- 給 CEO 的注意事項：
+  - commit 範圍：上列檔案＋`docs/tasks/ui.md`。`Battle.jsx`、`draw.js` 目前也含其他角色（EG-003）未審核的改動，commit 時請留意分開。
+  - 我的畫面依賴 LV-002（`stageConfig().env`、`CHAPTER_ENV`）與 EG-003（`world.env`）。在它們 commit 前，UI-007 單獨上線也不會出錯：沒有 env 時圖示、HUD、效果都不顯示，章節卡片仍顯示規則說明（用設計文件預設）。
+  - **潮汐的實戰畫面**（第二章）沒有在實際戰鬥中看到，只用假資料驗證過繪製效果；建議 EC-001 試玩時順便確認。
+  - 驗證時我改了預覽瀏覽器（localhost:5173）的 localStorage：`highestUnlocked` 設為兩章全開（`{1:20,2:20}`）、`envTipsSeen` 被清除後又寫成 `["dayNight"]`、主題設為 minimal。只影響本機預覽用的瀏覽器。
+  - 預告秒數用無條件進位顯示（剩 4.2 秒顯示「5 秒」），剛開始預告時會顯示設計文件的整數秒數。
+
+### 審核（CEO 填寫）
+- 2026-09-27 通過。Battle.jsx 只加 import 與一行 `<EnvIndicator>`，符合授權；首次說明改在關卡選擇時跳出，免去暫停需求，判斷正確。第二章潮汐的實戰畫面交由 EC-001 試玩時確認。
+
+
+## [UI-008] 設定畫面新增「環境提示音」音量滑桿
+- 狀態：待處理
+- 優先度：中
+- 來自：音效（2026-09-27，AU-005）
+- 依賴：AU-005（`env` 分類已實作，可直接開工）
+
+**需求**
+AU-005 新增了音量分類 `env`（章節環境提示音：晝夜、潮汐的預告音）。請在 `src/ui/SettingsDialog.jsx` 的 `VOLUME_ROWS` 加一條：
+- `key: 'env'`，標籤建議「環境提示音」，圖示建議 🌗
+- 試聽：`preview: (audio) => audio.playEnvCue('nightWarn')`
+
+`audio.getVolumes()` 已包含 `env`（預設 0.8，舊存檔會自動補），`audio.setVolume('env', v)` 立即生效並存檔，和其他分類用法完全相同。
+
+**完成條件**
+- 設定畫面出現第六條滑桿，調整即時生效、重新整理後保留；試聽按鈕有聲音。
+- `npm run build`、`npm test` 通過；更新 `docs/PROJECT_MAP.md` §2（若有列出滑桿）；驗證完關閉 dev server 與瀏覽器。
+
+### 回報（負責角色填寫）
+- 修改檔案：
+- 做了什麼：
+- 如何驗證：
+- 新增給其他角色的請求：
+- 給 CEO 的注意事項：
+
+### 審核（CEO 填寫）

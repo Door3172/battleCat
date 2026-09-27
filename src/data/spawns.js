@@ -3,6 +3,7 @@
 //   {
 //     enemyBaseHp: 1000,      // 敵方城堡血量（可省略）
 //     towerDistance: 800,     // 兩城距離（可省略）
+//     env: false,             // 章節環境機制（可省略=章節預設；false=不啟用；物件=覆寫部分參數，見 stages.js 的 CHAPTER_ENV）
 //     schedule: [             // 出怪排程
 //       {
 //         type: 'dog',        // 敵人種類（對應 src/data/enemies.js 的 key）
@@ -45,6 +46,7 @@ export const SPAWNS = {
     enemyBaseHp: 500,
     towerDistance: 650,
     reward: 120,
+    env: false,
     schedule: [
       { start: 10, interval: 15, type: 'dog', multiplier: 100 },
       { start: 30, interval: 40, type: 'dog', multiplier: 100 },
@@ -54,6 +56,7 @@ export const SPAWNS = {
   2: {
     enemyBaseHp: 600,
     reward: 130,
+    env: false,
     schedule: [
       { start: 10, interval: 15, type: 'dog', multiplier: 100 },
       { start: 25, interval: 35, type: 'dog', multiplier: 150 },
@@ -66,6 +69,7 @@ export const SPAWNS = {
   3: {
     enemyBaseHp: 650,
     reward: 140,
+    env: false,
     schedule: [
       { start: 10, interval: 17, type: 'dog', multiplier: 150 },
       { start: 30, interval: 13, type: 'dog', multiplier: 100 },
@@ -234,6 +238,7 @@ export const SPAWNS = {
     enemyBaseHp: 3000,
     towerDistance: 900,
     reward: 680,
+    env: { nightLength: 30 },
     boss: { time: 45, key: 'alienEye' },
     schedule: [
       { time: 5, type: 'black', multiplier: 150 },
@@ -290,6 +295,7 @@ export const SPAWNS = {
     enemyBaseHp: 2000,
     towerDistance: 750,
     reward: 720,
+    env: { nightLength: 35 },
     boss: { time: 40, key: 'boarKing' },
     schedule: [
       { time: 5, type: 'boar', multiplier: 150 },
@@ -304,6 +310,7 @@ export const SPAWNS = {
     enemyBaseHp: 3200,
     towerDistance: 800,
     reward: 840,
+    env: { dayLength: 40, nightLength: 35 },
     boss: { time: 3, key: 'mechGolem' },
     schedule: [
       { time: 15, type: 'bull', multiplier: 125 },
