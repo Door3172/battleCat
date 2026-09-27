@@ -6,7 +6,6 @@ import Dialog from '../ui/Dialog.jsx';
 import Toolbar from '../ui/Toolbar.jsx';
 import Button from '../ui/Button.jsx';
 import Pill from '../ui/Pill.jsx';
-import { SKIN } from '../data/skin.js';
 import { fmt } from '../utils/number.js';
 import { createWorld } from '../game/world.js';
 import { spawnEnemy, stepUnits, groundY, makeUnit, spawnBossIfNeeded } from '../game/ai.js';

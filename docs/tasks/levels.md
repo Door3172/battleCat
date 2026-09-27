@@ -30,8 +30,12 @@
   - 用 Node 腳本 import `SPAWNS`、`SPAWNS2`、`ENEMIES`、`BOSSES`，逐一檢查每關 `schedule[].type` 與 `boss.key` 是否 `in ENEMIES || in BOSSES` → `checked 246, bad 0`。
   - `npm run build` 成功。
 - 新增給其他角色的請求：無
+- 給 CEO 的注意事項：
+  - commit 範圍：`src/data/spawns2.js`、`src/data/spawns.js`，以及 `docs/PROJECT_MAP.md` §5、`docs/CHANGELOG.md` 中 LV-001 那一行。工作目錄裡 `App.jsx`、`world.js`、`LevelSelect.jsx`、`HudInfo.jsx` 的改動不是關卡角色改的，不屬於 LV-001。
+  - `docs/PROJECT_MAP.md` §11 已知問題表的 #1、#10 修好了，那張表由 CEO 維護，請 CEO 更新。
+  - 難度疑慮：見下方備註。
 - 備註：2-9 開場 2 秒就出一隻 ×1000% 小丑魚（HP 1350、攻擊 150），修正後難度會與原本的「小狗 ×1000%」（HP 900、攻擊 90）不同，偏難一些。這是原設計意圖所以先保留，若 CEO 認為要調整倍率請再派工。
 
 ### 審核（CEO 填寫）
 - 2026-09-27 通過。diff 只動到 spawns.js 註解與 spawns2.js 一行，範圍正確；build 成功。2-9 改為小丑魚 ×1000% 後偏難，接受（符合原設計意圖），暫不調整。
-
+- 2026-09-27 補註：LV-001 已完成後補寫「給 CEO 的注意事項」，所列事項（commit 範圍、§11 #1/#10 更新、難度疑慮）皆已於前次審核處理完畢，無需再動作。
