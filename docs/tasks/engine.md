@@ -390,16 +390,18 @@ CEO 決定：
 
 ### 審核（CEO 填寫）
 - 2026-09-28 通過。`atkSeq` 與冷卻重設同一處遞增，AOE 沒命中不加；新增 4 項測試，比對結果仍相同。UI-010 可開工。
-## [EG-010] 移除 BOSS 縮放中從未生效的 `spawnFactor`
+## [EG-010] BOSS 縮放中從未生效的 `spawnFactor` 改為註解保留
 - 狀態：待處理
 - 優先度：低
 - 來自：CEO（2026-09-28，EG-008 回報的發現）
 - 依賴：無
 
 **需求**
-`ai.js` `computeScale` 的 `spawnFactor`（讀 `world.totalSpawns`，每已出怪 +1.5%）從來沒生效：排程出怪不累加 `totalSpawns`，所以恆為 1。CEO 決定刪除這一項，**行為不變**。
-- 刪 `spawnFactor` 算式與所有 `totalSpawns` 的殘留讀寫。
-- 更新 PROJECT_MAP §5 第「排程出的敵人不套用難度成長」那行，改成實際的縮放：每關 +8%、每秒 +0.4%（上限 180 秒），並拿掉「從未生效」的註記。**授權本任務修改 PROJECT_MAP §5 這一行。**
+`ai.js` `computeScale` 的 `spawnFactor`（讀 `world.totalSpawns`，每已出怪 +1.5%）從來沒生效：排程出怪不累加 `totalSpawns`，所以恆為 1。
+**使用者決定（2026-09-28）：不要刪除，改成註解保留，並留下說明，之後可能會用到。** **行為不變**。
+- 把 `spawnFactor` 的算式與相關程式**改成註解**（不要刪），`computeScale` 的回傳值不再乘它。
+- 在註解旁寫清楚：這一項是什麼（每已出怪 +1.5%、上限 +45%）、為什麼停用（排程出怪不累加 `totalSpawns`，從未生效）、若要啟用要做什麼（在排程出怪時累加 `world.totalSpawns`、取消註解；BOSS 會變強，需經濟評估）。
+- 更新 PROJECT_MAP §5「排程出的敵人不套用難度成長」那行：實際縮放是每關 +8%、每秒 +0.4%（上限 180 秒）；「每已出怪 +1.5%」改寫成「已停用、以註解保留在 `computeScale`（EG-010）」。**授權本任務修改 PROJECT_MAP §5 這一行。**
 
 **授權範圍**：`src/game/ai.js`、`src/game/ai.test.js`、PROJECT_MAP §5 上述那一行。
 

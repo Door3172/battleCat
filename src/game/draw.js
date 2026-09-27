@@ -45,7 +45,7 @@ const STEP_LEN = 14;      // 走一步的距離（px），決定彈跳頻率
 function catAnimState(u, t) {
   let a = anim.get(u);
   if (!a) {
-    a = { x: u.x, atkCd: u.atkCd, hp: u.hp, phase: Math.random() * Math.PI * 2,
+    a = { x: u.x, atkSeq: u.atkSeq ?? 0, hp: u.hp, phase: Math.random() * Math.PI * 2,
           moving: false, atkAt: -99, hurtAt: -99, t, seed: Math.random() * 10 };
     anim.set(u, a);
     return a;
@@ -55,9 +55,10 @@ function catAnimState(u, t) {
     // 往前走才算走路；大幅後退是被擊退，不算步伐
     a.moving = dx > 0.001 && dx < 6;
     if (a.moving) a.phase += (dx / STEP_LEN) * Math.PI;
-    if (u.atkCd > a.atkCd + 0.01) a.atkAt = t;   // 冷卻被重設 = 剛出手
+    const seq = u.atkSeq ?? 0;
+    if (seq > a.atkSeq) a.atkAt = t;   // 引擎每次出手 atkSeq +1（EG-009）= 剛出手
     if (u.hp < a.hp) a.hurtAt = t;
-    a.x = u.x; a.atkCd = u.atkCd; a.hp = u.hp; a.t = t;
+    a.x = u.x; a.atkSeq = seq; a.hp = u.hp; a.t = t;
   }
   return a;
 }
