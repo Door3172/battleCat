@@ -299,7 +299,7 @@ export default function App() {
       <button
         type="button"
         aria-label="開啟設定"
-        className="absolute right-4 top-4 rounded-xl border border-[var(--color-line)] bg-white/80 px-3 py-2 text-sm font-medium text-[var(--color-ink)] shadow-sm backdrop-blur focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+        className="ui-btn ui-corner-btn absolute right-4 top-4 z-20"
         onClick={() => setShowSettings(true)}
       >
         <span className="icon">設定</span>

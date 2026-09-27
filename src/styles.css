@@ -440,32 +440,10 @@ canvas {
   overflow: hidden;
 }
 
-.game-background > :not(.ui-dialog-backdrop) {
+/* 內容層疊在背景之上；Dialog 背景層與角落浮動按鈕自己決定定位 */
+.game-background > :not(.ui-dialog-backdrop):not(.ui-corner-btn) {
   position: relative;
   z-index: 1;
-}
-
-/* 右上角「設定」按鈕（位於 App.jsx，這裡只覆寫外觀） */
-.game-background > button[aria-label="開啟設定"] {
-  position: absolute;
-  z-index: 20;
-  background: var(--btn-bg);
-  color: var(--btn-fg);
-  border-color: var(--btn-border);
-  border-radius: var(--btn-radius);
-  box-shadow: var(--btn-shadow);
-  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.game-background > button[aria-label="開啟設定"]:hover {
-  background: var(--btn-bg-hover);
-  border-color: var(--btn-border-hover);
-  box-shadow: var(--btn-shadow-hover);
-}
-
-.game-background > button[aria-label="開啟設定"] .icon::before {
-  content: "⚙";
-  margin-right: 2px;
 }
 
 /* ==========================================================================
@@ -592,6 +570,19 @@ canvas {
   background: var(--btn-ghost-bg-hover);
   border-color: var(--color-line-strong);
   box-shadow: none;
+}
+
+/* 角落浮動小按鈕（例：App 右上角「設定」），搭配 .ui-btn 使用 */
+.ui-corner-btn {
+  position: absolute; /* .ui-btn 預設 relative，這裡改回浮動 */
+  min-height: 36px;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.ui-corner-btn .icon::before {
+  content: "⚙";
+  margin-right: 2px;
 }
 
 /* 被選中（例：隊伍編成） */
@@ -863,12 +854,22 @@ body.theme-neon .ui-dialog { background: linear-gradient(180deg, #0c1228, #06091
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
-/* Battle.jsx 的單格使用 bg-white，這裡依主題覆寫 */
-.slot-tray [role="listitem"] {
-  background: linear-gradient(180deg, var(--color-card-top), var(--color-card-bottom)) !important;
-  border-color: var(--color-line) !important;
+/* 召喚欄單格 */
+.slot-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 92px;
+  padding: 8px;
+  border: 1px solid var(--color-line);
   border-radius: var(--radius-card);
+  background: linear-gradient(180deg, var(--color-card-top), var(--color-card-bottom));
   color: var(--color-ink);
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.slot-card:hover {
+  transform: scale(1.03);
+  border-color: var(--btn-border-hover);
 }
 
 /* ==========================================================================

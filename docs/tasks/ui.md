@@ -52,7 +52,7 @@
 - 2026-09-27 通過。App.jsx 只多一行 `chapter={currentChapter}`，符合授權；CEO 另行以 stageConfig 驗證 BOSS 關為 1: 10,15,19,20／2: 10,20；build 成功。PROJECT_MAP §5、§11 #13 已由 CEO 更新。
 
 ## [UI-003] 移除「設定」按鈕與戰鬥召喚欄的 CSS 權宜覆寫
-- 狀態：待處理
+- 狀態：已完成
 - 優先度：低
 - 來自：CEO（2026-09-27，源自 CEO-004 回報）
 - 依賴：無
@@ -73,10 +73,18 @@ CEO-004 為了不動 `App.jsx`、`Battle.jsx`，在 `src/styles.css` 用選擇�
 - `npm run build` 成功。
 
 ### 回報（負責角色填寫）
-- 修改檔案：
+- 修改檔案：`src/styles.css`、`src/App.jsx`（僅「開啟設定」按鈕的 `className`）、`src/scenes/Battle.jsx`（僅召喚欄單格 `<div role="listitem">` 的 `className` 與 `style`）
 - 做了什麼：
-- 如何驗證：
-- 新增給其他角色的請求：
+  - (a) 設定按鈕：`className` 改為 `ui-btn ui-corner-btn absolute right-4 top-4 z-20`（`aria-label`、`onClick`、子元素未動）。`styles.css` 新增共用 class `.ui-corner-btn`（角落浮動小按鈕，含 ⚙ 圖示與 `position: absolute`，因 `.ui-btn` 預設是 relative），刪除三條 `button[aria-label="開啟設定"]` 覆寫規則；`.game-background > …` 的 relative 規則改為同時排除 `.ui-corner-btn`。
+  - (b) 召喚欄：單格 `className` 改為 `slot-card`，移除 `style`（原本的 `borderColor: SKIN.color.line`、`minHeight: 92` 移到 CSS）。`styles.css` 新增 `.slot-card`（主題背景、邊框、圓角、min-height 92px、hover 放大），刪除 `.slot-tray [role="listitem"]` 與其 `!important`。
+- 如何驗證：`npm run build` 成功；dev server 進戰鬥畫面，依序切換 4 種主題並等轉場結束後讀取計算後樣式：設定按鈕與召喚欄的背景、文字、邊框都跟著主題變化，設定按鈕為 `position: absolute`、位置在右上角；點設定按鈕能正常開啟視窗（`position: fixed`），Esc 可關閉。`styles.css` 已無 `開啟設定` 選擇器，剩下的 `!important` 只在 `prefers-reduced-motion` 區塊。
+- 新增給其他角色的請求：無
 - 給 CEO 的注意事項：
+  - commit 範圍：`src/styles.css`、`src/App.jsx`、`src/scenes/Battle.jsx`、`docs/tasks/ui.md`、`docs/CHANGELOG.md`。
+  - `Battle.jsx` 第 9 行 `import { SKIN } from '../data/skin.js';` 現在沒有被使用了。授權範圍只有該 div 的 className/style，所以我沒有刪；會不會報錯要看 lint 設定（build 不受影響）。要清掉的話請授權 UI 或交給引擎角色。
+  - 外觀與 CEO-004 版本相同，只是改成正規 class，沒有視覺變更，也不需要更新 PROJECT_MAP。
 
 ### 審核（CEO 填寫）
+- 2026-09-27 通過。App.jsx 只改設定按鈕 className、Battle.jsx 只改召喚欄單格 className/style，完全在授權範圍內；兩組覆寫與 `!important` 已移除；build 成功。
+- 回報提到的 `Battle.jsx` 未使用 `SKIN` import：已派工給戰鬥引擎（EG-001）。
+

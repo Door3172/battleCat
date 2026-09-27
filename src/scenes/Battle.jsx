@@ -310,8 +310,7 @@ export default function Battle({
             return (
               <div
                 key={k}
-                className="flex flex-col rounded-2xl border bg-white px-2 py-2 transition-transform hover:scale-105"
-                style={{ borderColor: SKIN.color.line, minHeight: 92 }}
+                className="slot-card"
                 role="listitem"
               >
                 <div className="flex items-center justify-between gap-2">
