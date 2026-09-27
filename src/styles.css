@@ -904,11 +904,29 @@ body.theme-neon .ui-dialog { background: linear-gradient(180deg, #0c1228, #06091
   background: var(--unit-accent, var(--color-primary));
 }
 
-.unit-card.warrior { --unit-accent: #f59e0b; }
-.unit-card.tank { --unit-accent: #64748b; }
+.unit-card.tank { --unit-accent: #3b82f6; }
+.unit-card.warrior { --unit-accent: #f97316; }
 .unit-card.archer { --unit-accent: #22c55e; }
+.unit-card.mage { --unit-accent: #d946ef; }
 .unit-card.ninja { --unit-accent: #8b5cf6; }
-.unit-card.mage { --unit-accent: #ec4899; }
+.unit-card.special { --unit-accent: #eab308; }
+.unit-card.unknown { --unit-accent: var(--color-line-strong); }
+
+/* 定位標籤：用定位色的淡底＋深字，四種主題都看得清楚 */
+.unit-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 3px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--unit-accent) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--unit-accent) 55%, transparent);
+}
 
 .unit-card .name {
   font-weight: 700;

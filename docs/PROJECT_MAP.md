@@ -86,7 +86,8 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
   - `HudInfo`（不再自帶 Card）/ `SlotTray` / `Toolbar`（`lg` 以上左 1.6 : 右 1）：戰鬥畫面下方控制區。
   - `CatAvatar`（`catKey`, `name`, `size`）：圓形貓咪頭像；沒有圖（`jaycat`、`jay`）或載入失敗時顯示名字首字的漸層徽章。用於隊伍編成、升級、商店、戰鬥召喚欄、圖鑑。深色主題（modern/neon）頭像底色用 `--avatar-bg` 亮色，避免黑線條看不清。
   - `catArt.js`：`CAT_ART_KEYS`（有圖的貓）、`catArtUrl(key)`（含 `import.meta.env.BASE_URL`）、`catKeyByName(中文名)`（圖鑑用，唯讀 `cats.js`）、`preloadCatArt()` / `getCatImage(key)`（Canvas 用）。**新增角色圖**：放 `public/pic/<key>.webp`（最長邊 256px）並把 key 加進 `CAT_ART_KEYS`。
-  - `UnitCard`：圖鑑用，頭像＋名稱＋左側類型色條（已移除原本寫死的假攻擊/血量）。
+  - `UnitCard`（`name`, `role`, `catKey`）：圖鑑用，頭像＋名稱＋定位標籤，左側色條依定位上色。
+  - `catRoles.js`：圖鑑卡片定位，**以貓咪 key 對應**（`CAT_ROLES`）：`tank` 坦克（藍）、`warrior` 近戰（橘）、`archer` 遠程（綠）、`mage` 法術（紫紅）、`ninja` 速攻（紫）、`special` 特殊（黃）；`ROLE_INFO` 為各定位的標籤與圖示。`Codex.jsx` 用 `catKeyByName` 反查 key 後取定位。**新增貓咪時要在 `CAT_ROLES` 補一行**，`catRoles.test.js` 會檢查 `cats.js` 每一隻都有定位、名稱都能反查到 key。
   - **章節環境**（UI-007，設計文件 `docs/design/chapter-environment.md`）：
     - `envInfo.js`：各環境 / 階段的圖示與文字（`ENV_TYPES`、`ENV_PHASES`、`envWarningText()`），以及首次說明的已看紀錄 `hasSeenEnvTip()` / `markEnvTipSeen()`（localStorage `envTipsSeen`，陣列，玩家進度、不在 `PRESERVED_KEYS`）。
     - `EnvIndicator`：疊在戰場 Canvas 上方中央；顯示目前階段圖示＋剩餘秒數（依階段換底色），預告期間顯示閃爍橫幅（夜晚／漲潮紅色、退潮綠色，含方向箭頭）。自己每 100ms 讀 `world.env`，不經過戰鬥主迴圈；`Battle.jsx` 只在 JSX 放 `<EnvIndicator getEnv={() => worldRef.current?.env ?? null} />`。
@@ -119,6 +120,8 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 2. **`SHOP_UNLOCKS`**（金幣購買，`{ name, price, tpl }`）：ninja 忍者喵(120)、knight 騎士喵(300)、mage 法師喵(390)、samurai 武士喵(360)、sumo 相撲喵(300)、viking 維京喵(400)、cow 牛喵(200)、jaycat 禁節貓娘(520)、jay 禁節喵(520)、void 虛空秘典喵(1200)、azurePhantom 蒼藍幻影喵(1200)。
 3. **`GACHA_UNLOCKS`**：目前是空物件。
 
+**新增貓咪時**，除了 `cats.js`，還要請 UI 在 `src/ui/catRoles.js` 的 `CAT_ROLES` 補定位（否則 `catRoles.test.js` 會失敗）、在 `public/pic` 補角色圖（見 §2 `catArt.js`）。
+
 ### 等級計算 — `world.js` 的 `buildCatsTpl(unlocks, catLevels)`
 - `hp = tpl.hp + hpIncrement*(lv-1)`，`attack = tpl.attack + atkIncrement*(lv-1)`。
 - 納入順序：`BASE_CATS` → 已解鎖的 `GACHA_UNLOCKS` → 已解鎖的 `SHOP_UNLOCKS`（皆依宣告順序）。這個順序就是隊伍編成、升級畫面的列表順序。
@@ -138,14 +141,15 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 - 初始魚 150，收入 `7.5 + 4.5*(researchLv-1)` 魚/秒。
 - `world.env`：章節環境狀態，由 `createEnv(cfg.env)` 建立；無環境的關卡為 `null`（見 §4.6）。
 - `units` 陣列中 `team: 1` 是貓，`team: -1` 是敵人。
-- 單位由 `ai.js` 的 `makeUnit(team, x, y, tpl, key)` 建立，主要欄位：`id`、`key`、`team`、`x`/`y`、`hp`/`maxHp`、`speed`/`baseSpeed`、`atk`/`baseAtk`、`range`、`atkRate`/`atkCd`、`color`、`name`、`bounty`、`aoe*`/`maxTargets`、`abilities`、`effects`、`shieldHp`/`shieldCd`、`revived`。
+- 單位由 `ai.js` 的 `makeUnit(team, x, y, tpl, key)` 建立，主要欄位：`id`、`key`、`team`、`x`/`y`、`hp`/`maxHp`、`speed`/`baseSpeed`、`atk`/`baseAtk`、`range`、`atkRate`/`atkCd`、`color`、`name`、`bounty`、`aoe*`/`maxTargets`、`abilities`、`effects`、`shieldHp`/`shieldCd`、`revived`、`atkSeq`。
+- **`unit.atkSeq`**（EG-009，給 UI 攻擊動畫**唯讀**的介面合約）：出手次數，初始 0、只增不減。`stepUnits` 中單位每次真的出手（打到單位、打主堡、AOE 有命中）+1；冷卻中、AOE 範圍內沒打到任何東西（冷卻沒重設）時不變。UI 以「這一幀比上一幀大」判斷剛出手，不要再從 `atkCd` 的變化推算。
 - **`unit.key`**（EG-002）：模板 key。貓 = cats key（`'white'`、`'ninja'`…，來自 `spawnCat(key)`）；敵人 = `ENEMIES` key；BOSS = `BOSSES` key。找不到 key 而退回預設時，`key` 也跟著是退回後的 `'dog'` / `'boarKing'`，與實際外觀數值一致。可供 `draw.js` 選角色圖。
 
 ### 4.2 主迴圈 — `Battle.jsx` `loop()`
 每幀（dt 上限 0.05s × 倍速 1x/2x）：
 1. 時間、魚收入、大砲 CD、各貓召喚 CD 遞減
 2. `spawnBossIfNeeded`（依 `boss.time` 與 `boss.hp` 條件）
-3. 依關卡 `schedule` 生怪（見 §5）：`ai.js` 的 `stepSchedule(world, spawn)`（EG-004 從 `Battle.jsx` 移出）。先用 `while` 依 `nextEnemyIdx` 處理單次 `time` 條目（遇到 `hp` 條件未達會停在這筆），再用 `for` 處理所有條目的時間 / 週期 / `hp` 條件；每筆以 `_spawned` / `_next` 記錄，**單次條目最多生成一次**（`while` 會跳過已被 `for` 生成的條目）。沒有 `schedule` 時回傳 `false`，改走舊的 `enemyClock` 固定頻率。
+3. 依關卡 `schedule` 生怪（見 §5）：`ai.js` 的 `stepSchedule(world, spawn)`（EG-004 從 `Battle.jsx` 移出）。先用 `while` 依 `nextEnemyIdx` 處理單次 `time` 條目（遇到 `hp` 條件未達會停在這筆），再用 `for` 處理所有條目的時間 / 週期 / `hp` 條件；每筆以 `_spawned` / `_next` 記錄，**單次條目最多生成一次**（`while` 會跳過已被 `for` 生成的條目）。實際生成呼叫 `spawnEnemy(world, getCanvasHeight, onEnemySeen, key, statMultiplier)`：只乘 `multiplier%`，不套用難度成長。**所有關卡都必須有非空 `schedule`**（`ai.test.js` 檢查）；舊的固定頻率生怪路徑與 `firstDelay`/`spawnRate`/`pool`/`sequence`/`maxEnemies`/`difficulty` 已於 EG-008 移除，場上敵人數量沒有上限。
 3.5 `stepEnv(w, dt)` 推進章節環境（含潮汐推力），再用 `pollEnvCues(w)` 取得本幀的音效提示，呼叫 `audio.playEnvCue?.(kind)`（見 §4.6）
 4. `stepUnits`：能力處理 → 找最近敵人 → 攻擊 → 移動 → 清屍、計算擊殺賞金（加到**魚**）
 5. 勝負判定：敵堡 HP≤0 勝 / 我堡 HP≤0 敗 → 300ms 後回大廳
@@ -159,7 +163,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 - 目標在射程內（且 ≥ `aoeMinRadius`）或敵堡在射程內就攻擊。
 - 非 AOE：打目標，否則打主堡。AOE：對半徑內所有敵人（最多 `maxTargets`），名額有剩且主堡在範圍內也打主堡。
 - 移動：與目標距離 ≤ `range*0.98` 停下；貼太近（< BODY_W*0.9）停下；抵達敵堡前 18px 停下。
-- **貓咪砲**（`Battle.jsx` `fireCannon` → `ai.js` `applyCannon(world, dmg, knock)`）：對所有存活敵人造成 `(60 + (cannonLv-1)*10) × (cfg.difficulty || 1)` 傷害並往右推 60px，CD 20 秒。套用能力系統（EG-006）：
+- **貓咪砲**（`Battle.jsx` `fireCannon` → `ai.js` `applyCannon(world, dmg, knock)`）：對所有存活敵人造成 `60 + (cannonLv-1)*10` 傷害並往右推 60px，CD 20 秒。套用能力系統（EG-006）：
   - **閃避**：擲中 `dodge.chance` → 這發完全無效（不扣血、不推）。
   - **護盾**：`shieldHp` 先吸收，吸不完的才扣 HP。**被護盾完全擋下（實際扣血 0）→ 不推開**；有扣到 HP 才推（EG-007，與一般攻擊 `knockback` 同為 `dealt > 0` 才觸發）。
   - **擊退免疫**：照常受傷，不被推。
@@ -230,7 +234,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 - `multiplier`：百分比，**同時放大 HP 與攻擊**（不是數量）。
 - 可選 `count`：週期出怪的總次數上限（有 `interval` 時預設無限，否則為 1；實作在 `ai.js` 的 `stepSchedule`（EG-004））。
 - 檢查方式：用 Node 匯入 `SPAWNS`/`SPAWNS2`/`ENEMIES`/`BOSSES`，確認每個 `schedule[].type` 與 `boss.key` 都存在於 `ENEMIES` 或 `BOSSES`（2026-09-27 檢查 246 筆，全部合法）。
-- 排程出的敵人**不套用**難度成長；BOSS（`boss` 欄位）**會套用** `computeScale`：每關 +8%、每秒 +0.4%（上限 180s）、每已出怪 +1.5%（上限 +45%）。
+- 排程出的敵人**不套用**難度成長；BOSS（`boss` 欄位）**會套用** `computeScale`：每關 +8%、每秒 +0.4%（上限 180s）、每已出怪 +1.5%（上限 +45%）**這一項從未生效**（排程出怪不會累加 `world.totalSpawns`，恆為 1；EG-008 發現，EG-010 移除）。
 - 關卡解鎖：勝利後 `highestUnlocked[章] = min(最大關, max(原值, 本關+1))`。已通關的關卡可重複刷獎勵。
 - 關卡選擇畫面依 `stageConfig(n, chapter).isBoss` 標 ⭐（UI-002）；`App` 會傳 `chapter` 給 `LevelSelect`。
 
@@ -342,9 +346,9 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 | 3 | 友軍 | ~~新增商店貓需手動改 `buildCatsTpl`，容易漏~~ ✅ 已修（2026-09-27） | `world.js` | AL-001 |
 | 4 | 專案 | `node_modules/`（約 4,000 檔）被 commit 進 git，雖然 `.gitignore` 有寫 | repo | CEO-002 |
 | 5 | 美術 | ~~`public/pic/*.png`（16 張，約 12MB）與 `public/audio/廢棄.mp3`（4.9MB）未被使用，但會被部署~~ ✅ 已處理（AU-001 刪除、UI-004 啟用並壓縮） | `public/` | CEO-003 |
-| 6 | UI | 圖鑑 `Codex.jsx` 的 `typeMap` 名稱對不上（寫「忍者貓」等，實際是「忍者喵」）；`UnitCard` 樣式與假數值已於 CEO-004 修正 | `Codex.jsx` | UI-011 |
+| 6 | UI | ~~圖鑑 `Codex.jsx` 的 `typeMap` 名稱對不上（寫「忍者貓」等，實際是「忍者喵」）；`UnitCard` 樣式與假數值已於 CEO-004 修正~~ ✅ 已修（2026-09-28） | `Codex.jsx` | UI-011 |
 | 7 | UI | ~~戰鬥 HUD 的「研究力」按鈕其實是戰鬥內收入升級，與大廳升級的「研究力」名稱衝突~~ ✅ 已修（2026-09-27） | `HudInfo.jsx` | UI-001 |
-| 8 | 引擎 | `world.js`/`ai.js` 有未使用的舊生怪路徑（`firstDelay`、`spawnRate`、`pool`、`sequence`、`maxEnemies`、`difficulty` 皆未定義），`maxEnemies` 未定義 → 敵人數量無上限 | `ai.js`、`world.js` | EG-008 |
+| 8 | 引擎 | ~~`world.js`/`ai.js` 有未使用的舊生怪路徑（`firstDelay`、`spawnRate`、`pool`、`sequence`、`maxEnemies`、`difficulty` 皆未定義），`maxEnemies` 未定義 → 敵人數量無上限~~ ✅ 已修（2026-09-28） | `ai.js`、`world.js` | EG-008 |
 | 9 | 引擎 | ~~貓咪砲無視護盾/閃避/擊退免疫~~ ✅ 已修（2026-09-28） | `Battle.jsx` `fireCannon` | EG-006 |
 | 10 | 關卡 | ~~`spawns.js` 註解說 multiplier 是「數量倍率」，實際是能力值倍率~~ ✅ 已修（2026-09-27） | `spawns.js` | LV-001 |
 | 11 | 敵人 | `metal` 金屬怪已定義但沒有任何關卡使用 | `enemies.js` | — |
@@ -353,5 +357,5 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 | 14 | UI | ~~設定按鈕（App.jsx）與召喚欄（Battle.jsx）用 CSS 選擇器 / `!important` 硬蓋樣式，屬權宜作法~~ ✅ 已修（UI-003） | `styles.css` | UI-003 |
 | 15 | UI | ~~App 右上「設定」按鈕與關卡格（`.stage-btn`）是原生 `<button>`，沒有點擊音效~~ ✅ 已修（2026-09-28） | `App.jsx`、`LevelSelect.jsx` | UI-009 |
 | 16 | 音效 | ~~「清除存檔」會清掉 localStorage 的 `audioVolumes`，但記憶體中的音量保留，直到下次調整才重寫；主題 `theme` 也有同樣問題~~ ✅ 已修（AU-004：清除存檔保留音量與主題） | `App.jsx` `handleReset` | AU-004 |
-| 17 | 引擎/UI | 貓咪攻擊動畫靠「`atkCd` 被重設變大」推算出手時機（UI-006）；引擎若修改攻擊冷卻的寫法，動畫會失效，改動前須通知 UI | `ai.js`、`draw.js` | EG-009、UI-010 |
+| 17 | 引擎/UI | 貓咪攻擊動畫靠「`atkCd` 被重設變大」推算出手時機（UI-006）；引擎若修改攻擊冷卻的寫法，動畫會失效，改動前須通知 UI（引擎已提供 `atkSeq`，等 UI-010 改用） | `ai.js`、`draw.js` | EG-009、UI-010 |
 | 18 | 經濟/關卡 | ~~第一章難度在 1-7 出現斷層：勝率 ≥50% 所需預算從 1-6 的約 1800 跳到約 4000（首通累積預算的 ×3），玩家約需重刷 1-6 九次（EC-002 模擬）~~ ➖ 不處理：使用者 2026-09-28 實際試玩後認為難度可接受 | `spawns.js` 1-7、各關 `reward` | — |

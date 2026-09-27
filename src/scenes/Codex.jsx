@@ -5,18 +5,9 @@ import Pill from '../ui/Pill.jsx';
 import Button from '../ui/Button.jsx';
 import UnitCard from '../ui/UnitCard.jsx';
 import { catKeyByName } from '../ui/catArt.js';
+import { getCatRole } from '../ui/catRoles.js';
 
 export default function Codex({ cats, enemies, onBack }) {
-  const typeMap = {
-    '白喵': 'warrior',
-    '坦喵': 'tank',
-    '射喵': 'archer',
-    '忍者貓': 'ninja',
-    '戰士貓': 'warrior',
-    '法師貓': 'mage',
-    '弓箭貓': 'archer',
-    '坦克貓': 'tank',
-  };
   return (
     <div className="relative space-y-3">
       <div className="flex pr-20">
@@ -27,9 +18,10 @@ export default function Codex({ cats, enemies, onBack }) {
           <Card>
             <div className="font-semibold mb-1">我方單位</div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2" aria-label="我方單位列表">
-              {cats.map(n => (
-                <UnitCard key={n} name={n} type={typeMap[n] || 'ninja'} catKey={catKeyByName(n)} />
-              ))}
+              {cats.map(n => {
+                const key = catKeyByName(n);
+                return <UnitCard key={n} name={n} role={getCatRole(key)} catKey={key} />;
+              })}
             </div>
           </Card>
           <Card>

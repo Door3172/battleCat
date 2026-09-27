@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { stepSchedule, stepUnits, makeUnit, absorbDamage, applyCannon, pushWithinBounds } from './ai.js';
-import { stageConfig } from '../data/stages.js';
+import { stageConfig, getMaxStage } from '../data/stages.js';
 
 // 以固定步長推進 stepSchedule；hpAt(t) 決定敵堡 HP。回傳生成紀錄 [{ type, mult, t }]
 function simulate(cfg, seconds, hpAt, dt = 1 / 60) {
@@ -43,9 +43,27 @@ describe('stepSchedule 單次出怪（EG-004）', () => {
     for (const e of singles) expect(e._spawned).toBe(1);
   });
 
-  it('沒有 schedule 時回傳 false（交給舊的固定頻率路徑）', () => {
-    expect(stepSchedule({ cfg: {}, time: 0, nextEnemyIdx: 0 }, () => {})).toBe(false);
+  it('沒有 schedule 時什麼都不做', () => {
+    const spawned = [];
+    stepSchedule({ cfg: {}, time: 10, nextEnemyIdx: 0 }, t => spawned.push(t));
+    expect(spawned).toEqual([]);
   });
+});
+
+// EG-008：舊的固定頻率生怪路徑已移除，所有關卡都必須靠 schedule 出怪
+describe('每一關都有 schedule', () => {
+  for (const chapter of [1, 2]) {
+    it(`第 ${chapter} 章每關的 stageConfig().schedule 都是非空陣列`, () => {
+      const max = getMaxStage(chapter);
+      expect(max).toBeGreaterThan(0);
+      const missing = [];
+      for (let stage = 1; stage <= max; stage++) {
+        const { schedule } = stageConfig(stage, chapter);
+        if (!Array.isArray(schedule) || schedule.length === 0) missing.push(`${chapter}-${stage}`);
+      }
+      expect(missing).toEqual([]);
+    });
+  }
 });
 
 // ── EG-006：貓咪砲套用護盾 / 閃避 / 擊退免疫 / 邊界 ──
@@ -140,5 +158,54 @@ describe('一般攻擊仍套用相同規則（stepUnits）', () => {
     const foe = makeUnit(-1, 410, 0, tpl({ attack: 0, abilities: { dodge: { chance: 0.2 } } }));
     stepUnits(mkWorld([cat, foe]), () => 900, () => 400, 0.01);
     expect(foe.hp).toBe(1000);
+  });
+});
+
+// ── EG-009：出手事件 atkSeq（UI 攻擊動畫用）──
+describe('atkSeq 出手計數', () => {
+  const W = () => 900, H = () => 400;
+  const run = (w, sec, dt = 0.01) => { for (let i = 0; i < Math.round(sec / dt); i++) stepUnits(w, W, H, dt); };
+
+  it('makeUnit 初始為 0', () => {
+    expect(makeUnit(1, 0, 0, tpl()).atkSeq).toBe(0);
+  });
+
+  it('攻擊一次 +1；冷卻中不增加；冷卻結束再出手 +1', () => {
+    const cat = makeUnit(1, 400, 0, tpl({ attack: 10, atkRate: 1 }));
+    const foe = makeUnit(-1, 410, 0, tpl({ attack: 0, atkRate: 999 }));
+    const w = mkWorld([cat, foe]);
+    stepUnits(w, W, H, 0.01);
+    expect(cat.atkSeq).toBe(1);
+    expect(foe.hp).toBe(990);
+    run(w, 0.5); // 冷卻中
+    expect(cat.atkSeq).toBe(1);
+    run(w, 0.6); // 冷卻結束
+    expect(cat.atkSeq).toBe(2);
+    expect(foe.hp).toBe(980);
+  });
+
+  it('打主堡也算出手', () => {
+    const cat = makeUnit(1, 50 + 750 - 20, 0, tpl({ attack: 10, atkRate: 1 }));
+    const w = mkWorld([cat]);
+    stepUnits(w, W, H, 0.01);
+    expect(cat.atkSeq).toBe(1);
+    expect(w.rightHp).toBe(990);
+  });
+
+  it('AOE 有命中 +1；AOE 範圍內沒有任何目標（冷卻沒重設）不增加', () => {
+    const hitter = makeUnit(1, 400, 0, tpl({ aoe: true, aoeRadius: 30, range: 20 }));
+    const foe = makeUnit(-1, 410, 0, tpl({ attack: 0, atkRate: 999 }));
+    const w = mkWorld([hitter, foe]);
+    stepUnits(w, W, H, 0.01);
+    expect(hitter.atkSeq).toBe(1);
+
+    // 射程 50 觸發攻擊，但 AOE 半徑只有 5 → 打不到 30px 外的目標
+    const misser = makeUnit(1, 400, 0, tpl({ aoe: true, aoeRadius: 5, range: 50, speed: 0 }));
+    const far = makeUnit(-1, 430, 0, tpl({ attack: 0, atkRate: 999, speed: 0 }));
+    const w2 = mkWorld([misser, far]);
+    run(w2, 0.1);
+    expect(misser.atkSeq).toBe(0);
+    expect(misser.atkCd).toBeLessThanOrEqual(0);
+    expect(far.hp).toBe(1000);
   });
 });

@@ -295,7 +295,7 @@ EG-006 的 `applyCannon` 目前在護盾完全吸收砲擊時仍會推開敵人�
 - 2026-09-28 通過。改用 `absorbDamage` 回傳值判斷，剛好吸完也不推；測試已改並多一個邊界情況，build、test（27 項）通過，範圍正確。
 
 ## [EG-008] 移除舊的生怪路徑與未定義的設定欄位
-- 狀態：待處理
+- 狀態：已完成
 - 優先度：低
 - 來自：CEO（2026-09-28，PROJECT_MAP §11 #8）
 - 依賴：無（與 EG-009 同樣改 `ai.js`，建議依序做，先做 EG-008）
@@ -322,17 +322,38 @@ CEO 決定：
 - 更新 PROJECT_MAP 自己領域的章節（生怪流程、貓咪砲公式）與 CHANGELOG。
 
 ### 回報（負責角色填寫）
-- 修改檔案：
+- 修改檔案：`src/game/ai.js`、`src/game/world.js`（刪 1 行）、`src/scenes/Battle.jsx`（主迴圈生怪、`fireCannon` 傷害）、`src/game/ai.test.js`、`docs/PROJECT_MAP.md`（§4.2 第 3 步、§4.3 貓咪砲公式）、`docs/CHANGELOG.md`、本任務檔
 - 做了什麼：
+  - **先確認**：第一、二章共 40 關的 `stageConfig().schedule` 都是非空陣列（也都有 `reward`），所以可以刪舊路徑。已寫成測試保留。
+  - `Battle.jsx`：刪掉 `if (!stepSchedule(...)) { enemyClock / spawnRate }` 舊分支，改成直接 `stepSchedule(w, (type, mult) => spawnEnemy(w, getWorldHeight, addEnemyName, type, mult))`；`fireCannon` 傷害改為 `60 + (cannonLv - 1) * 10`（拿掉 `× (w.cfg.difficulty || 1)`）。
+  - `world.js`：刪 `enemyClock: cfg.firstDelay`。
+  - `ai.js`：
+    - `spawnEnemy(world, getCanvasHeight, onEnemySeen, key, statMultiplier = 100)`：刪 `maxEnemies` 檢查、`sequence`/`pool`/`enemyIndex` 選怪分支、`applyScale` 參數與其 `computeScale` / `totalSpawns` 分支（所有呼叫端本來就傳 `false`），也拿掉沒用到的 `getCanvasWidth` 參數。
+    - `spawnBossIfNeeded(world, getCanvasHeight, onEnemySeen)`：刪 `maxEnemies` 檢查、拿掉沒用到的 `getCanvasWidth` 參數。
+    - `killBounty`：`(0.8 + (cfg.difficulty || 1) * 0.1)` → 常數 `0.9`（JS 中 `0.8 + 0.1 === 0.9` 為 true，數值完全相同），不再需要 `cfg` 參數。
+    - `computeScale`：拿掉 `(cfg.difficulty || 1) *`。
+    - `stepSchedule`：沒有 schedule 時直接 return（不再回傳 true/false）。
+  - `grep -rnE "firstDelay|spawnRate|maxEnemies|cfg\.sequence|cfg\.pool|cfg\.difficulty|enemyClock|enemyIndex|applyScale" src` → 0 筆。
 - 如何驗證：
-- 新增給其他角色的請求：
-- 收尾：
+  - **行為完全不變（黃金比對）**：刪之前先寫模擬腳本，把 `Math.random` 換成固定種子的亂數，用真正的 `createWorld`/`stepSchedule`/`spawnEnemy`/`spawnBossIfNeeded`/`stepEnv`/`stepUnits`/`applyCannon` 跑 40 關各 120 秒（每 3 秒召喚貓、每 20 秒開砲、含 BOSS 與章節環境），輸出最終狀態（每個單位的 key/位置/HP/攻擊/速度/護盾、雙方主堡 HP、賞金總和、BOSS 是否出現）。修改前後輸出**逐位元組相同**（31,198 bytes；共 847 個單位、6 隻 BOSS、賞金 72,180）。
+  - 測試：`ai.test.js` 新增「第 1 章 / 第 2 章每關都有非空 schedule」2 項，「沒有 schedule 回傳 false」改為「沒有 schedule 什麼都不做」。`npm test` 29 項全過；`npm run build` 成功。
+  - 瀏覽器實玩（自己開的 dev server）：
+    - 1-1：10 秒後第一隻小狗出現，34 秒時場上 3 個單位；召喚白喵、開砲（冷卻開始倒數）正常，console 無錯誤。
+    - 1-20（BOSS 關）：暫停在 17.5 秒讀取 `world`：`bossSpawned: true`，機甲巨像 HP 17,852（= 基礎 7,000 × 關卡 2.52 × 時間約 1.012，符合 BOSS 縮放），15 秒的公牛、大象等排程怪都有出現，`world` 已沒有 `enemyClock` 欄位。
+    - 註：瀏覽器面板被隱藏時 `requestAnimationFrame` 幾乎不跑，所以測試時在分頁中暫時把 `requestAnimationFrame` 換成 MessageChannel 版本（只存在該分頁記憶體，不是程式修改，重新載入即消失），分頁最後已關閉。讀 `world` 是透過 React fiber 唯讀查看。
+- 新增給其他角色的請求：無
+- 收尾：自己開的 dev server（`147654d2-…`，5173）與 `Browser` 類型預覽程序（`browser-preview-1790540699444-5`）都已 `preview_stop`；分頁 `seed` 已 `tabs_close`。最後 `preview_list` 回傳 `[]`、`tabs_context` 回傳 `tabs: []`（browserOpen: false），確認都是空的。沒有背景程序。沒有改動瀏覽器的 localStorage（`highestUnlocked` 原本就是全解鎖）。
 - 給 CEO 的注意事項：
+  - **需求 4：程式有讀、但 `stageConfig()` 找不到定義的欄位**：除了這次刪掉的 6 個之外，**沒有其他**（其餘讀取的 `stageIndex`、`enemyBaseHp`、`towerDistance`、`schedule`、`isBoss`、`bossKey`、`bossAt`、`bossHp`、`bossMultiplier`、`rewardCoins`、`env` 都有定義；40 關的 `rewardCoins` 也都有值）。
+  - **發現：BOSS 的「每已出怪 +1.5%」從來沒生效**。`computeScale` 的 `spawnFactor` 讀 `world.totalSpawns`，但這個值只在舊路徑（`applyScale = true`）才會增加；排程出怪一直是 `applyScale = false`，所以 `totalSpawns` 恆為 0、`spawnFactor` 恆為 1。這次為了行為不變，`computeScale` 裡的 `spawnFactor` 算式**保留沒刪**（現在沒有任何地方會寫入 `world.totalSpawns`，但結果和以前一樣是 1）。PROJECT_MAP §5（關卡章節）寫的「每已出怪 +1.5%（上限 +45%）」與實際不符。請 CEO 決定：(a) 刪掉這一項並修正 §5 的說明（行為不變）；或 (b) 讓排程出怪計入，使它真的生效（BOSS 會變強，需經濟評估）。
+  - commit 範圍：`src/game/ai.js`、`src/game/ai.test.js`、`src/game/world.js`、`src/scenes/Battle.jsx`、`docs/PROJECT_MAP.md`、`docs/CHANGELOG.md`、`docs/tasks/engine.md`。EG-009 也會改 `ai.js`、`ai.test.js`、PROJECT_MAP、CHANGELOG，建議兩個任務一起 commit。
+  - 請 CEO 更新 PROJECT_MAP §11 #8（CEO 維護的表），標為已修（EG-008）。
 
 ### 審核（CEO 填寫）
+- 2026-09-28 通過。死碼全部移除，用固定亂數跑 40 關比對修改前後結果完全相同；新增每關都有 schedule 的測試；build、test（35 項）通過，範圍正確。CEO 決定：BOSS 的「每已出怪 +1.5%」採 (a) 刪除（行為不變，使用者目前的遊戲體驗就是沒有這項），另開 EG-010；§5 說明已由 CEO 修正。
 
 ## [EG-009] 單位出手時記錄攻擊事件（給攻擊動畫用）
-- 狀態：待處理
+- 狀態：已完成
 - 優先度：低
 - 來自：CEO（2026-09-28，PROJECT_MAP §11 #17）
 - 依賴：建議在 EG-008 之後做（同樣改 `ai.js`）；完成後 UI-010 才能接上
@@ -348,6 +369,42 @@ CEO 決定：
 **完成條件**
 - 單元測試：單位攻擊一次 `atkSeq` +1；冷卻中不增加。
 - 原有測試通過、`npm run build` 成功；更新 PROJECT_MAP、CHANGELOG。
+
+### 回報（負責角色填寫）
+- 修改檔案：`src/game/ai.js`、`src/game/ai.test.js`（新增 4 項）、`docs/PROJECT_MAP.md`（§4.1 單位欄位）、`docs/CHANGELOG.md`、本任務檔
+- 做了什麼：
+  - `makeUnit` 新增 `atkSeq: 0`。
+  - `stepUnits` 出手時 `u.atkSeq += 1`，加在**冷卻被重設的同一個地方**：非 AOE（打單位或打主堡）每次出手都加；AOE 只有 `hits > 0`（命中單位或主堡）才加，與 `atkCd` 是否重設完全一致。
+  - `ai.js` 開頭能力說明後面加了 `atkSeq` 的合約說明（只增不減、UI 以「比上一幀大」判斷），`makeUnit` 那行也有註解。
+  - 沒有改 `atkCd` 的寫法，也沒有動 `draw.js`（UI-010 負責）。
+- 如何驗證：
+  - 新增 4 項測試：初始為 0；攻擊一次 +1（目標 HP −10），冷卻中（0.5 秒）不變，冷卻結束再出手變 2；打主堡也 +1（敵堡 HP −10）；AOE 有命中 +1，AOE 範圍內沒有目標時（射程 50 觸發但半徑 5 打不到）維持 0，而且 `atkCd` 沒被重設。
+  - `npm test` 33 項全過；`npm run build` 成功。
+  - EG-008 的黃金比對（固定亂數 40 關）在加上 `atkSeq` 後重跑，輸出仍與最初的基準逐位元組相同，戰鬥行為沒有改變。
+- 新增給其他角色的請求：無（UI-010 已由 CEO 派工，可以直接用 `unit.atkSeq`）
+- 收尾：未使用瀏覽器（行為由單元測試覆蓋），沒有開 dev server 或背景程序。
+- 給 CEO 的注意事項：
+  - commit 範圍：`src/game/ai.js`、`src/game/ai.test.js`、`docs/PROJECT_MAP.md`、`docs/CHANGELOG.md`、`docs/tasks/engine.md`，與 EG-008 大量重疊，建議兩個任務一起 commit。
+  - 凍結中的單位整幀跳過，不會出手，`atkSeq` 也不會增加。
+  - UI-010 完成後，PROJECT_MAP §11 #17（動畫依賴 `atkCd`）即可結案。
+
+### 審核（CEO 填寫）
+- 2026-09-28 通過。`atkSeq` 與冷卻重設同一處遞增，AOE 沒命中不加；新增 4 項測試，比對結果仍相同。UI-010 可開工。
+## [EG-010] 移除 BOSS 縮放中從未生效的 `spawnFactor`
+- 狀態：待處理
+- 優先度：低
+- 來自：CEO（2026-09-28，EG-008 回報的發現）
+- 依賴：無
+
+**需求**
+`ai.js` `computeScale` 的 `spawnFactor`（讀 `world.totalSpawns`，每已出怪 +1.5%）從來沒生效：排程出怪不累加 `totalSpawns`，所以恆為 1。CEO 決定刪除這一項，**行為不變**。
+- 刪 `spawnFactor` 算式與所有 `totalSpawns` 的殘留讀寫。
+- 更新 PROJECT_MAP §5 第「排程出的敵人不套用難度成長」那行，改成實際的縮放：每關 +8%、每秒 +0.4%（上限 180 秒），並拿掉「從未生效」的註記。**授權本任務修改 PROJECT_MAP §5 這一行。**
+
+**授權範圍**：`src/game/ai.js`、`src/game/ai.test.js`、PROJECT_MAP §5 上述那一行。
+
+**完成條件**
+- 用 EG-008 的固定亂數比對確認結果不變；`npm run build`、`npm test` 通過；更新 CHANGELOG。
 
 ### 回報（負責角色填寫）
 - 修改檔案：

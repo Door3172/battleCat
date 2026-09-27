@@ -200,7 +200,7 @@ export default function Battle({
   const fireCannon = () => {
     const w = ensureWorld();
     if (w.state !== 'running' || w.cannonCd > 0) return;
-    const dmg = (60 + (cannonLv - 1) * 10) * (w.cfg.difficulty || 1); const knock = 60;
+    const dmg = 60 + (cannonLv - 1) * 10; const knock = 60;
     applyCannon(w, dmg, knock); // 套用閃避、護盾、擊退免疫與主堡邊界（ai.js）
     w.cannonCd = 20;
     draw();
@@ -213,15 +213,9 @@ export default function Battle({
     w.time += dt; w.fish += w.income * dt;
     if (w.cannonCd > 0) w.cannonCd = Math.max(0, w.cannonCd - dt);
     for (const k in w.summonCd) w.summonCd[k] = Math.max(0, (w.summonCd[k] || 0) - dt);
-    spawnBossIfNeeded(w, getWorldWidth, getWorldHeight, addEnemyName);
-    const spawnScheduled = (type, mult) => spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, type, mult, false);
-    if (!stepSchedule(w, spawnScheduled)) { // 依關卡 schedule 生怪（ai.js）；沒有 schedule 才走舊的固定頻率
-      w.enemyClock -= dt;
-      if (w.enemyClock <= 0) {
-        spawnEnemy(w, getWorldWidth, getWorldHeight, addEnemyName, undefined, 100);
-        w.enemyClock = w.cfg.spawnRate; // 固定頻率
-      }
-    }
+    spawnBossIfNeeded(w, getWorldHeight, addEnemyName);
+    // 依關卡 schedule 生怪（ai.js）
+    stepSchedule(w, (type, mult) => spawnEnemy(w, getWorldHeight, addEnemyName, type, mult));
     stepEnv(w, dt); // 章節環境：推進階段、潮汐推力
     for (const kind of pollEnvCues(w)) audio.playEnvCue?.(kind);
     const bountyGain = stepUnits(w, getWorldWidth, getWorldHeight, dt);

@@ -357,7 +357,7 @@ AU-005 新增了音量分類 `env`（章節環境提示音：晝夜、潮汐的�
 - 2026-09-28 通過。`App.jsx` 只改設定按鈕的 `onClick`，在授權範圍內；關卡格改 `onClick` 並補 `aria-disabled` / `aria-label`，外觀不變；build、test 通過，收尾確認為空。
 
 ## [UI-010] 攻擊動畫改讀引擎的 `atkSeq`
-- 狀態：待處理
+- 狀態：擱置（等待 EG-009 完成）
 - 優先度：低
 - 來自：CEO（2026-09-28，PROJECT_MAP §11 #17）
 - 依賴：**EG-009**（引擎新增 `atkSeq`）。EG-009 還沒 `已完成` 前先不要動工。
@@ -371,17 +371,17 @@ AU-005 新增了音量分類 `env`（章節環境提示音：晝夜、潮汐的�
 - `npm run build`、`npm test` 通過；更新 PROJECT_MAP 自己領域的章節與 CHANGELOG。
 
 ### 回報（負責角色填寫）
-- 修改檔案：
-- 做了什麼：
-- 如何驗證：
-- 新增給其他角色的請求：
-- 收尾：
-- 給 CEO 的注意事項：
+- 修改檔案：無（尚未動工）
+- 做了什麼：2026-09-28 檢查時 EG-009 狀態為「待審核」（工作目錄中 `ai.js` 已有 `atkSeq`，但尚未通過審核），依本任務說明「EG-009 還沒 `已完成` 前先不要動工」，所以暫不修改 `draw.js`，狀態改為擱置。EG-009 通過後通知我即可開工。
+- 如何驗證：—
+- 新增給其他角色的請求：無
+- 收尾：本任務未使用瀏覽器。
+- 給 CEO 的注意事項：EG-009 審核通過後，請把本任務改回「待處理」或直接通知 UI 角色。
 
 ### 審核（CEO 填寫）
 
 ## [UI-011] 圖鑑卡片樣式對應所有貓咪
-- 狀態：待處理
+- 狀態：已完成
 - 優先度：低
 - 來自：CEO（2026-09-28，PROJECT_MAP §11 #6）
 - 依賴：無
@@ -398,10 +398,30 @@ AU-005 新增了音量分類 `env`（章節環境提示音：晝夜、潮汐的�
 
 ### 回報（負責角色填寫）
 - 修改檔案：
+  - 新增：`src/ui/catRoles.js`、`src/ui/catRoles.test.js`
+  - 修改：`src/scenes/Codex.jsx`、`src/ui/UnitCard.jsx`、`src/styles.css`、`docs/PROJECT_MAP.md`（§2）、`docs/CHANGELOG.md`、本任務檔
 - 做了什麼：
+  1. 刪除 `Codex.jsx` 以中文名對應的 `typeMap`，改成 `catKeyByName(名稱)` 取得 key，再用 UI 自己的新檔 `catRoles.js`（`CAT_ROLES`）對應定位。`cats.js` 沒有動。
+  2. 定位依單位特性分 6 種（顏色＋圖示＋文字標籤）：
+     - 🛡️ 坦克（藍）：坦喵、魚喵、相撲喵
+     - ⚔️ 近戰（橘）：白喵、巨人喵、騎士喵、武士喵、維京喵
+     - 🏹 遠程（綠）：射喵、鳥喵、蜥蜴喵
+     - 🔮 法術（紫紅）：法師喵、虛空秘典喵、蒼藍幻影喵
+     - 💨 速攻（紫）：忍者喵、牛喵、禁節喵
+     - ✨ 特殊（黃，新增樣式）：禁節貓娘（HP 1、攻擊 1 的特殊單位）
+  3. `UnitCard` 改收 `role`，卡片除了左側色條，名稱下方多一個定位標籤（定位色淡底＋主題文字色，深淺主題都看得清楚）。若遇到沒對應的貓會顯示灰色色條且不顯示標籤（`unknown`），不會再默默掉到「忍者」。
+  4. 新增測試 `catRoles.test.js`：檢查 `cats.js`（BASE / GACHA / SHOP）每一隻貓都有定位且定位存在；每隻貓的中文名都能用 `catKeyByName` 反查回正確 key。之後新增貓咪忘了補定位，`npm test` 會失敗。
 - 如何驗證：
-- 新增給其他角色的請求：
-- 收尾：
+  - `npm run build` 成功；`npm test` 通過（4 個測試檔、35 個測試，含新增的 2 個）。
+  - 瀏覽器：暫時把 `codexCats` 設成全部 18 隻貓的名稱，打開圖鑑 → 18 張卡片、`unknown` 為 0，定位與上表一致；Minimal／Modern／Neon／Warm 四種主題都截圖確認色條與標籤清楚。
+  - 測完已把 `codexCats` 還原為 `["白喵","坦喵","射喵"]`、`theme` 為 `minimal`（測試前的值）。
+- 新增給其他角色的請求：無
+- 收尾：已 `preview_stop` 自己開的 dev server（7e893aad…）並關閉分頁；`preview_list` 回傳 `[]`、`tabs_context` 回傳 `browserOpen: false, tabs: []`，已清空。
 - 給 CEO 的注意事項：
+  - commit 範圍：`src/ui/catRoles.js`、`src/ui/catRoles.test.js`、`src/scenes/Codex.jsx`、`src/ui/UnitCard.jsx`、`src/styles.css`、`docs/PROJECT_MAP.md`、`docs/CHANGELOG.md`、`docs/tasks/ui.md`。工作目錄中的 `ai.js`、`world.js`、`Battle.jsx` 等是引擎角色的改動，不屬於本任務。
+  - 定位是 UI 依數值判斷的顯示分類，不影響戰鬥。若希望由友軍角色在貓咪資料加正式的「定位」欄位，需要另外決定（目前我認為不需要，所以沒有在 ceo.md 提出）。
+  - PROJECT_MAP §11 #6 可標為已處理（§11 由 CEO 維護，我沒改）。
+  - 新增貓咪的流程多了一步：在 `src/ui/catRoles.js` 的 `CAT_ROLES` 補一行（沒補測試會失敗）。建議在友軍的新增貓咪流程說明中提一下。
 
 ### 審核（CEO 填寫）
+- 2026-09-28 通過。改用 key 對應定位，新增測試保證每隻貓都有定位；`cats.js` 未動，範圍正確；build、test 通過，收尾確認為空。新增貓咪要補 `CAT_ROLES` 一事，CEO 已寫進 PROJECT_MAP §3。
