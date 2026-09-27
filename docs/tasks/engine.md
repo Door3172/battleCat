@@ -261,3 +261,100 @@ UI-004 要在戰場 Canvas 用角色圖畫貓咪，`draw.js` 需要知道每個�
 
 ### 審核（CEO 填寫）
 - 2026-09-28 通過。傷害規則抽成 `rollDodge` / `absorbDamage` 共用，一般攻擊判斷順序不變；新增 10 項測試，build、test（27 項）通過，範圍正確。CEO 決定：**護盾完全吸收時仍會被推開**維持現狀（砲擊是爆風，和一般攻擊的擊退能力分開看）；一般攻擊擊退沒有邊界限制目前不處理。
+
+## [EG-007] 貓咪砲被護盾完全擋下時不推開
+- 狀態：已完成
+- 優先度：低
+- 來自：使用者（2026-09-28，經 CEO 派工；EG-006 後續）
+- 依賴：EG-006（已完成）
+
+**需求**
+EG-006 的 `applyCannon` 目前在護盾完全吸收砲擊時仍會推開敵人。使用者決定改成：**這發砲擊完全被護盾擋下（實際扣血 0）→ 不推開**；只要有扣到 HP 就照常推開。規則與一般攻擊的 `knockback`（`dealt > 0` 才觸發）一致。
+- 閃避、擊退免疫、主堡邊界的規則不變；傷害、CD、推開距離不變。
+- 可直接用 `absorbDamage` 的回傳值判斷。
+
+**授權範圍**：`src/game/ai.js`（`applyCannon`）、`src/game/ai.test.js`。
+
+**完成條件**
+- 單元測試：護盾吸得完 → 位置不變；護盾吸不完（有扣 HP）→ 照常推開。修改 EG-006 裡「仍被推開」那項測試的預期。
+- `npm run build`、`npm test` 通過；更新 PROJECT_MAP §4.3 貓咪砲說明與 CHANGELOG。
+
+### 回報（負責角色填寫）
+- 修改檔案：`src/game/ai.js`（`applyCannon` 2 行＋註解）、`src/game/ai.test.js`（改 1 項測試）、`docs/PROJECT_MAP.md`（§4.3 貓咪砲的護盾說明）、`docs/CHANGELOG.md`、本任務檔
+- 做了什麼：`applyCannon` 改用 `absorbDamage` 的回傳值：`const dealt = absorbDamage(u, dmg); if (dealt > 0 && !knockbackImmune) pushWithinBounds(...)`。護盾完全擋下（扣血 0）→ 不推；有扣到 HP → 照常推 60。閃避（完全無效）、擊退免疫（受傷不推）、主堡邊界、傷害、CD、推開距離都沒變。
+- 如何驗證：
+  - 修改 EG-006 的護盾測試（原預期「仍被推開」x=460 改成 x=400），並多加一個邊界情況，共三段：護盾 500 吃 60 → 護盾 440、HP 不變、x 不變（400）；護盾剛好 60 吃 60（扣血 0）→ 護盾 0、x 不變；護盾 20 吃 60 → HP −40、x 推到 460。
+  - `npm test` 27 項全過（其他砲擊測試：一般敵人推開、擊退免疫、閃避、邊界都照舊通過）；`npm run build` 成功。
+- 新增給其他角色的請求：無
+- 收尾：未使用瀏覽器（行為已由單元測試完整覆蓋），沒有開 dev server 或背景程序。
+- 給 CEO 的注意事項：
+  - commit 範圍：`src/game/ai.js`、`src/game/ai.test.js`、`docs/PROJECT_MAP.md`、`docs/CHANGELOG.md`、`docs/tasks/engine.md`。
+  - 「剛好吸完」（護盾 = 砲擊傷害）視為完全擋下、不推，因為實際扣血為 0。
+
+### 審核（CEO 填寫）
+- 2026-09-28 通過。改用 `absorbDamage` 回傳值判斷，剛好吸完也不推；測試已改並多一個邊界情況，build、test（27 項）通過，範圍正確。
+
+## [EG-008] 移除舊的生怪路徑與未定義的設定欄位
+- 狀態：待處理
+- 優先度：低
+- 來自：CEO（2026-09-28，PROJECT_MAP §11 #8）
+- 依賴：無（與 EG-009 同樣改 `ai.js`，建議依序做，先做 EG-008）
+
+**需求**
+所有關卡都用 `schedule` 生怪，下列舊路徑與欄位從來沒被定義，屬於死碼：
+- `Battle.jsx` 主迴圈 `if (!stepSchedule(...)) { w.enemyClock ... w.cfg.spawnRate ... }` 的舊固定頻率分支；`world.js` 的 `enemyClock: cfg.firstDelay`。
+- `spawnEnemy` 沒有 `forcedKey` 時用 `cfg.sequence` / `cfg.pool` 選怪的分支（`enemyIndex`）。
+- `spawnEnemy`、`spawnBossIfNeeded` 的 `if (cur >= cfg.maxEnemies) return;`（`maxEnemies` 未定義，比較永遠是 false）。
+- `cfg.difficulty || 1`（`killBounty`、`computeScale`、`Battle.jsx` `fireCannon` 的傷害）：`difficulty` 從未定義，恆為 1。
+
+CEO 決定：
+1. **遊戲行為與數值必須完全不變**：場上敵人數量維持不設上限（目前實際就是無上限），賞金、BOSS 縮放、砲擊傷害公式結果不變。
+2. 刪除上述死碼；`spawnEnemy` / `stepSchedule` 的參數可以順勢精簡，但呼叫端要一起改。
+3. 刪之前先確認：**第一、二章每一關的 `stageConfig()` 都有非空的 `schedule`**。請寫成單元測試保留下來；若有任何關卡沒有 schedule，先不要刪舊路徑，在回報裡列出關卡。
+4. 其他在 `stageConfig()` 找不到定義、但程式有讀的欄位，也一併列在回報（先不刪，由 CEO 決定）。
+
+**授權範圍**：`src/game/ai.js`、`src/game/world.js`、`src/scenes/Battle.jsx` 的邏輯部分；可新增或修改測試。
+
+**完成條件**
+- 上述死碼移除，`grep` 不到 `firstDelay`、`spawnRate`、`maxEnemies`、`cfg.sequence`、`cfg.pool`、`cfg.difficulty`。
+- 新增「每關都有 schedule」的測試；原有測試全部通過；`npm run build` 成功。
+- 實際進 1-1 與一個 BOSS 關打一下，確認出怪與 BOSS 正常。
+- 更新 PROJECT_MAP 自己領域的章節（生怪流程、貓咪砲公式）與 CHANGELOG。
+
+### 回報（負責角色填寫）
+- 修改檔案：
+- 做了什麼：
+- 如何驗證：
+- 新增給其他角色的請求：
+- 收尾：
+- 給 CEO 的注意事項：
+
+### 審核（CEO 填寫）
+
+## [EG-009] 單位出手時記錄攻擊事件（給攻擊動畫用）
+- 狀態：待處理
+- 優先度：低
+- 來自：CEO（2026-09-28，PROJECT_MAP §11 #17）
+- 依賴：建議在 EG-008 之後做（同樣改 `ai.js`）；完成後 UI-010 才能接上
+
+**需求**
+`draw.js` 的攻擊動畫目前靠「`atkCd` 突然變大」推算單位剛出手，引擎一改冷卻寫法動畫就會壞。改成由引擎明確記錄：
+- `makeUnit` 新增欄位 **`atkSeq: 0`**；`stepUnits` 中單位**每次真的出手**時 `u.atkSeq += 1`（包含打主堡、AOE 有命中；AOE 沒打到任何東西、冷卻沒重設的情況不算）。
+- 這是給 UI **唯讀**使用的介面合約：數字只增不減，UI 以「比上一幀大」判斷剛出手。請在 `ai.js` 開頭能力說明附近或 `makeUnit` 旁加註解，並寫進 PROJECT_MAP §4 的單位欄位說明。
+- 不要改 `draw.js`（UI-010 負責）。
+
+**授權範圍**：`src/game/ai.js`、`src/game/ai.test.js`。
+
+**完成條件**
+- 單元測試：單位攻擊一次 `atkSeq` +1；冷卻中不增加。
+- 原有測試通過、`npm run build` 成功；更新 PROJECT_MAP、CHANGELOG。
+
+### 回報（負責角色填寫）
+- 修改檔案：
+- 做了什麼：
+- 如何驗證：
+- 新增給其他角色的請求：
+- 收尾：
+- 給 CEO 的注意事項：
+
+### 審核（CEO 填寫）

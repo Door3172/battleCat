@@ -161,7 +161,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 - 移動：與目標距離 ≤ `range*0.98` 停下；貼太近（< BODY_W*0.9）停下；抵達敵堡前 18px 停下。
 - **貓咪砲**（`Battle.jsx` `fireCannon` → `ai.js` `applyCannon(world, dmg, knock)`）：對所有存活敵人造成 `(60 + (cannonLv-1)*10) × (cfg.difficulty || 1)` 傷害並往右推 60px，CD 20 秒。套用能力系統（EG-006）：
   - **閃避**：擲中 `dodge.chance` → 這發完全無效（不扣血、不推）。
-  - **護盾**：`shieldHp` 先吸收，吸不完的才扣 HP。**被護盾完全吸收仍會被推開**（CEO 規則只把閃避與擊退免疫列為不被推的條件；一般攻擊的擊退則要 `dealt > 0` 才會觸發，兩者不同）。
+  - **護盾**：`shieldHp` 先吸收，吸不完的才扣 HP。**被護盾完全擋下（實際扣血 0）→ 不推開**；有扣到 HP 才推（EG-007，與一般攻擊 `knockback` 同為 `dealt > 0` 才觸發）。
   - **擊退免疫**：照常受傷，不被推。
   - 推開限制在主堡邊界 `[68, 50+towerDistance-18]`（`pushWithinBounds`，與一般移動、潮汐相同）；原本就在邊界外的不會被拉回。
   - 死亡、復活、擊殺賞金照舊由下一幀 `stepUnits` 的清屍流程處理。
@@ -342,9 +342,9 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 | 3 | 友軍 | ~~新增商店貓需手動改 `buildCatsTpl`，容易漏~~ ✅ 已修（2026-09-27） | `world.js` | AL-001 |
 | 4 | 專案 | `node_modules/`（約 4,000 檔）被 commit 進 git，雖然 `.gitignore` 有寫 | repo | CEO-002 |
 | 5 | 美術 | ~~`public/pic/*.png`（16 張，約 12MB）與 `public/audio/廢棄.mp3`（4.9MB）未被使用，但會被部署~~ ✅ 已處理（AU-001 刪除、UI-004 啟用並壓縮） | `public/` | CEO-003 |
-| 6 | UI | 圖鑑 `Codex.jsx` 的 `typeMap` 名稱對不上（寫「忍者貓」等，實際是「忍者喵」）；`UnitCard` 樣式與假數值已於 CEO-004 修正 | `Codex.jsx` | — |
+| 6 | UI | 圖鑑 `Codex.jsx` 的 `typeMap` 名稱對不上（寫「忍者貓」等，實際是「忍者喵」）；`UnitCard` 樣式與假數值已於 CEO-004 修正 | `Codex.jsx` | UI-011 |
 | 7 | UI | ~~戰鬥 HUD 的「研究力」按鈕其實是戰鬥內收入升級，與大廳升級的「研究力」名稱衝突~~ ✅ 已修（2026-09-27） | `HudInfo.jsx` | UI-001 |
-| 8 | 引擎 | `world.js`/`ai.js` 有未使用的舊生怪路徑（`firstDelay`、`spawnRate`、`pool`、`sequence`、`maxEnemies`、`difficulty` 皆未定義），`maxEnemies` 未定義 → 敵人數量無上限 | `ai.js`、`world.js` | — |
+| 8 | 引擎 | `world.js`/`ai.js` 有未使用的舊生怪路徑（`firstDelay`、`spawnRate`、`pool`、`sequence`、`maxEnemies`、`difficulty` 皆未定義），`maxEnemies` 未定義 → 敵人數量無上限 | `ai.js`、`world.js` | EG-008 |
 | 9 | 引擎 | ~~貓咪砲無視護盾/閃避/擊退免疫~~ ✅ 已修（2026-09-28） | `Battle.jsx` `fireCannon` | EG-006 |
 | 10 | 關卡 | ~~`spawns.js` 註解說 multiplier 是「數量倍率」，實際是能力值倍率~~ ✅ 已修（2026-09-27） | `spawns.js` | LV-001 |
 | 11 | 敵人 | `metal` 金屬怪已定義但沒有任何關卡使用 | `enemies.js` | — |
@@ -353,5 +353,5 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 | 14 | UI | ~~設定按鈕（App.jsx）與召喚欄（Battle.jsx）用 CSS 選擇器 / `!important` 硬蓋樣式，屬權宜作法~~ ✅ 已修（UI-003） | `styles.css` | UI-003 |
 | 15 | UI | ~~App 右上「設定」按鈕與關卡格（`.stage-btn`）是原生 `<button>`，沒有點擊音效~~ ✅ 已修（2026-09-28） | `App.jsx`、`LevelSelect.jsx` | UI-009 |
 | 16 | 音效 | ~~「清除存檔」會清掉 localStorage 的 `audioVolumes`，但記憶體中的音量保留，直到下次調整才重寫；主題 `theme` 也有同樣問題~~ ✅ 已修（AU-004：清除存檔保留音量與主題） | `App.jsx` `handleReset` | AU-004 |
-| 17 | 引擎/UI | 貓咪攻擊動畫靠「`atkCd` 被重設變大」推算出手時機（UI-006）；引擎若修改攻擊冷卻的寫法，動畫會失效，改動前須通知 UI | `ai.js`、`draw.js` | — |
+| 17 | 引擎/UI | 貓咪攻擊動畫靠「`atkCd` 被重設變大」推算出手時機（UI-006）；引擎若修改攻擊冷卻的寫法，動畫會失效，改動前須通知 UI | `ai.js`、`draw.js` | EG-009、UI-010 |
 | 18 | 經濟/關卡 | ~~第一章難度在 1-7 出現斷層：勝率 ≥50% 所需預算從 1-6 的約 1800 跳到約 4000（首通累積預算的 ×3），玩家約需重刷 1-6 九次（EC-002 模擬）~~ ➖ 不處理：使用者 2026-09-28 實際試玩後認為難度可接受 | `spawns.js` 1-7、各關 `reward` | — |

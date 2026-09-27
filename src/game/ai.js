@@ -224,14 +224,15 @@ export function pushWithinBounds(world, u, dx) {
 }
 
 // 貓咪砲：對所有存活敵人造成 dmg 並往右推 knock。
-// 閃避 → 完全無效（不扣血、不推）；護盾先吸收；擊退免疫 → 照常受傷但不推。
+// 閃避 → 完全無效（不扣血、不推）；護盾先吸收，完全擋下（扣血 0）→ 不推（與一般攻擊 knockback 同為 dealt > 0 才推；EG-007）；
+// 擊退免疫 → 照常受傷但不推。
 // 死亡與擊殺賞金交給下一幀 stepUnits 的清屍流程（與一般攻擊相同）
 export function applyCannon(world, dmg, knock) {
   for (const u of world.units) {
     if (u.team !== -1 || u.hp <= 0) continue;
     if (rollDodge(u)) continue;
-    absorbDamage(u, dmg);
-    if (!u.abilities?.knockbackImmune) pushWithinBounds(world, u, knock);
+    const dealt = absorbDamage(u, dmg);
+    if (dealt > 0 && !u.abilities?.knockbackImmune) pushWithinBounds(world, u, knock);
   }
 }
 

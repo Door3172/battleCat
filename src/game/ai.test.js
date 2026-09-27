@@ -78,14 +78,17 @@ describe('applyCannon（貓咪砲）', () => {
     expect([dead.hp, dead.x]).toEqual([0, 500]);
   });
 
-  it('有護盾：護盾先吸收，HP 不變（仍被推開）', () => {
+  it('有護盾：護盾吸得完 → HP 不變、不推開；吸不完（有扣 HP）→ 照常推開（EG-007）', () => {
     const crab = makeUnit(-1, 400, 0, tpl({ abilities: { shield: { interval: 45, amount: 500 } } }));
     crab.shieldHp = 500;
     applyCannon(mkWorld([crab]), 60, 60);
-    expect([crab.shieldHp, crab.hp, crab.x]).toEqual([440, 1000, 460]);
-    crab.shieldHp = 20; // 吸不完的部分扣 HP
+    expect([crab.shieldHp, crab.hp, crab.x]).toEqual([440, 1000, 400]);
+    crab.shieldHp = 60; // 剛好吸完：扣血 0 → 仍不推
     applyCannon(mkWorld([crab]), 60, 60);
-    expect([crab.shieldHp, crab.hp]).toEqual([0, 960]);
+    expect([crab.shieldHp, crab.hp, crab.x]).toEqual([0, 1000, 400]);
+    crab.shieldHp = 20; // 吸不完的部分扣 HP → 推開
+    applyCannon(mkWorld([crab]), 60, 60);
+    expect([crab.shieldHp, crab.hp, crab.x]).toEqual([0, 960, 460]);
   });
 
   it('擊退免疫：照常受傷，位置不變', () => {
