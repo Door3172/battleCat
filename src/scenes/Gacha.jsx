@@ -25,18 +25,20 @@ export default function Gacha({ coins, setCoins, unlocks, setUnlocks, catLevels,
   };
 
   return (
-    <div className="space-y-4">
+    <div className="relative space-y-3">
+      <div className="flex pr-20">
+        <Button onClick={onBack} tone="ghost" size="sm">← 返回大廳</Button>
+      </div>
       <HeroBanner title="貓咪大戰爭" subtitle="轉蛋" right={<span>金幣：<b className="tabular-nums">{fmt(coins)}</b></span>} />
-      <Card className="space-y-3">
+      <Card className="flex flex-col items-center gap-4 py-6">
         <GachaMachine />
-        <Button onClick={handleDraw} disabled={coins < GACHA_PRICE}>抽一次（{GACHA_PRICE} 金幣）</Button>
-          {last && (
-            <div className="text-sub">
-              抽到了 <b>{(BASE_CATS[last.catKey] || GACHA_UNLOCKS[last.catKey]).name}</b>（{last.rarity}★）
-              {last.duplicate ? `－重複，返還 ${last.refund} 金幣` : '－新角色解鎖！'}
-            </div>
-          )}
-        <Button onClick={onBack} tone="ghost">返回</Button>
+        <Button onClick={handleDraw} disabled={coins < GACHA_PRICE} tone="primary" size="lg">🎰 抽一次（{GACHA_PRICE} 金幣）</Button>
+        {last && (
+          <div className="text-sub text-center">
+            抽到了 <b className="text-highlight">{(BASE_CATS[last.catKey] || GACHA_UNLOCKS[last.catKey]).name}</b>（{last.rarity}★）
+            {last.duplicate ? `－重複，返還 ${last.refund} 金幣` : '－新角色解鎖！'}
+          </div>
+        )}
       </Card>
     </div>
   );

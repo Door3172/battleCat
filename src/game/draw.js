@@ -16,7 +16,7 @@ export function drawCatBase(ctx,x,ground,left,hpPct){
   ctx.beginPath(); ctx.moveTo(-12,-42); ctx.lineTo(-6,-52); ctx.lineTo(-2,-42); ctx.moveTo(12,-42); ctx.lineTo(6,-52); ctx.lineTo(2,-42); ctx.stroke();
   ctx.beginPath(); ctx.arc(-6,-34,2,0,Math.PI*2); ctx.arc(6,-34,2,0,Math.PI*2); ctx.fillStyle='#2b2b2b'; ctx.fill();
   ctx.beginPath(); ctx.arc(0,-30,3,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#e5e7eb'; roundRect(ctx,-28,-74,56,8,4); ctx.fill();
+  ctx.fillStyle=SKIN.field.hpTrack; roundRect(ctx,-28,-74,56,8,4); ctx.fill();
   ctx.fillStyle= hpPct>0.5? SKIN.color.ok : hpPct>0.2? SKIN.color.warn : SKIN.color.danger; roundRect(ctx,-28,-74,56*Math.max(0,Math.min(1,hpPct)),8,4); ctx.fill();
   ctx.restore();
 }
@@ -31,14 +31,14 @@ export function drawUnit(ctx,u){
   ctx.save();
   ctx.translate(u.x,u.y);
   const isCat=u.team===1;
-  ctx.fillStyle=u.color; ctx.strokeStyle=SKIN.color.ink; ctx.lineWidth=2;
+  ctx.fillStyle=u.color; ctx.strokeStyle=SKIN.field.stroke; ctx.lineWidth=2;
   roundRect(ctx,-BODY_W/2,-16,BODY_W,24,6); ctx.fill(); ctx.stroke();
   ctx.beginPath();
   if(isCat){ ctx.moveTo(-8,-16); ctx.lineTo(-2,-24); ctx.lineTo(0,-16); ctx.moveTo(8,-16); ctx.lineTo(2,-24); ctx.lineTo(0,-16);} else { ctx.moveTo(-6,-16); ctx.lineTo(0,-22); ctx.lineTo(6,-16);} ctx.stroke();
   const hpPct=Math.max(0,Math.min(1,u.hp/u.maxHp));
-  ctx.fillStyle=SKIN.color.ink; ctx.fillRect(-BODY_W/2,12,BODY_W,4);
+  ctx.fillStyle=SKIN.field.hpTrack; ctx.fillRect(-BODY_W/2,12,BODY_W,4);
   ctx.fillStyle= hpPct>0.5?SKIN.color.ok: hpPct>0.2?SKIN.color.warn:SKIN.color.danger; ctx.fillRect(-BODY_W/2,12,BODY_W*hpPct,4);
-  ctx.fillStyle = SKIN.color.ink; ctx.font = '11px ui-sans-serif, system-ui'; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText(isCat?u.name:'敵', 0, -6);
+  ctx.fillStyle = SKIN.field.text; ctx.font = '600 11px ui-sans-serif, system-ui'; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText(isCat?u.name:'敵', 0, -6);
   ctx.restore();
 }
 
@@ -46,11 +46,11 @@ export function drawAll(ctx, world, getCanvasWidth, getCanvasHeight, currentStag
   ctx.save();
   ctx.translate(-viewX, 0);
   const W = getCanvasWidth(), H = getCanvasHeight();
-  const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,SKIN.color.bgTop); g.addColorStop(1,SKIN.color.bgBottom);
+  const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,SKIN.field.skyTop); g.addColorStop(1,SKIN.field.skyBottom);
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
   const ground= H*0.72;
-  ctx.fillStyle='#a3b2c6'; ctx.fillRect(0,ground+12,W,H-(ground+12));
-  ctx.fillStyle='#d6dee9'; for(let x=0;x<W;x+=18) ctx.fillRect(x, ground+10+((x/18)%2)*2, 14,4);
+  ctx.fillStyle=SKIN.field.ground; ctx.fillRect(0,ground+12,W,H-(ground+12));
+  ctx.fillStyle=SKIN.field.groundEdge; for(let x=0;x<W;x+=18) ctx.fillRect(x, ground+10+((x/18)%2)*2, 14,4);
   drawCatBase(ctx, 50,  ground, true,  world.leftHp / world.leftMaxHp);
   drawCatBase(ctx, 50 + world.cfg.towerDistance, ground, false, world.rightHp / world.rightMaxHp);
   for(const u of world.units){
@@ -58,7 +58,7 @@ export function drawAll(ctx, world, getCanvasWidth, getCanvasHeight, currentStag
   }
   ctx.restore();
   const screenW=getCanvasWidth(), screenH=getCanvasHeight();
-  ctx.fillStyle=SKIN.color.ink; ctx.font='bold 14px ui-sans-serif, system-ui';
+  ctx.fillStyle=SKIN.field.text; ctx.font='bold 14px ui-sans-serif, system-ui';
   const bossFlag=world.cfg.isBoss?' (BOSS)':'';
   ctx.fillText(`Stage ${currentStage}${bossFlag}  Time ${world.time.toFixed(1)}s  ${timeScale}x`,10,18);
   ctx.fillText(`Units ${world.units.length}`,10,36);

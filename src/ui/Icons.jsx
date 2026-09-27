@@ -1,5 +1,4 @@
 import React from 'react';
-import { SKIN } from '../data/skin.js';
 
 export function IconCat({ width = 18, height = 18, className = '' }) {
   return (
@@ -26,7 +25,8 @@ export function IconCoin({ width = 14, height = 14, className = '' }) {
       viewBox="0 0 14 14"
       className={className}
     >
-      <circle cx="7" cy="7" r="6" fill={SKIN.color.accentA} stroke={SKIN.color.accentB} />
+      <circle cx="7" cy="7" r="6" fill="var(--coin-a)" stroke="var(--coin-b)" strokeWidth="1.2" />
+      <circle cx="7" cy="7" r="3.4" fill="none" stroke="var(--coin-b)" strokeWidth="0.9" opacity="0.7" />
     </svg>
   );
 }
@@ -39,7 +39,7 @@ export function IconGear({ width = 32, height = 32, className = '' }) {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      stroke={SKIN.color.ink}
+      stroke="currentColor"
       strokeWidth={1.5}
       className={className}
     >

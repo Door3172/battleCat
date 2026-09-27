@@ -5,10 +5,10 @@ import Button from './Button.jsx';
 export default function SettingsDialog({ show, onClose, audio, volume, setVolume, theme, setTheme }) {
   const volumeText = `${Math.round(volume * 100)}%`;
   const themes = [
-    { value: 'minimal', label: 'Minimal' },
-    { value: 'modern', label: 'Modern' },
-    { value: 'warm', label: 'Warm' },
-    { value: 'neon', label: 'Neon' },
+    { value: 'minimal', label: 'Minimal・極簡' },
+    { value: 'modern', label: 'Modern・深色玻璃' },
+    { value: 'warm', label: 'Warm・暖橘' },
+    { value: 'neon', label: 'Neon・霓虹' },
   ];
 
   return (
@@ -50,7 +50,7 @@ export default function SettingsDialog({ show, onClose, audio, volume, setVolume
             id="theme-select"
             value={theme}
             onChange={(e) => setTheme(e.target.value)}
-            className="w-full flex-1 rounded-xl border border-[var(--color-line)] bg-[var(--color-card-top)] px-3 py-2 text-sm text-[var(--color-ink)]"
+            className="ui-select w-full flex-1 text-sm"
           >
             {themes.map((item) => (
               <option key={item.value} value={item.value}>
@@ -59,7 +59,7 @@ export default function SettingsDialog({ show, onClose, audio, volume, setVolume
             ))}
           </select>
         </div>
-        <Button size="sm" block onClick={onClose}>
+        <Button size="sm" block tone="primary" onClick={onClose}>
           關閉
         </Button>
       </div>

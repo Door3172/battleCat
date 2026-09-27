@@ -15,15 +15,15 @@ export default function Lobby({ coins, highestUnlocked, goChapter, goLineup, goS
           right={<Pill>世界 {highestUnlocked[1]} / 未來 {highestUnlocked[2]}</Pill>}
         />
       <div className="grid md:grid-cols-3 gap-3">
-        <Card>
+        <Card className="md:col-span-2">
           <div className="text-sm font-medium text-sub">目前資源</div>
           <div className="mt-2 flex items-center gap-2 text-3xl font-extrabold tabular-nums">
             <IconCoin />
             <span className="text-highlight number-pop">{fmt(coins)}</span>
             <span className="ml-1 text-base font-medium">金幣</span>
           </div>
-            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2" aria-label="主要選單">
-              <Button onClick={goChapter} tone="accent">開始遊戲</Button>
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2" aria-label="主要選單">
+              <Button onClick={goChapter} tone="primary" size="lg" className="col-span-2 sm:col-span-3">▶ 開始遊戲</Button>
             <Button onClick={goLineup}>隊伍編成</Button>
             <Button onClick={goShop}>商店</Button>
             <Button onClick={goGacha}>轉蛋</Button>
@@ -39,6 +39,7 @@ export default function Lobby({ coins, highestUnlocked, goChapter, goLineup, goS
             </Button>
           </div>
         </Card>
+        <div className="grid gap-3 content-start">
         <Card>
           <div className="font-semibold">遊玩提示</div>
           <ul className="list-disc pl-5 text-sub text-sm mt-2 space-y-1">
@@ -50,6 +51,7 @@ export default function Lobby({ coins, highestUnlocked, goChapter, goLineup, goS
           <div className="font-semibold">操作說明</div>
           <div className="mt-2 text-sm text-sub">戰鬥中可按 <b>1~5</b> 召喚，<b>Space</b> 放砲，<b>P</b> 暫停，<b>R</b> 重開，<b>X</b> 加速。</div>
         </Card>
+        </div>
       </div>
     </div>
   );

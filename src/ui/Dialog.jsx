@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { SKIN } from '../data/skin.js';
 
 export default function Dialog({ show, onClose, children, fullscreen = true }) {
   useEffect(() => {
@@ -11,24 +10,15 @@ export default function Dialog({ show, onClose, children, fullscreen = true }) {
     return () => document.removeEventListener('keydown', onKey);
   }, [show, onClose]);
 
-  const panelStyle = {
-    borderColor: SKIN.color.line,
-    background: `linear-gradient(180deg, ${SKIN.color.cardTop}, ${SKIN.color.cardBottom})`,
-    boxShadow: SKIN.shadow.card,
-    color: SKIN.color.ink,
-    backdropFilter: 'blur(14px)',
-  };
-
   return (
     <div
-      className={`${fullscreen ? 'fixed' : 'absolute'} inset-0 grid place-items-center bg-black/50 transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      className={`ui-dialog-backdrop ${show ? 'is-open' : ''} ${fullscreen ? 'fixed' : 'absolute'} inset-0 grid place-items-center p-4 transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       onClick={() => { if (show) onClose?.(); }}
     >
       <div
         role="dialog"
         aria-modal="true"
-        className="rounded-2xl border px-4 py-3 text-center"
-        style={panelStyle}
+        className="ui-dialog px-5 py-4 text-center"
         onClick={(e) => e.stopPropagation()}
       >
         {children}

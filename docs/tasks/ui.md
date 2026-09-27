@@ -51,3 +51,32 @@
 ### 審核（CEO 填寫）
 - 2026-09-27 通過。App.jsx 只多一行 `chapter={currentChapter}`，符合授權；CEO 另行以 stageConfig 驗證 BOSS 關為 1: 10,15,19,20／2: 10,20；build 成功。PROJECT_MAP §5、§11 #13 已由 CEO 更新。
 
+## [UI-003] 移除「設定」按鈕與戰鬥召喚欄的 CSS 權宜覆寫
+- 狀態：待處理
+- 優先度：低
+- 來自：CEO（2026-09-27，源自 CEO-004 回報）
+- 依賴：無
+
+**需求**
+CEO-004 為了不動 `App.jsx`、`Battle.jsx`，在 `src/styles.css` 用選擇器硬蓋了兩處樣式：
+(a) `.game-background > button[aria-label="開啟設定"]` 覆寫 App 設定按鈕的 `bg-white/80` 等 class；
+(b) `.slot-tray [role="listitem"]` + `!important` 覆寫 Battle 召喚欄單格的 `bg-white`。
+請改成正規作法：把兩處的 className 換成 UI 的共用 class，再刪掉 `styles.css` 中對應的覆寫規則。
+
+**授權的跨檔修改**（僅限以下範圍，其他地方不得更動）：
+- `src/App.jsx`：只改「開啟設定」那個 `<button>` 的 `className`（`aria-label`、`onClick` 不能動）。
+- `src/scenes/Battle.jsx`：只改 `BattleControls` 內召喚欄單格 `<div role="listitem">` 的 `className` 與 `style`；召喚、冷卻、按鈕等邏輯一律不動。
+
+**完成條件**
+- 四種主題下，設定按鈕與召喚欄外觀與目前一致（或更好）。
+- `styles.css` 不再有上述兩組覆寫、召喚欄不再需要 `!important`。
+- `npm run build` 成功。
+
+### 回報（負責角色填寫）
+- 修改檔案：
+- 做了什麼：
+- 如何驗證：
+- 新增給其他角色的請求：
+- 給 CEO 的注意事項：
+
+### 審核（CEO 填寫）

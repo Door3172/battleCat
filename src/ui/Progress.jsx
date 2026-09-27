@@ -1,5 +1,4 @@
 import React from 'react';
-import { SKIN } from '../data/skin.js';
 
 export default function Progress({
   value,
@@ -20,9 +19,9 @@ export default function Progress({
       style={{
         width: `var(--progress-width, ${w}px)`,
         height: `var(--progress-height, ${h}px)`,
-        borderRadius: SKIN.radius.pill,
-        border: `1px solid ${SKIN.color.line}`,
-        background: bg ?? 'var(--progress-bg, #e5e7eb)',
+        borderRadius: 999,
+        border: '1px solid var(--color-line)',
+        background: bg ?? 'var(--progress-bg)',
         overflow: 'hidden',
       }}
     >
@@ -30,9 +29,11 @@ export default function Progress({
         style={{
           width: `${pct * 100}%`,
           height: '100%',
+          borderRadius: 999,
+          transition: 'width 0.2s ease',
           background:
             color ??
-            `var(--progress-color, linear-gradient(90deg, ${SKIN.color.ok}, #34d399))`,
+            'var(--progress-color, linear-gradient(90deg, var(--color-ok), var(--color-primary)))',
         }}
       />
     </div>

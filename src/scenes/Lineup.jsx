@@ -20,8 +20,8 @@ export default function Lineup({ unlocks, lineup, catLevels, setLineup, addCatNa
 
   return (
     <div className="relative space-y-3">
-      <div className="absolute top-4 right-4 flex gap-2">
-        <Button onClick={onBack}>⬅️ 返回大廳</Button>
+      <div className="flex pr-20">
+        <Button onClick={onBack} tone="ghost" size="sm">← 返回大廳</Button>
       </div>
       <HeroBanner title="貓咪大戰爭" subtitle="隊伍編成" />
       <Card>

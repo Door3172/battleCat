@@ -67,19 +67,24 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 
 ## 2. UI 系統
 
-- **主題**：`styles.css` 在 `:root` 定義 CSS 變數，`body.theme-*` 覆寫。App 切換 `body` class。
-- **`src/data/skin.js`**：`SKIN.color.*` 是 getter，**執行當下**讀 CSS 變數 → JS inline style 會跟著主題變。另有 `SKIN.size`、`SKIN.radius`、`SKIN.shadow`、`SKIN.grad`。
+- **主題**：`styles.css` 在 `:root` 定義完整的設計 token（CSS 變數），`body.theme-minimal / modern / warm / neon` 各自覆寫**全部** token。App 切換 `body` class，所有畫面（含 Canvas）即時跟著變。
+  - Minimal＝白底靛藍、Modern＝深色玻璃藍紫、Warm＝奶油橘粉、Neon＝深夜青＋洋紅螢光。
+  - Token 分組：品牌色（`--color-primary*`、`--color-secondary*`、`*-ink` 為其上文字色）、文字、狀態、背景/表面（`--color-card-*`、`--color-inset`、`--color-line(-strong)`）、按鈕（`--btn-*`）、Pill（`--pill-*`）、橫幅（`--hero-*`）、圓角（`--radius-card/panel`、`--btn-radius`）、戰場 Canvas（`--field-*`）。
+  - **新增主題**：複製一個 `body.theme-*` 區塊把所有變數填上，再到 `SettingsDialog.jsx` 的 `themes` 陣列加選項。
+- **DOM 元件一律用 CSS class / `var(--*)`**，不要在 JSX 用 `SKIN.color.*`（那是 JS 讀值，React 不會因主題切換重畫）。
+- **`src/data/skin.js`**：`SKIN.color.*`、`SKIN.field.*`（戰場用）是讀 CSS 變數的 getter，**給 Canvas（draw.js）用**；有快取，body class 改變時自動清空。另有 `SKIN.size`、`SKIN.radius`、`SKIN.shadow`、`SKIN.grad`。
 - **Tailwind** 顏色對應 CSS 變數（`text-ink`、`bg-ok` 等）。
-- 重要共用 class：`.game-background`、`.hero-title`、`.stage-btn`（`.locked` / `.boss`）、`.text-sub` / `.text-mute` / `.text-highlight`、`.number-pop`、`.fade-in`。
+- 共用 class：`.ui-btn`（`-primary/-accent/-ghost`）、`.ui-card`/`.ui-card-dark`、`.ui-pill`、`.ui-divider`、`.ui-dialog(-backdrop)`、`.ui-select`、`.hero-banner`/`.hero-title`/`.hero-sub`/`.hero-chip`、`.stage-btn`（`.locked` 顯示 🔒 / `.boss`）、`.slot-tray`、`.hud-stat`、`.unit-card`、`.gacha-*`、`.game-background`、`.text-sub`/`.text-mute`/`.text-highlight`。
 - **元件重點**：
-  - `Button`：`tone` = default/primary/ghost/accent，`size` = sm/md/lg；同時綁 `onPointerUp` 與 `onClick`，用 120ms 鎖防止重複觸發。
-  - `Card`：`tone` light/dark，漸層背景 + blur。
+  - `Button`：`tone` = default/primary/ghost/accent，`size` = sm/md/lg；同時綁 `onPointerUp` 與 `onClick`，用 120ms 鎖防止重複觸發。可傳 `aria-label`。
+  - `Card`：`tone` light/dark。
   - `Dialog`：`fullscreen` 決定 fixed/absolute，Esc 或點背景呼叫 `onClose`。
-  - `HeroBanner`：每個場景的頂部標題列。
-  - `HudInfo` / `SlotTray` / `Toolbar`：戰鬥畫面下方控制區。
-  - `UnitCard`：圖鑑用，但 `.unit-card` 樣式**不存在**、攻擊/血量是寫死的預設值。
-  - `GachaMachine`：純 CSS 方塊外觀，無動畫/邏輯。
-- 戰場畫面**不是 DOM**，是 Canvas（見 §4 draw.js）。角色是色塊 + 耳朵，沒有用 `public/pic` 圖片。
+  - `HeroBanner`：每個場景的頂部標題列；`right` 內容會包在半透明膠囊 `.hero-chip` 裡。
+  - 各場景的「← 返回」按鈕放在橫幅**上方**一列（ghost/sm），右上角留給 App 的「設定」按鈕。
+  - `HudInfo`（不再自帶 Card）/ `SlotTray` / `Toolbar`（`lg` 以上左 1.6 : 右 1）：戰鬥畫面下方控制區。
+  - `UnitCard`：圖鑑用，只顯示名稱＋左側類型色條（已移除原本寫死的假攻擊/血量）。`Codex.jsx` 的 `typeMap` 名稱對不上的問題仍在。
+  - `GachaMachine`：CSS 扭蛋機外觀（顏色跟主題 secondary），無動畫/邏輯。
+- 戰場畫面**不是 DOM**，是 Canvas（見 §4 draw.js），天空/地面/文字顏色讀 `SKIN.field.*`。角色是色塊 + 耳朵，沒有用 `public/pic` 圖片。
 
 ---
 
@@ -271,7 +276,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 | 3 | 友軍 | ~~新增商店貓需手動改 `buildCatsTpl`，容易漏~~ ✅ 已修（2026-09-27） | `world.js` | AL-001 |
 | 4 | 專案 | `node_modules/`（約 4,000 檔）被 commit 進 git，雖然 `.gitignore` 有寫 | repo | CEO-002 |
 | 5 | 美術 | `public/pic/*.png`（16 張，約 12MB）與 `public/audio/廢棄.mp3`（4.9MB）未被使用，但會被部署 | `public/` | CEO-003 |
-| 6 | UI | 圖鑑 `UnitCard` 無樣式、數值寫死；`typeMap` 名稱對不上 | `Codex.jsx`、`UnitCard.jsx` | — |
+| 6 | UI | 圖鑑 `Codex.jsx` 的 `typeMap` 名稱對不上（寫「忍者貓」等，實際是「忍者喵」）；`UnitCard` 樣式與假數值已於 CEO-004 修正 | `Codex.jsx` | — |
 | 7 | UI | ~~戰鬥 HUD 的「研究力」按鈕其實是戰鬥內收入升級，與大廳升級的「研究力」名稱衝突~~ ✅ 已修（2026-09-27） | `HudInfo.jsx` | UI-001 |
 | 8 | 引擎 | `world.js`/`ai.js` 有未使用的舊生怪路徑（`firstDelay`、`spawnRate`、`pool`、`sequence`、`maxEnemies`、`difficulty` 皆未定義），`maxEnemies` 未定義 → 敵人數量無上限 | `ai.js`、`world.js` | — |
 | 9 | 引擎 | 貓咪砲無視護盾/閃避/擊退免疫 | `Battle.jsx` `fireCannon` | — |
@@ -279,3 +284,4 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 | 11 | 敵人 | `metal` 金屬怪已定義但沒有任何關卡使用 | `enemies.js` | — |
 | 12 | 測試 | 本機 node_modules 缺 vitest，`npm test` 失敗；測試覆蓋率極低 | — | — |
 | 13 | UI | ~~關卡選擇的 BOSS ⭐ 用 `n%10` 寫死，未讀取關卡 `boss` 設定（1-15、1-19 也有 BOSS 卻沒標）~~ ✅ 已修（2026-09-27） | `LevelSelect.jsx` | UI-002 |
+| 14 | UI | 設定按鈕（App.jsx）與召喚欄（Battle.jsx）用 CSS 選擇器 / `!important` 硬蓋樣式，屬權宜作法 | `styles.css` | UI-003 |

@@ -13,11 +13,11 @@ export default function Toolbar({
     ? `${position} ${side === 'bottom' ? 'bottom-0' : 'top-0'} w-full z-10`
     : '';
   return (
-      <div className={`grid md:grid-cols-2 gap-3 ${posClass} ${className}`}>
-        <Card className={`shadow-md ${cardClassName}`}>
+      <div className={`grid lg:grid-cols-[1.6fr_1fr] gap-3 ${posClass} ${className}`}>
+        <Card className={cardClassName}>
           {left}
         </Card>
-        <Card className={`shadow-md ${cardClassName}`}>
+        <Card className={cardClassName}>
           {right}
         </Card>
       </div>

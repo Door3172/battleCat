@@ -1,6 +1,18 @@
+// 讀取目前主題的 CSS 變數。Canvas（draw.js）每幀大量呼叫，因此加上快取，
+// body class（主題）改變時自動清空。DOM 元件請直接用 var(--*)，不要用這裡。
+const cache = new Map();
+let observing = false;
 const cssVar = (name) => {
+  if (typeof document === 'undefined') return '';
   const el = document.body || document.documentElement;
-  return getComputedStyle(el).getPropertyValue(name).trim();
+  if (!observing && document.body && typeof MutationObserver !== 'undefined') {
+    new MutationObserver(() => cache.clear()).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    observing = true;
+  }
+  if (cache.has(name)) return cache.get(name);
+  const v = getComputedStyle(el).getPropertyValue(name).trim();
+  if (observing) cache.set(name, v);
+  return v;
 };
 
 export const SKIN = {
@@ -25,6 +37,16 @@ export const SKIN = {
     get white() { return cssVar('--color-white'); },
     get black() { return cssVar('--color-black'); },
   },
+  // 戰場 Canvas 專用
+  field: {
+    get skyTop() { return cssVar('--field-sky-top'); },
+    get skyBottom() { return cssVar('--field-sky-bottom'); },
+    get ground() { return cssVar('--field-ground'); },
+    get groundEdge() { return cssVar('--field-ground-edge'); },
+    get stroke() { return cssVar('--field-stroke'); },
+    get text() { return cssVar('--field-text'); },
+    get hpTrack() { return cssVar('--field-hp-track'); },
+  },
   font: {
     get sans() { return cssVar('--font-sans'); },
     get display() { return cssVar('--font-display'); },
@@ -37,7 +59,7 @@ export const SKIN = {
     get lift() { return cssVar('--shadow-lift') || '0 10px 18px rgba(2,6,23,.08)'; },
   },
   grad: {
-    hero: (a,b)=>`linear-gradient(180deg, ${a} 0%, ${b} 62%, #ffd87a 100%)`,
+    hero: (a,b)=>`linear-gradient(120deg, ${a} 0%, ${b} 100%)`,
     card: (a,b)=>`linear-gradient(180deg, ${a}, ${b})`,
   },
 };
