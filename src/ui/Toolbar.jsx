@@ -13,7 +13,8 @@ export default function Toolbar({
     ? `${position} ${side === 'bottom' ? 'bottom-0' : 'top-0'} w-full z-10`
     : '';
   return (
-      <div className={`grid lg:grid-cols-[1.6fr_1fr] gap-3 ${posClass} ${className}`}>
+      // battle-toolbar：戰鬥控制區樣式（含停用轉場，見 styles.css）
+      <div className={`battle-toolbar grid lg:grid-cols-[1.6fr_1fr] gap-4 ${posClass} ${className}`}>
         <Card className={cardClassName}>
           {left}
         </Card>

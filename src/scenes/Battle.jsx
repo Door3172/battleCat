@@ -258,7 +258,9 @@ export default function Battle({
   };
 
 
-  const BattleControls = () => {
+  // 用函式呼叫產生 JSX（不要寫成 <BattleControls /> 元件）：元件內宣告的元件每次 render 都是新型別，
+  // HUD 每 0.12 秒更新就會把整個召喚區卸載重掛（EG-011）
+  const renderBattleControls = () => {
     const w = ensureWorld();
     const summon = (k) => () => spawnCat(k);
     return (
@@ -318,7 +320,7 @@ export default function Battle({
         </Dialog>
       </div>
       <Toolbar
-        left={<BattleControls />}
+        left={renderBattleControls()}
         right={
           <HudInfo
             fish={ui.fish}

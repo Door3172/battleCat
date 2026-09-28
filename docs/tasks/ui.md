@@ -439,3 +439,47 @@ AU-005 新增了音量分類 `env`（章節環境提示音：晝夜、潮汐的�
 
 ### 審核（CEO 填寫）
 - 2026-09-28 通過。改用 key 對應定位，新增測試保證每隻貓都有定位；`cats.js` 未動，範圍正確；build、test 通過，收尾確認為空。新增貓咪要補 `CAT_ROLES` 一事，CEO 已寫進 PROJECT_MAP §3。
+
+## [UI-012] 全面美術改版：卡通手遊風（4 種主題全部重做）
+- 狀態：已完成
+- 優先度：高
+- 來自：使用者（2026-09-28，對話中直接指派）
+- 依賴：無（召喚格浮沉的根治另請引擎處理 EG-011，UI 端先做緩解）
+
+**需求**
+使用者覺得目前 UI 仍不夠好看，要求「大改整個美術」，角色圖不動，主要是全部的 UI / 主題。已與使用者確認：
+- 方向：**卡通手遊風**——粗描邊、可以「按下去」的立體按鈕、圓體字、糖果色、帶紋理的背景，和白色貓咪角色搭配。
+- 主題：**保留 4 種可切換，全部依新方向重做**（存檔的 `theme` 值 `minimal/modern/warm/neon` 不變，只改外觀與顯示名稱）。
+- 另外修正：滑鼠移到戰鬥召喚格上時會一直浮起又沉下（應該只有一次）。
+
+**完成條件**
+- 所有畫面（大廳、章節、關卡、戰鬥 HUD、商店、升級、轉蛋、編成、圖鑑、設定、對話框）四種主題都套用新風格、清楚好看；戰場 Canvas 配色跟主題一致。
+- 滑鼠停在召喚格上不再反覆浮沉。
+- `npm run build`、`npm test` 通過；更新 `docs/PROJECT_MAP.md` §2 與 CHANGELOG；驗證完關閉 dev server 與瀏覽器。
+
+### 回報（負責角色填寫）
+- 修改檔案：`src/styles.css`（整份重寫）、`src/scenes/Lobby.jsx`、`src/ui/HeroBanner.jsx`、`src/ui/Toolbar.jsx`、`src/ui/SettingsDialog.jsx`、`docs/PROJECT_MAP.md`（§2）、`docs/CHANGELOG.md`、`docs/tasks/engine.md`（新增 EG-011）、本任務檔
+- 做了什麼：
+  1. **整體風格（卡通手遊風）**：全部元件改成粗描邊（`--outline`）＋底部硬陰影（`--pop`）；按鈕是立體的，按下會往下沉；標題、按鈕、數字改用圓體字 Huninn（粉圓，Google Fonts，在 `styles.css` 開頭 `@import`）；背景加上貓掌／星點／網格紋理；標題招牌加斜紋、描邊大字與大貓掌裝飾。
+  2. **4 套主題全部重做**（存檔的 `theme` 值 `minimal/modern/warm/neon` 不變，只改外觀與設定選單顯示名稱）：☀️ 晴空、🌌 星夜、🍯 蜜糖、🕹️ 霓虹街機。每套都有完整的 token（含戰場 Canvas 的 `--field-*` 天空／地面配色）。
+  3. **各畫面**：大廳改為金幣徽章＋整列「開始遊戲」＋5 格圖示選單（`Lobby.jsx` 重寫版面，功能與按鈕行為不變，清除存檔仍需確認）；子頁面的頁名顯示成緞帶標籤（`HeroBanner`：副標 8 字以內用 `.hero-tag`）；關卡格、BOSS 金色格、未解鎖虛線格；召喚格、HUD 數值格、圖鑑卡、頭像、轉蛋機、設定視窗（含自訂滑桿與下拉選單）、環境 HUD 與預告橫幅、章節卡規則說明都改成同一風格。
+  4. **召喚格浮沉 bug**：
+     - 根因：`Battle.jsx` 的 `BattleControls` 是在 `Battle` 裡定義的元件，HUD 每 0.12 秒更新就被整個卸載重建，滑鼠停著時 hover 動畫一直重播。這在引擎角色的檔案，已新增 **EG-011** 請引擎修正。
+     - UI 端緩解（本任務）：按鈕與召喚格的懸停**不再使用位移／縮放**（只改亮度或邊框色），並在 `Toolbar` 根元素加 `.battle-toolbar`，關閉戰鬥控制區的轉場。所以就算 EG-011 還沒修，也不會再看到浮起沉下。
+  5. **刪了什麼 / 留了什麼（規則 13）**：刪除已被 `ui-*` 元件取代、程式中已無人使用的舊 class：`.btn`、`.btn-accent`、`.btn-ghost`、`.btn-cta`、`.card`、`.panel`、`.overlay-dark`、`.overlay-light`、`.grid-panel`、`.section-title`、`.scale-up`、`.fade-in`（刪前已搜尋 `src/**/*.jsx` 確認無使用），以及 Neon 專用的舊按鈕發光規則、深色主題的 Dialog 背景覆寫（新樣式不需要）。`.ui-btn.ring-1` 相容規則也刪除（編成頁早已改用 `.is-selected`）。沒有保留任何註解中的舊程式。
+- 如何驗證：
+  - `npm run build` 成功；`npm test` 通過（4 個測試檔、37 個測試）。
+  - 瀏覽器實際檢查：大廳（4 種主題都截圖）、章節選擇、關卡選擇（BOSS／未解鎖／環境圖示）、戰鬥（戰場 Canvas、召喚格、HUD）、商店（霓虹）、升級（蜜糖）、轉蛋（星夜）、隊伍編成（晴空，含已選狀態）、圖鑑（蜜糖）、設定視窗（蜜糖）。
+  - 發現並修正：「開始遊戲」字級被按鈕內嵌樣式蓋掉（改用 `sizeMap`）；子頁面頁名太小（改緞帶標籤）；圖鑑定位標籤在窄卡片斷行（加 `nowrap`）。
+  - 召喚格浮沉：預覽窗格平常不持續繪製（只在截圖瞬間繪製），無法錄到懸停過程；改以樣式確認 `.slot-card:hover`、`.ui-btn:hover` 都沒有 `transform`，且 `.battle-toolbar` 內 `transition: none`，因此重建時不會產生位移動畫。
+- 新增給其他角色的請求：**EG-011**（`docs/tasks/engine.md`）：修正 `Battle.jsx` 的 `BattleControls` 每次重畫都被當成新元件而重建的問題。
+- 收尾：已 `preview_stop` 自己開的 dev server（5884358e…）並關閉分頁；`preview_list` 回傳 `[]`、`tabs_context` 回傳 `browserOpen: false, tabs: []`，已清空。
+- 給 CEO 的注意事項：
+  - commit 範圍：`src/styles.css`、`src/scenes/Lobby.jsx`、`src/ui/HeroBanner.jsx`、`src/ui/Toolbar.jsx`、`src/ui/SettingsDialog.jsx`、`docs/PROJECT_MAP.md`、`docs/CHANGELOG.md`、`docs/tasks/ui.md`、`docs/tasks/engine.md`（EG-011 新增）。
+  - 字型 Huninn 從 Google Fonts 線上載入（`index.html` 本來就有連 Google Fonts）；離線或載入失敗時會退回 Noto Sans TC / 系統字型，版面不會壞。
+  - `index.html` 的 `<body class="theme-neon">` 只影響第一瞬間（App 會立刻改成存檔的主題），沒有動它。
+  - 戰場上的主堡與貓咪角色圖沒有改（使用者指示角色不用動）；戰場天空／地面顏色依新主題調整。
+  - 驗證過程中我在預覽瀏覽器用 JS 切換 `body` 的主題 class，但沒有改 localStorage 的存檔值。
+
+### 審核（CEO 填寫）
+- 2026-09-28 通過。範圍都在 UI 檔案內，`theme` 存檔值不變；大廳按鈕功能與清除存檔確認都保留；刪除的舊 class 已確認無人使用，符合規則 13；build、test 通過，收尾確認為空。字型從 Google Fonts 載入，失敗時會退回系統字型。視覺效果請使用者在正式站確認。

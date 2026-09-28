@@ -431,3 +431,42 @@ CEO 決定：
 
 ### 審核（CEO 填寫）
 - 2026-09-28 通過。`spawnFactor` 以註解保留並寫明用途、停用原因、啟用方法，符合使用者指示與規則 13；固定亂數比對相同，新增 BOSS 縮放測試；build、test（37 項）通過，範圍正確。
+
+## [EG-011] 戰鬥召喚區每 0.12 秒被整個重建（造成滑鼠懸停時反覆浮沉）
+- 狀態：已完成
+- 優先度：中
+- 來自：UI（2026-09-28，UI-012 調查使用者回報的 bug）
+- 依賴：無
+
+**需求**
+使用者回報：滑鼠移到戰鬥召喚格上時會一直「浮起來又沉下去」。
+原因：`src/scenes/Battle.jsx` 約第 261 行把召喚區寫成**元件內部的元件** `const BattleControls = () => {...}`，再用 `<BattleControls />` 放進 `<Toolbar left={...}>`。Battle 每次重畫（HUD 每 0.12 秒 `setUi` 一次）都會產生新的函式，React 視為**不同的元件型別**，於是把整個召喚區（召喚格、召喚按鈕、貓咪砲／暫停／重開／返回按鈕）**卸載再重新掛載**。滑鼠停在上面時 hover 效果每次重建都重播，看起來就是一直浮沉；也可能讓按鈕偶爾點不到（按下與放開落在不同的 DOM 元素），並浪費效能。
+建議修法（只改呼叫方式，不動召喚邏輯）：
+- 把 `left={<BattleControls />}` 改成 `left={renderBattleControls()}`（函式改名，避免被當成元件），或
+- 把 `BattleControls` 移到 `Battle` 外面成為真正的元件，需要的值用 props 傳入。
+
+UI 端（UI-012）會先讓召喚區的懸停效果不使用位移動畫作為緩解，但根本原因要在 `Battle.jsx` 修正。
+
+**完成條件**
+- 戰鬥中召喚區不再每次 HUD 更新就重新掛載（例如用 `MutationObserver` 確認召喚格 DOM 節點不會被替換）。
+- 召喚、冷卻、大砲、暫停、重開、返回功能不變；`npm run build`、`npm test` 通過。
+
+### 回報（負責角色填寫）
+- 修改檔案：`src/scenes/Battle.jsx`（函式改名＋呼叫方式 2 處、加 2 行註解）、`docs/CHANGELOG.md`、本任務檔
+- 做了什麼：照建議修法一：`const BattleControls = () => {...}` 改名為 `renderBattleControls`，`left={<BattleControls />}` 改成 `left={renderBattleControls()}`。函式內容（召喚格、召喚按鈕、貓咪砲／暫停／重開／返回）一行都沒動。函式內沒有使用任何 hook，直接呼叫是安全的。旁邊加註解說明為什麼不能寫成元件內宣告的元件。
+- 如何驗證（自己開的 dev server，進 1-1）：
+  - **修正前重現**：用 `MutationObserver` 監看 3 秒，召喚格所在子樹被移除 **22 次**（約每 0.13 秒一次，對應 HUD 0.12 秒更新），一開始抓到的 `.slot-card` 節點已不在 DOM 中（被換掉）。
+  - **修正後**：重新載入頁面後同樣監看 3 秒（期間 HUD 魚量 180 → 272，確認 HUD 有持續更新），召喚格移除 **0 次**，原本的 `.slot-card` 節點仍在 DOM 中。
+  - **功能不變**（用 JS 點按鈕操作）：召喚白喵後魚量 609 → 566（花費 50＋0.3 秒收入），按鈕變成「冷卻 1.8s」且停用，召喚格仍是同一個節點；貓咪砲顯示「(19.7s)」倒數；暫停出現「已暫停」、按鈕變「▶️ 繼續」，按下後恢復；重開後魚量回到 150、大砲冷卻清除；返回大廳正常。console 沒有錯誤。鍵盤快捷鍵走的是另一段 `useEffect`，沒有受影響。
+  - `npm test` 37 項全過；`npm run build` 成功。
+  - 註：Claude 視窗被縮小時瀏覽器不繪製，所以測試時在分頁中暫時把 `requestAnimationFrame` 換成 MessageChannel 版本（約 60fps），並用 JS `click()` 操作按鈕。這些只存在分頁記憶體，不是程式修改，分頁已關閉。
+- 新增給其他角色的請求：無
+- 收尾：自己開的 dev server（`363128f2-…`，5173）已 `preview_stop`，分頁 `seed` 已 `tabs_close`（這次沒有出現 `Browser` 類型的預覽程序）。最後 `preview_list` 回傳 `[]`、`tabs_context` 回傳 `tabs: []`（browserOpen: false），確認都是空的。沒有背景程序。
+- 給 CEO 的注意事項：
+  - **歸屬**：這個任務是 UI 角色直接寫進我任務檔的，不是 CEO 派工。改動位置是 `Battle.jsx` 的畫面 JSX 區，但只改了「怎麼呼叫」（元件改成函式呼叫），畫面內容與排版完全沒動，所以我判斷屬於引擎的邏輯範圍。若 CEO 認為屬於 UI，請在審核中說明。
+  - commit 範圍：`src/scenes/Battle.jsx`、`docs/CHANGELOG.md`、`docs/tasks/engine.md`。工作目錄中還有其他角色（UI）未 commit 的改動：`src/scenes/Lobby.jsx`、`src/styles.css`、`src/ui/*`、`docs/tasks/ui.md` 等，不是我改的，請勿併入。
+  - UI-012 的緩解做法（懸停不用位移動畫）與本修正互不衝突，兩者可以都保留。
+  - 沒有改變系統行為或資料格式，所以沒有更新 PROJECT_MAP。
+
+### 審核（CEO 填寫）
+- 2026-09-28 通過。歸屬確認屬引擎：只改呼叫方式（元件 → 函式呼叫），畫面內容未動。修正前後用 MutationObserver 比對（22 次 → 0 次），功能實測正常；build、test（37 項）通過。UI 直接在引擎任務檔提出請求，符合規則 2。

@@ -13,10 +13,11 @@ const VOLUME_ROWS = [
 ];
 
 const THEMES = [
-  { value: 'minimal', label: 'Minimal・極簡' },
-  { value: 'modern', label: 'Modern・深色玻璃' },
-  { value: 'warm', label: 'Warm・暖橘' },
-  { value: 'neon', label: 'Neon・霓虹' },
+  // value 是存檔的 theme 值，不能改；label 只是顯示名稱
+  { value: 'minimal', label: '☀️ 晴空' },
+  { value: 'modern', label: '🌌 星夜' },
+  { value: 'warm', label: '🍯 蜜糖' },
+  { value: 'neon', label: '🕹️ 霓虹街機' },
 ];
 
 export default function SettingsDialog({ show, onClose, audio, theme, setTheme }) {

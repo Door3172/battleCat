@@ -68,20 +68,23 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 ## 2. UI 系統
 
 - **主題**：`styles.css` 在 `:root` 定義完整的設計 token（CSS 變數），`body.theme-minimal / modern / warm / neon` 各自覆寫**全部** token。App 切換 `body` class，所有畫面（含 Canvas）即時跟著變。
-  - Minimal＝白底靛藍、Modern＝深色玻璃藍紫、Warm＝奶油橘粉、Neon＝深夜青＋洋紅螢光。
-  - Token 分組：品牌色（`--color-primary*`、`--color-secondary*`、`*-ink` 為其上文字色）、文字、狀態、背景/表面（`--color-card-*`、`--color-inset`、`--color-line(-strong)`）、按鈕（`--btn-*`）、Pill（`--pill-*`）、橫幅（`--hero-*`）、圓角（`--radius-card/panel`、`--btn-radius`）、戰場 Canvas（`--field-*`）。
+  - **美術風格：卡通手遊風**（UI-012）：粗描邊（`--outline`）＋硬陰影（`--pop`）＋可「按下去」的立體按鈕＋圓體字（Google Fonts「Huninn 粉圓」，在 `styles.css` 開頭 `@import`；標題、按鈕、數字用 `--font-display`，內文用 `--font-sans`）。背景是貓掌／星點／網格紋理（`--bg-pattern`）。
+  - 4 套主題（存檔值不變，只改外觀與顯示名稱）：`minimal`＝☀️ 晴空（藍天、白面板、黃按鈕）、`modern`＝🌌 星夜（深紫夜空、星點、亮黃按鈕）、`warm`＝🍯 蜜糖（蜜桃色、奶油面板、橘粉按鈕）、`neon`＝🕹️ 霓虹街機（深夜網格、青色描邊、洋紅立體陰影）。
+  - **按鈕懸停只改亮度、不做位移**；按下（`:active`）才往下沉。戰鬥控制區（`Toolbar` 根元素 `.battle-toolbar`）關閉轉場，避免 HUD 更新時元件重建造成閃動（根因見 EG-011）。
+  - Token 分組：品牌色（`--color-primary*`、`--color-secondary*`、`*-ink` 為其上文字色）、文字、狀態、背景/表面（`--color-card-*`、`--color-inset`、`--color-line(-strong)`）、按鈕（`--btn-*`）、Pill（`--pill-*`）、招牌（`--hero-*`、`--hero-stripes`、`--title-stroke`）、描邊與硬陰影（`--outline`、`--pop`）、背景紋理（`--bg-pattern`）、頭像底（`--avatar-bg`）、圓角（`--radius-card/panel`、`--btn-radius`）、戰場 Canvas（`--field-*`）。
   - **新增主題**：複製一個 `body.theme-*` 區塊把所有變數填上，再到 `SettingsDialog.jsx` 的 `THEMES` 陣列加選項。
 - **DOM 元件一律用 CSS class / `var(--*)`**，不要在 JSX 用 `SKIN.color.*`（那是 JS 讀值，React 不會因主題切換重畫）。
 - **`src/data/skin.js`**：`SKIN.color.*`、`SKIN.field.*`（戰場用）是讀 CSS 變數的 getter，**給 Canvas（draw.js）用**；有快取，body class 改變時自動清空。另有 `SKIN.size`、`SKIN.radius`、`SKIN.shadow`、`SKIN.grad`。
 - **Tailwind** 顏色對應 CSS 變數（`text-ink`、`bg-ok` 等）。
-- 共用 class：`.ui-btn`（`-primary/-accent/-ghost`）、`.ui-card`/`.ui-card-dark`、`.ui-pill`、`.ui-divider`、`.ui-dialog(-backdrop)`、`.ui-select`、`.hero-banner`/`.hero-title`/`.hero-sub`/`.hero-chip`、`.stage-btn`（`.locked` 顯示 🔒 / `.boss`）、`.slot-tray`、`.hud-stat`、`.unit-card`、`.gacha-*`、`.game-background`、`.text-sub`/`.text-mute`/`.text-highlight`。
+- 共用 class：`.ui-btn`（`-primary/-accent/-ghost`）、`.ui-card`/`.ui-card-dark`、`.ui-pill`、`.ui-divider`、`.ui-dialog(-backdrop)`、`.ui-select`、`.hero-banner`/`.hero-title`/`.hero-sub`/`.hero-tag`/`.hero-chip`、`.coin-badge`、`.menu-tile`/`.menu-tile-icon`、`.lobby-start`、`.tip-list`、`.kbd`、`.battle-toolbar`、`.slot-card`、`.number-pop`、`.stage-btn`（`.locked` 顯示 🔒 / `.boss`）、`.slot-tray`、`.hud-stat`、`.unit-card`、`.gacha-*`、`.game-background`、`.text-sub`/`.text-mute`/`.text-highlight`。
 - **元件重點**：
   - `Button`：`tone` = default/primary/ghost/accent，`size` = sm/md/lg；同時綁 `onPointerUp` 與 `onClick`，用 120ms 鎖防止重複觸發。可傳 `aria-label`。點擊時呼叫 `audio.playClick()`（disabled 不播）。
   - 不是 `Button` 元件、但也有點擊音效的原生按鈕：App 右上「設定」（`.ui-corner-btn`）、關卡格（`.stage-btn`，只有已解鎖才播）。之後新增原生 `<button>` 時記得自己呼叫 `audio.playClick()`。
   - `SettingsDialog`：六條分類音量滑桿（主音量 / 背景音樂 / 召喚 / 按鈕 / 勝敗 / 環境提示音，定義在 `VOLUME_ROWS`；直接呼叫 `audio.getVolumes()` / `audio.setVolume()`，除音樂外都有 ▶ 試聽）＋風格選單。只收 `show`、`onClose`、`audio`、`theme`、`setTheme`。
   - `Card`：`tone` light/dark。
   - `Dialog`：`fullscreen` 決定 fixed/absolute，Esc 或點背景呼叫 `onClose`。`fullscreen` 時用 portal 掛到 `document.body`（外框 `.game-background` 有 backdrop-filter，會讓 fixed 改成相對外框定位）。
-  - `HeroBanner`：每個場景的頂部標題列；`right` 內容會包在半透明膠囊 `.hero-chip` 裡。
+  - `HeroBanner`：每個場景的頂部招牌（斜紋底＋描邊標題＋右上大貓掌裝飾）；副標 8 字以內（頁面名稱，如「商店」）顯示成傾斜的緞帶標籤 `.hero-tag`，較長的說明文字用 `.hero-sub`；`right` 內容包在膠囊 `.hero-chip` 裡。
+  - 大廳（`Lobby.jsx`）：金幣徽章 `.coin-badge`、整列主按鈕「開始遊戲」、5 格圖示選單 `.menu-tile`（編成／商店／轉蛋／升級／圖鑑）、提示與操作說明（按鍵用 `.kbd`）。
   - 各場景的「← 返回」按鈕放在橫幅**上方**一列（ghost/sm），右上角留給 App 的「設定」按鈕。
   - `HudInfo`（不再自帶 Card）/ `SlotTray` / `Toolbar`（`lg` 以上左 1.6 : 右 1）：戰鬥畫面下方控制區。
   - `CatAvatar`（`catKey`, `name`, `size`）：圓形貓咪頭像；沒有圖（`jaycat`、`jay`）或載入失敗時顯示名字首字的漸層徽章。用於隊伍編成、升級、商店、戰鬥召喚欄、圖鑑。深色主題（modern/neon）頭像底色用 `--avatar-bg` 亮色，避免黑線條看不清。
