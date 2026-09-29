@@ -7,7 +7,7 @@ import { BASE_CATS, SHOP_UNLOCKS, GACHA_UNLOCKS } from '../data/cats.js';
 export const CAT_ART_KEYS = new Set([
   'white', 'tank', 'archer', 'giant', 'bird', 'fish', 'lizard',
   'ninja', 'knight', 'mage', 'samurai', 'sumo', 'viking', 'cow',
-  'void', 'azurePhantom',
+  'void', 'azurePhantom', 'jay',
 ]);
 
 const BASE = (import.meta.env && import.meta.env.BASE_URL) || '/';

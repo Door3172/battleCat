@@ -14,7 +14,7 @@ tailwind.config.js         顏色對應 CSS 變數（primary/secondary/ink/bg/ok
 .github/workflows/deploy-pages.yml   push main → build → GitHub Pages
 public/
   audio/                   bgm_lobby_v2 / bgm_battle_v2 / sfx_summon / sfx_win / sfx_lose
-  pic/                     16 張角色 WebP（256px，約 300KB；UI-004 起用於戰場與各畫面頭像）
+  pic/                     17 張角色 WebP（256px，約 310KB；UI-004 起用於戰場與各畫面頭像；UI-013 加入 jay）
   ui-redesign.html         tools/generate_ui.py 產生的 UI 草稿，與遊戲無關
 src/
   main.jsx                 React 掛載
@@ -87,7 +87,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
   - 大廳（`Lobby.jsx`）：金幣徽章 `.coin-badge`、整列主按鈕「開始遊戲」、5 格圖示選單 `.menu-tile`（編成／商店／轉蛋／升級／圖鑑）、提示與操作說明（按鍵用 `.kbd`）。
   - 各場景的「← 返回」按鈕放在橫幅**上方**一列（ghost/sm），右上角留給 App 的「設定」按鈕。
   - `HudInfo`（不再自帶 Card）/ `SlotTray` / `Toolbar`（`lg` 以上左 1.6 : 右 1）：戰鬥畫面下方控制區。
-  - `CatAvatar`（`catKey`, `name`, `size`）：圓形貓咪頭像；沒有圖（`jaycat`、`jay`）或載入失敗時顯示名字首字的漸層徽章。用於隊伍編成、升級、商店、戰鬥召喚欄、圖鑑。深色主題（modern/neon）頭像底色用 `--avatar-bg` 亮色，避免黑線條看不清。
+  - `CatAvatar`（`catKey`, `name`, `size`）：圓形貓咪頭像；沒有圖（目前只有 `jaycat`）或載入失敗時顯示名字首字的漸層徽章。用於隊伍編成、升級、商店、戰鬥召喚欄、圖鑑。深色主題（modern/neon）頭像底色用 `--avatar-bg` 亮色，避免黑線條看不清。
   - `catArt.js`：`CAT_ART_KEYS`（有圖的貓）、`catArtUrl(key)`（含 `import.meta.env.BASE_URL`）、`catKeyByName(中文名)`（圖鑑用，唯讀 `cats.js`）、`preloadCatArt()` / `getCatImage(key)`（Canvas 用）。**新增角色圖**：放 `public/pic/<key>.webp`（最長邊 256px）並把 key 加進 `CAT_ART_KEYS`。
   - `UnitCard`（`name`, `role`, `catKey`）：圖鑑用，頭像＋名稱＋定位標籤，左側色條依定位上色。
   - `catRoles.js`：圖鑑卡片定位，**以貓咪 key 對應**（`CAT_ROLES`）：`tank` 坦克（藍）、`warrior` 近戰（橘）、`archer` 遠程（綠）、`mage` 法術（紫紅）、`ninja` 速攻（紫）、`special` 特殊（黃）；`ROLE_INFO` 為各定位的標籤與圖示。`Codex.jsx` 用 `catKeyByName` 反查 key 後取定位。**新增貓咪時要在 `CAT_ROLES` 補一行**，`catRoles.test.js` 會檢查 `cats.js` 每一隻都有定位、名稱都能反查到 key。

@@ -483,3 +483,39 @@ AU-005 新增了音量分類 `env`（章節環境提示音：晝夜、潮汐的�
 
 ### 審核（CEO 填寫）
 - 2026-09-28 通過。範圍都在 UI 檔案內，`theme` 存檔值不變；大廳按鈕功能與清除存檔確認都保留；刪除的舊 class 已確認無人使用，符合規則 13；build、test 通過，收尾確認為空。字型從 Google Fonts 載入，失敗時會退回系統字型。視覺效果請使用者在正式站確認。
+## [UI-013] 新增禁節喵（`jay`）角色圖
+- 狀態：已完成
+- 優先度：中
+- 來自：使用者（2026-09-28，經 CEO 派工）
+- 依賴：無
+
+**需求**
+使用者提供了禁節喵的原圖：`C:\Users\User\Desktop\BattleCats_pic_originals\jay.png`（約 227 KB）。
+- 照 UI-004 的做法轉成 `public/pic/jay.webp`（最長邊 256px，檔案大小與其他角色圖相近），並把 `'jay'` 加進 `src/ui/catArt.js` 的 `CAT_ART_KEYS`。
+- 原圖留在 `BattleCats_pic_originals`，不要移動或刪除，也不要放進 repo。
+- 注意：`jay` 是**禁節喵**，不是禁節貓娘（`jaycat`）；`jaycat` 目前仍沒有圖，維持色塊。
+
+**完成條件**
+- 戰場、編成、商店、圖鑑等所有顯示角色圖的地方，禁節喵都顯示新圖；四種主題下都正常。
+- `npm run build`、`npm test` 通過；更新 PROJECT_MAP §2（有圖的貓清單，若有列）與 CHANGELOG。
+
+### 回報（負責角色填寫）
+- 修改檔案：新增 `public/pic/jay.webp`；修改 `src/ui/catArt.js`（`CAT_ART_KEYS` 加 `'jay'`）、`docs/PROJECT_MAP.md`（§0 `pic/` 說明、§2 `CatAvatar` 無圖清單）、`docs/CHANGELOG.md`、本任務檔
+- 做了什麼：
+  - 用 Pillow 把 `C:\Users\User\Desktop\BattleCats_pic_originals\jay.png`（399×478、232 KB、透明背景）照 UI-004 的方式縮成最長邊 256px 的 WebP（quality 86）：`public/pic/jay.webp`，214×256、約 11.5 KB（其他角色圖 11~24 KB）。
+  - `CAT_ART_KEYS` 加入 `'jay'`，所以頭像（編成／商店／升級／圖鑑／召喚欄）與戰場 Canvas 都會用這張圖；戰場上一樣有 UI-006 的走路／攻擊／受擊動畫。
+  - 原圖留在 `BattleCats_pic_originals`，沒有移動、刪除，也沒有放進 repo。`jaycat`（禁節貓娘）沒有圖，維持「禁」字徽章與色塊。
+  - 刪了什麼 / 留了什麼（規則 13）：沒有刪除任何程式。
+- 如何驗證：
+  - `npm run build` 成功；`npm test` 通過（4 個測試檔、37 個測試）。
+  - 瀏覽器（暫時把 `jay` 解鎖、加入編成與圖鑑）：隊伍編成、商店、升級、圖鑑的禁節喵頭像都載入 `jay.webp`（`naturalWidth` 214）；戰場用的 `getCatImage('jay')` 已預載為 214×256，並用 `drawUnit` 實際畫出確認是新圖；`jaycat` 在商店顯示「禁」字徽章、戰場為色塊。晴空與霓虹街機主題截圖確認頭像清楚（深色主題頭像底為亮色）。
+  - 測完已把 `unlocks`、`lineup`、`codexCats`、`theme` 還原為測試前的值。
+- 新增給其他角色的請求：無
+- 收尾：已 `preview_stop` 自己開的 dev server（686cec47…）並關閉分頁；`preview_list` 回傳 `[]`、`tabs_context` 回傳 `browserOpen: false, tabs: []`，已清空。
+- 給 CEO 的注意事項：
+  - commit 範圍：`public/pic/jay.webp`、`src/ui/catArt.js`、`docs/PROJECT_MAP.md`、`docs/CHANGELOG.md`、`docs/tasks/ui.md`。
+  - 這張圖是**真人照片**（去背的人像），不是插畫。遊戲 push 後會公開部署在 GitHub Pages、任何人都看得到，也會留在 git 歷史裡。若照片中的人不是使用者本人，建議確認對方同意公開使用。技術上沒有問題，只是提醒。
+  - 其他角色圖都是黑線條白底的卡通貓，這張是寫實照片，風格會比較突出；若之後想統一風格，可以再換成插畫版本。
+
+### 審核（CEO 填寫）
+- 2026-09-30 通過。WebP 214×256、約 11.5 KB，`CAT_ART_KEYS` 已加入；build、test（37 項）通過，收尾確認為空。圖為真人照片，使用者已確認當事人同意公開使用。
