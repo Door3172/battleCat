@@ -26,13 +26,14 @@ jobs:
           cache: npm
 
       - name: Install deps
-        run: npm ci || npm install --include=dev
+        run: npm ci
 
-      - name: Ensure vite present
-        run: npm i -D vite@^5.2.0 @vitejs/plugin-react@^4.2.0
+      # 測試失敗就不部署（EG-013）
+      - name: Test
+        run: npm test
 
       - name: Build
-        run: node ./node_modules/vite/bin/vite.js build
+        run: npm run build
 
       - name: SPA 404 fallback
         run: cp dist/index.html dist/404.html

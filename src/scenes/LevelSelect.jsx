@@ -7,7 +7,7 @@ import { useAudio } from '../audio/useAudio.js';
 import { stageConfig } from '../data/stages.js';
 import { ENV_TYPES, hasSeenEnvTip, markEnvTipSeen } from '../ui/envInfo.js';
 
-export default function LevelSelect({ chapter = 1, maxStage, highestUnlocked, onBack, onChoose }) {
+export default function LevelSelect({ chapter = 1, maxStage, highestUnlocked, autoStage = null, onAutoStageHandled, onBack, onChoose }) {
   const audio = useAudio();
   // 首次遇到某種環境：進戰鬥前先顯示說明（{ stage, type }）
   const [tip, setTip] = useState(null);
@@ -38,6 +38,14 @@ export default function LevelSelect({ chapter = 1, maxStage, highestUnlocked, on
     setTip(null);
     onChoose(n);
   };
+
+  // 從結算視窗按「下一關」且該關是首次遇到的環境：進來就直接選那一關，打開環境說明視窗（EG-012）
+  useEffect(() => {
+    if (!autoStage) return;
+    const s = stages.find(x => x.n === autoStage);
+    if (s && s.n <= highestUnlocked) choose(s);
+    onAutoStageHandled?.();
+  }, [autoStage]);
 
   const tipInfo = tip ? ENV_TYPES[tip.type] : null;
 

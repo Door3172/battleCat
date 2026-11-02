@@ -3,15 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=0.8" />
+    <meta name="description" content="貓咪之戰：橫向塔防網頁遊戲。編成貓咪隊伍、升級單位，一路推進世界篇與未來篇！" />
+    <meta name="theme-color" content="#7fd0ff" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- 字型只載入粉圓（標題、按鈕、數字）；內文用系統中文字型，省下約 1.2 MB（UI-014） -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+TC:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-    <title>貓咪之戰 v5.9</title>
+    <link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet" />
+    <title>貓咪之戰</title>
   </head>
-  <body class="theme-neon">
+  <body class="theme-minimal">
+    <script>
+      // React 掛載前就套用存檔的主題，避免開頁時先閃一下別的主題（UI-014）。
+      // 主題清單需與 App.jsx 的 THEME_KEYS、SettingsDialog.jsx 的 THEMES 一致。
+      (function () {
+        var themes = ['minimal', 'modern', 'warm', 'neon'];
+        var theme = 'minimal';
+        try {
+          var saved = localStorage.getItem('theme');
+          if (themes.indexOf(saved) >= 0) theme = saved;
+        } catch (e) {}
+        document.body.className = 'theme-' + theme;
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

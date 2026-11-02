@@ -1,14 +1,18 @@
 {
   "name": "貓咪之戰",
-  "short_name": "BattleCat",
-  "description": "貓咪之戰 - 一款有趣的對戰遊戲",
+  "short_name": "貓咪之戰",
+  "description": "貓咪之戰：橫向塔防網頁遊戲",
+  "lang": "zh-TW",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "orientation": "any",
+  "background_color": "#c8edff",
+  "theme_color": "#7fd0ff",
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "64x64",
+      "src": "favicon.svg",
+      "sizes": "any",
       "type": "image/svg+xml"
     }
   ]

@@ -1,11 +1,12 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'Noto Sans TC', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        display: ['Noto Sans TC', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        // 與 styles.css 的字型變數一致（Inter / Noto Sans TC 網路字型已移除，UI-014）
+        sans: ['var(--font-sans)'],
+        display: ['var(--font-display)'],
       },
       colors: {
         primary: 'var(--color-primary)',

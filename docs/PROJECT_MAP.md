@@ -1,21 +1,22 @@
 # 專案地圖（PROJECT_MAP）
 
 > 本檔是整個專案的邏輯總覽，讓任何角色的 AI 能快速上手。**改動系統行為後請同步更新對應章節。**
-> 最後全面審閱：2026-09-27（CEO）
+> 最後全面審閱：2026-09-27（CEO）；2026-11-02 整體網站優化（CEO-005）後更新 §0、§1、§2、§4.2、§8、§10、§11
 
 ---
 
 ## 0. 目錄結構
 
 ```
-index.html                 入口 HTML（<body class="theme-neon">，實際主題由 App 覆寫）
-vite.config.js             base '/battleCat/'、vitest 用 jsdom
+index.html                 入口 HTML：meta / favicon / manifest、粉圓字型 <link>、<body> 開頭的內嵌腳本（React 掛載前就套用存檔主題，UI-014）
+vite.config.js             base '/battleCat/'、React 拆成獨立 chunk（EG-013）、vitest 用 jsdom
+package.json               "type": "module"（設定檔都是 ESM，EG-013）
 tailwind.config.js         顏色對應 CSS 變數（primary/secondary/ink/bg/ok/warn/danger）
 .github/workflows/deploy-pages.yml   push main → build → GitHub Pages
 public/
-  audio/                   bgm_lobby_v2 / bgm_battle_v2 / sfx_summon / sfx_win / sfx_lose
+  audio/                   bgm_lobby_v2 / bgm_battle_v2 / sfx_summon / sfx_win / sfx_lose（AU-006 起都是真正的 MP3，合計約 4.35 MB）
   pic/                     17 張角色 WebP（256px，約 310KB；UI-004 起用於戰場與各畫面頭像；UI-013 加入 jay）
-  ui-redesign.html         tools/generate_ui.py 產生的 UI 草稿，與遊戲無關
+  manifest.webmanifest     PWA 資訊（路徑用相對路徑，配合 /battleCat/）
 src/
   main.jsx                 React 掛載
   App.jsx                  場景切換 + 全部存檔狀態（localStorage）
@@ -25,8 +26,8 @@ src/
   game/                    戰鬥引擎：world.js（建世界）、ai.js（生怪/移動/攻擊/能力）、draw.js（Canvas 繪製）
   data/                    純資料：cats / enemies / spawns / spawns2 / stages / gachaPool / gachaRates / skin
   audio/                   AudioManager 單例 + useAudio hook
-  utils/                   cn / gacha / math(clamp, rand) / number(fmt)
-tools/generate_ui.py       產生 ui-redesign.html 的腳本（與遊戲無關）
+  utils/                   cn / gacha / math(clamp, rand) / number(fmt) / storage（localStorage 安全讀寫，EG-012）
+tools/generate_ui.py       產生 tools/ui-redesign.html 的腳本（與遊戲無關；UI-014 起移出 public/，不會被部署）
 ```
 
 ---
@@ -36,13 +37,17 @@ tools/generate_ui.py       產生 ui-redesign.html 的腳本（與遊戲無關�
 **沒有 router**，`App` 用 `scene` state 切換：
 
 ```
-lobby ──開始遊戲──► chapter ──選章──► level ──選關──► battle ──勝/敗 300ms 後──► lobby
-  ├─ lineup（隊伍編成）
-  ├─ shop（商店）
-  ├─ gacha（轉蛋）
+lobby ──開始遊戲──► chapter ──選章──► level ──選關──► battle ──勝/敗──► 結算視窗（EG-012）
+  ├─ lineup（隊伍編成）                                              ├─ 勝利：下一關 → battle（下一關是首次遇到的環境 → level 並自動打開環境說明）
+  ├─ shop（商店）                                                    │        再玩一次（同一場重開）/ 返回大廳
+  ├─ gacha（轉蛋）                                                   └─ 戰敗：再試一次 / 去升級（upgrade）/ 返回大廳
   ├─ upgrade（升級）
   └─ codex（圖鑑）
 ```
+（舊版是勝敗 300ms 後自動回大廳，EG-012 已改為停在結算視窗。）
+- `Battle` 以 `key={章-關-battleRun}` 掛載：換關（下一關）或從關卡選擇重新進場都會重新掛載，戰鬥狀態從頭開始。
+- 「下一關」由 `App.goNextStage()` 處理；需要先看環境說明時，設 `pendingStage` 並切到 `level`，`LevelSelect` 的 `autoStage` prop 會直接選那一關（跳出說明視窗）。
+
 右上角「設定」按鈕在所有場景都存在 → `SettingsDialog`（音量、主題）。
 
 ### localStorage 存檔 key（全部由 App 管理，以 props 往下傳）
@@ -50,6 +55,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 | key | 預設 | 說明 |
 |---|---|---|
 | `saveVersion` | `'1'` | 與 `SAVE_VERSION` 不符時清除存檔（`clearSaveData()`，**保留玩家設定**，見下） |
+| （讀寫方式） | | EG-012 起所有 key 經 `App.jsx` 的 `usePersistentState` → `utils/storage.js` 的 `readSaved` / `writeSaved` 讀寫：JSON 損毀或型別不符時退回 `DEFAULTS`，不會白屏。格式與舊版相同（數字類用 `String`、物件陣列用 JSON、`theme` 原字串）。`highestUnlocked` 讀檔時與 `{1:1, 2:1}` 合併（舊存檔缺新章節 key 時不會變成全部解鎖）。 |
 | `coins` | 300 | 金幣（永久貨幣） |
 | `unlocks` | `{ninja:false,...,cow:false}` | 已解鎖的商店/轉蛋貓 |
 | `catLevels` | `{white:1,tank:1,archer:1}` | 各貓等級（未記錄視為 1） |
@@ -68,7 +74,8 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 ## 2. UI 系統
 
 - **主題**：`styles.css` 在 `:root` 定義完整的設計 token（CSS 變數），`body.theme-minimal / modern / warm / neon` 各自覆寫**全部** token。App 切換 `body` class，所有畫面（含 Canvas）即時跟著變。
-  - **美術風格：卡通手遊風**（UI-012）：粗描邊（`--outline`）＋硬陰影（`--pop`）＋可「按下去」的立體按鈕＋圓體字（Google Fonts「Huninn 粉圓」，在 `styles.css` 開頭 `@import`；標題、按鈕、數字用 `--font-display`，內文用 `--font-sans`）。背景是貓掌／星點／網格紋理（`--bg-pattern`）。
+  - **美術風格：卡通手遊風**（UI-012）：粗描邊（`--outline`）＋硬陰影（`--pop`）＋可「按下去」的立體按鈕＋圓體字（Google Fonts「Huninn 粉圓」，UI-014 起改在 `index.html` 用 `<link>` 載入；標題、按鈕、數字用 `--font-display`）。**內文 `--font-sans` 是系統字型**（蘋方 / 微軟正黑體 / Noto Sans CJK，UI-014 移除 Inter 與 Noto Sans TC 網路字型，省約 1.25 MB）；Tailwind 的 `font-sans` / `font-display` 對應這兩個 CSS 變數。背景是貓掌／星點／網格紋理（`--bg-pattern`）。
+  - **開頁主題**：`index.html` 的 `<body>` 開頭有內嵌腳本，在 React 掛載前就依 `localStorage.theme` 設好 `body` class（不會先閃別的主題）。主題清單在三處要一致：`index.html` 腳本、`App.jsx` 的 `THEME_KEYS`、`SettingsDialog.jsx` 的 `THEMES`。
   - 4 套主題（存檔值不變，只改外觀與顯示名稱）：`minimal`＝☀️ 晴空（藍天、白面板、黃按鈕）、`modern`＝🌌 星夜（深紫夜空、星點、亮黃按鈕）、`warm`＝🍯 蜜糖（蜜桃色、奶油面板、橘粉按鈕）、`neon`＝🕹️ 霓虹街機（深夜網格、青色描邊、洋紅立體陰影）。
   - **按鈕懸停只改亮度、不做位移**；按下（`:active`）才往下沉。戰鬥控制區（`Toolbar` 根元素 `.battle-toolbar`）關閉轉場，避免 HUD 更新時元件重建造成閃動（根因見 EG-011）。
   - Token 分組：品牌色（`--color-primary*`、`--color-secondary*`、`*-ink` 為其上文字色）、文字、狀態、背景/表面（`--color-card-*`、`--color-inset`、`--color-line(-strong)`）、按鈕（`--btn-*`）、Pill（`--pill-*`）、招牌（`--hero-*`、`--hero-stripes`、`--title-stroke`）、描邊與硬陰影（`--outline`、`--pop`）、背景紋理（`--bg-pattern`）、頭像底（`--avatar-bg`）、圓角（`--radius-card/panel`、`--btn-radius`）、戰場 Canvas（`--field-*`）。
@@ -83,10 +90,13 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
   - `SettingsDialog`：六條分類音量滑桿（主音量 / 背景音樂 / 召喚 / 按鈕 / 勝敗 / 環境提示音，定義在 `VOLUME_ROWS`；直接呼叫 `audio.getVolumes()` / `audio.setVolume()`，除音樂外都有 ▶ 試聽）＋風格選單。只收 `show`、`onClose`、`audio`、`theme`、`setTheme`。
   - `Card`：`tone` light/dark。
   - `Dialog`：`fullscreen` 決定 fixed/absolute，Esc 或點背景呼叫 `onClose`。`fullscreen` 時用 portal 掛到 `document.body`（外框 `.game-background` 有 backdrop-filter，會讓 fixed 改成相對外框定位）。
-  - `HeroBanner`：每個場景的頂部招牌（斜紋底＋描邊標題＋右上大貓掌裝飾）；副標 8 字以內（頁面名稱，如「商店」）顯示成傾斜的緞帶標籤 `.hero-tag`，較長的說明文字用 `.hero-sub`；`right` 內容包在膠囊 `.hero-chip` 裡。
+  - `HeroBanner`：每個場景的頂部招牌（斜紋底＋描邊標題＋右上大貓掌裝飾）；副標 8 字以內（頁面名稱，如「商店」）顯示成傾斜的緞帶標籤 `.hero-tag`，較長的說明文字用 `.hero-sub`；`right` 內容包在膠囊 `.hero-chip` 裡。`compact`（戰鬥畫面用，UI-014）：≤640px 縮小招牌並隱藏說明文字，觸控裝置也隱藏（鍵盤說明用不到）。
   - 大廳（`Lobby.jsx`）：金幣徽章 `.coin-badge`、整列主按鈕「開始遊戲」、5 格圖示選單 `.menu-tile`（編成／商店／轉蛋／升級／圖鑑）、提示與操作說明（按鍵用 `.kbd`）。
   - 各場景的「← 返回」按鈕放在橫幅**上方**一列（ghost/sm），右上角留給 App 的「設定」按鈕。
   - `HudInfo`（不再自帶 Card）/ `SlotTray` / `Toolbar`（`lg` 以上左 1.6 : 右 1）：戰鬥畫面下方控制區。
+  - **戰鬥畫面（UI-014）**：畫布顯示寬度 `max-width: 100%; height: auto`，比外框寬時等比例縮小（手機也看得到兩座主堡；戰鬥座標不變）。召喚欄固定 5 欄；魚不夠時格子加 `.is-poor`（頭像與價格變灰）；冷卻顯示「2.3s」。≤640px：隱藏貓名（按鈕有 `aria-label`）、頭像 40px；直向時顯示 `.battle-rotate-hint`「橫放手機，戰場會更大」；環境膠囊縮小。暫停對話框是單行（含「繼續」按鈕）。結算視窗是全螢幕 `Dialog`（`.battle-result-title`、`.battle-result-reward`）。
+  - **轉蛋**（UI-014）：`GACHA_CHARACTERS` 為空時按鈕顯示「轉蛋準備中」並停用；金幣不足、抽蛋失敗都有提示。
+  - **隊伍編成**（UI-014）：至少保留 1 隻、滿 5 隻時提示；存檔裡不存在的貓 key 顯示原 key、不會崩潰。
   - `CatAvatar`（`catKey`, `name`, `size`）：圓形貓咪頭像；沒有圖（目前只有 `jaycat`）或載入失敗時顯示名字首字的漸層徽章。用於隊伍編成、升級、商店、戰鬥召喚欄、圖鑑。深色主題（modern/neon）頭像底色用 `--avatar-bg` 亮色，避免黑線條看不清。
   - `catArt.js`：`CAT_ART_KEYS`（有圖的貓）、`catArtUrl(key)`（含 `import.meta.env.BASE_URL`）、`catKeyByName(中文名)`（圖鑑用，唯讀 `cats.js`）、`preloadCatArt()` / `getCatImage(key)`（Canvas 用）。**新增角色圖**：放 `public/pic/<key>.webp`（最長邊 256px）並把 key 加進 `CAT_ART_KEYS`。
   - `UnitCard`（`name`, `role`, `catKey`）：圖鑑用，頭像＋名稱＋定位標籤，左側色條依定位上色。
@@ -155,10 +165,12 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 3. 依關卡 `schedule` 生怪（見 §5）：`ai.js` 的 `stepSchedule(world, spawn)`（EG-004 從 `Battle.jsx` 移出）。先用 `while` 依 `nextEnemyIdx` 處理單次 `time` 條目（遇到 `hp` 條件未達會停在這筆），再用 `for` 處理所有條目的時間 / 週期 / `hp` 條件；每筆以 `_spawned` / `_next` 記錄，**單次條目最多生成一次**（`while` 會跳過已被 `for` 生成的條目）。實際生成呼叫 `spawnEnemy(world, getCanvasHeight, onEnemySeen, key, statMultiplier)`：只乘 `multiplier%`，不套用難度成長。**所有關卡都必須有非空 `schedule`**（`ai.test.js` 檢查）；舊的固定頻率生怪路徑與 `firstDelay`/`spawnRate`/`pool`/`sequence`/`maxEnemies`/`difficulty` 已於 EG-008 移除，場上敵人數量沒有上限。
 3.5 `stepEnv(w, dt)` 推進章節環境（含潮汐推力），再用 `pollEnvCues(w)` 取得本幀的音效提示，呼叫 `audio.playEnvCue?.(kind)`（見 §4.6）
 4. `stepUnits`：能力處理 → 找最近敵人 → 攻擊 → 移動 → 清屍、計算擊殺賞金（加到**魚**）
-5. 勝負判定：敵堡 HP≤0 勝 / 我堡 HP≤0 敗 → 300ms 後回大廳
+5. 勝負判定：敵堡 HP≤0 勝 / 我堡 HP≤0 敗。勝利當下立即發金幣、解鎖下一關（`awardWin(w)`），之後停在結算視窗，不再自動回大廳（EG-012）
 6. HUD 每 0.12s 同步到 React state，Canvas 每幀重畫
 
-**操作**：1~5 召喚、Space 貓咪砲、X 切 1x/2x、P 暫停、R 重開。進場 300ms 後自動開始。
+**操作**：1~5 召喚、Space 貓咪砲、X 切 1x/2x、P 暫停、R 重開。進場與重開後都是 `prestart`，300ms 後自動開始（`scheduleAutoStart`，EG-012；開始前按召喚會直接開打）。切到背景分頁（`visibilitychange`）時自動暫停。
+**狀態流程**：`prestart` →（自動 / 召喚 / 任意鍵）`running` ⇄ `paused` → `win` / `lose`（結算視窗）。`ready` 目前流程不會用到（`createWorld` 的預設值，保留）。
+**props**：`Battle` 收 `setCoins`、`setHighestUnlocked`、`onNextStage`、`setScene` 等；`ensureWorld()` 只動 ref，不在 render 期間 setState。
 **我方上限**：場上貓 > 70 隻不能再召喚。
 
 ### 4.3 戰鬥規則（`ai.js` `stepUnits`）
@@ -312,7 +324,8 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
   - 由音訊模組自己存到 localStorage `audioVolumes`（`{ master, music, summon, ui, result, env }`，0~1；預設 master 1、其他 0.8；舊存檔缺少的分類自動補預設值）。沒有 `audioVolumes` 時會把舊 key `volume` 轉成 `master`（舊 key 不刪）。
   - 對外 API：`audio.getVolumes()`、`audio.setVolume(category, value)`（立即生效並存檔；AudioContext 尚未建立也可呼叫，建立時套用）、`audio.playClick()`（按鈕音效，60ms 冷卻）。舊的 `setMasterVolume` / `setMusicVolume` / `setSfxVolume` 保留為相容用（轉呼叫 `setVolume`）。
   - 音效 → 分類：`sfx_summon`→summon、`sfx_click`→ui、`sfx_win`/`sfx_lose`→result、`env_*`→env；其他 key 預設 summon，可用 `audio.register(key, url, { category })` 指定。
-- 註冊的 key：`bgm_lobby`、`bgm_battle`、`sfx_summon`、`sfx_win`、`sfx_lose`（路徑經 `import.meta.env.BASE_URL` 處理），在 `useAudio.js` 模組載入時註冊。`sfx_click` 不是音檔，是振盪器即時合成（三角波 1100→650Hz、約 70ms）。
+- 註冊的 key：`bgm_lobby`、`bgm_battle`、`sfx_summon`、`sfx_win`、`sfx_lose`（路徑經 `import.meta.env.BASE_URL` 處理），在 `useAudio.js` 模組載入時註冊。
+- **音檔格式**（AU-006）：五個檔都是真正的 MP3（原本是 DASH 分段 MP4 與 Ogg Opus，副檔名不符、舊 iOS 無法解碼 Opus）。背景音樂 96 kbps、音效 128 kbps；大廳音樂 3.1 MB、戰鬥音樂 1.1 MB。背景音樂整首 `decodeAudioData` 解碼後放在記憶體（大廳約 90 MB、戰鬥約 33 MB），見 §11 #24。`sfx_click` 不是音檔，是振盪器即時合成（三角波 1100→650Hz、約 70ms）。
 - **預載**：`resume()` 第一次建立 AudioContext 後，依註冊順序在背景下載＋解碼所有音檔（載入失敗會還原成 URL，下次可重試）。
 - `playMusic`（硬切；**同一首正在播就不重播**，只取消進行中的淡出；`{ restart: true }` 可強制重播）、`crossfadeMusic`（淡入淡出）、`fadeOutMusic`（淡出後停止；之後若有新的播放請求，停止動作會被取消）、`playSfx`（預設 80ms 冷卻）。播放 / 淡出都走 token 機制，「最後一次請求」生效，避免競態。所有公開方法失敗只 `console.warn`，不支援 Web Audio 的環境（測試）不會報錯。
 - 瀏覽器需使用者互動才能播放：App 在第一次 pointerdown/keydown/touchstart 時 `audio.resume()`；在那之前的播放請求會等到解鎖後才開始。
@@ -334,9 +347,10 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 ---
 
 ## 10. 建置、測試、部署
-- `npm run build` 可正常建置（2026-09-27 確認）。
-- `npm test`：目前 repo 內的 `node_modules` 缺 vitest，需先 `npm install`。唯一測試 `src/App.test.jsx` 只檢查「開啟設定」按鈕存在。
-- 部署：`.github/workflows/deploy-pages.yml`，push `main` 自動部署。另有 `npm run deploy:local`（gh-pages 分支方式，備用）。
+- `npm run build` 可正常建置、沒有警告（2026-11-02 確認）。產出：遊戲程式 `index-*.js`（約 30 KB gzip）＋ `react-*.js`（約 45 KB gzip，獨立 chunk，遊戲更新時檔名不變、可沿用快取，EG-013）。
+- `npm test`（vitest）：6 個測試檔、47 項（2026-11-02）：`ai.test.js`、`environment.test.js`、`catRoles.test.js`、`App.test.jsx`、`scenes/Battle.test.jsx`（戰鬥流程：自動開始、重開、背景暫停、結算視窗；假 Canvas＋假計時器）、`utils/storage.test.js`。
+- 部署：`.github/workflows/deploy-pages.yml`，push `main` → `npm ci` → **`npm test`（失敗就不部署）** → `npm run build` → GitHub Pages（EG-013）。另有 `npm run deploy:local`（gh-pages 分支方式，備用）。
+- 首次載入（大廳 → 進一場戰鬥，含音檔）：改版前 8.27 MB／71 個請求 → 2026-11-02 約 5.56 MB／50 個請求（其中音檔 4.35 MB）。
 
 ---
 
@@ -345,7 +359,7 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 | # | 領域 | 問題 | 位置 | 任務 |
 |---|---|---|---|---|
 | 1 | 關卡 | ~~第二章第 9 關 `type: '小丑魚'` 用了中文名，找不到 key → 變成 **小狗 ×1000%**~~ ✅ 已修（2026-09-27） | `spawns2.js` 第 9 關 | LV-001 |
-| 2 | 經濟 | 轉蛋池 `GACHA_CHARACTERS` 為空，轉蛋功能實際無作用 | `gachaPool.js` | CEO-001 |
+| 2 | 經濟 | 轉蛋池 `GACHA_CHARACTERS` 為空，轉蛋功能實際無作用（UI-014 起畫面顯示「轉蛋準備中」並停用按鈕） | `gachaPool.js` | CEO-001 |
 | 3 | 友軍 | ~~新增商店貓需手動改 `buildCatsTpl`，容易漏~~ ✅ 已修（2026-09-27） | `world.js` | AL-001 |
 | 4 | 專案 | `node_modules/`（約 4,000 檔）被 commit 進 git，雖然 `.gitignore` 有寫 | repo | CEO-002 |
 | 5 | 美術 | ~~`public/pic/*.png`（16 張，約 12MB）與 `public/audio/廢棄.mp3`（4.9MB）未被使用，但會被部署~~ ✅ 已處理（AU-001 刪除、UI-004 啟用並壓縮） | `public/` | CEO-003 |
@@ -355,10 +369,16 @@ lobby ──開始遊戲──► chapter ──選章──► level ──選�
 | 9 | 引擎 | ~~貓咪砲無視護盾/閃避/擊退免疫~~ ✅ 已修（2026-09-28） | `Battle.jsx` `fireCannon` | EG-006 |
 | 10 | 關卡 | ~~`spawns.js` 註解說 multiplier 是「數量倍率」，實際是能力值倍率~~ ✅ 已修（2026-09-27） | `spawns.js` | LV-001 |
 | 11 | 敵人 | `metal` 金屬怪已定義但沒有任何關卡使用 | `enemies.js` | — |
-| 12 | 測試 | ~~本機 node_modules 缺 vitest，`npm test` 失敗；測試覆蓋率極低~~ ✅ 執行 `npm install` 後 `npm test` 可通過（2026-09-27）；測試覆蓋率仍極低 | — | — |
+| 12 | 測試 | ~~本機 node_modules 缺 vitest，`npm test` 失敗；測試覆蓋率極低~~ ✅ `npm ci` 後 `npm test` 可通過；2026-11-02 起 47 項、部署前會先跑測試（EG-013）；UI 畫面仍幾乎沒有測試 | — | — |
 | 13 | UI | ~~關卡選擇的 BOSS ⭐ 用 `n%10` 寫死，未讀取關卡 `boss` 設定（1-15、1-19 也有 BOSS 卻沒標）~~ ✅ 已修（2026-09-27） | `LevelSelect.jsx` | UI-002 |
 | 14 | UI | ~~設定按鈕（App.jsx）與召喚欄（Battle.jsx）用 CSS 選擇器 / `!important` 硬蓋樣式，屬權宜作法~~ ✅ 已修（UI-003） | `styles.css` | UI-003 |
 | 15 | UI | ~~App 右上「設定」按鈕與關卡格（`.stage-btn`）是原生 `<button>`，沒有點擊音效~~ ✅ 已修（2026-09-28） | `App.jsx`、`LevelSelect.jsx` | UI-009 |
 | 16 | 音效 | ~~「清除存檔」會清掉 localStorage 的 `audioVolumes`，但記憶體中的音量保留，直到下次調整才重寫；主題 `theme` 也有同樣問題~~ ✅ 已修（AU-004：清除存檔保留音量與主題） | `App.jsx` `handleReset` | AU-004 |
 | 17 | 引擎/UI | ~~貓咪攻擊動畫靠「`atkCd` 被重設變大」推算出手時機（UI-006）；引擎若修改攻擊冷卻的寫法，動畫會失效，改動前須通知 UI~~ ✅ 已修（2026-09-28，動畫改讀引擎的 `atkSeq`） | `ai.js`、`draw.js` | EG-009、UI-010 |
+| 19 | UI | ~~手機上戰場畫布比外框寬，被裁掉右側，看不到敵堡與來襲的敵人~~ ✅ 已修（2026-11-02，等比例縮小） | `Battle.jsx` `forceResize` | UI-014 |
+| 20 | 引擎 | ~~按「重開」後狀態停在 `ready`、召喚鈕停用、不會自動開始，觸控裝置無法開打~~ ✅ 已修（2026-11-02） | `Battle.jsx` | EG-012 |
+| 21 | 引擎 | ~~開發模式（StrictMode）打贏拿不到金幣、卡在勝利畫面（`abortedRef` 沒復原）~~ ✅ 已修（2026-11-02） | `Battle.jsx` | EG-012 |
+| 22 | 引擎 | ~~`localStorage` 資料損毀時 `JSON.parse` 讓畫面白屏；舊存檔缺第 2 章 key 時第 2 章全部解鎖~~ ✅ 已修（2026-11-02） | `App.jsx` | EG-012 |
+| 23 | 音效 | ~~音檔副檔名是 .mp3 但實際是 MP4 / Ogg Opus（舊 iOS 無法播放勝敗音效）~~ ✅ 已修（2026-11-02） | `public/audio` | AU-006 |
+| 24 | 音效 | 背景音樂整首解碼放記憶體（大廳約 90 MB），且要整首下載完才開始播；可改 `<audio>` 串流接 GainNode，但需真機（iPhone）測試 | `src/audio/index.js` | — |
 | 18 | 經濟/關卡 | ~~第一章難度在 1-7 出現斷層：勝率 ≥50% 所需預算從 1-6 的約 1800 跳到約 4000（首通累積預算的 ×3），玩家約需重刷 1-6 九次（EC-002 模擬）~~ ➖ 不處理：使用者 2026-09-28 實際試玩後認為難度可接受 | `spawns.js` 1-7、各關 `reward` | — |

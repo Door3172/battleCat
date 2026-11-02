@@ -519,3 +519,61 @@ AU-005 新增了音量分類 `env`（章節環境提示音：晝夜、潮汐的�
 
 ### 審核（CEO 填寫）
 - 2026-09-30 通過。WebP 214×256、約 11.5 KB，`CAT_ART_KEYS` 已加入；build、test（37 項）通過，收尾確認為空。圖為真人照片，使用者已確認當事人同意公開使用。
+
+## [UI-014] 載入速度、主題閃爍、手機戰鬥版面、結算視窗
+- 狀態：已完成
+- 優先度：高
+- 來自：使用者（2026-11-02，整體網站優化；CEO-005 派工）
+- 依賴：EG-012（結算視窗的邏輯）
+
+**授權**：本任務可修改 `index.html`、`public/manifest.webmanifest`、`public/ui-redesign.html`（移出 `public/`）、`tools/generate_ui.py`（輸出路徑）、`src/utils/number.js`、`src/scenes/Battle.jsx` 的畫面部分（含畫布尺寸計算 `forceResize`）、`Lineup.jsx`、`Gacha.jsx`。
+
+**需求**
+1. **字型**：首次載入約 2.2 MB 字型。粉圓（Huninn）改在 `index.html` 用 `<link>` 載入（不要在 CSS 裡 `@import`，避免串連等待）；移除 Inter 與 Noto Sans TC 網路字型，內文改用系統中文字型；Tailwind `font-sans` 對齊 `--font-sans`。
+2. **主題閃爍**：`index.html` 在 React 掛載前就依存檔套用主題 class。
+3. **戰場縮放**：畫布寬度超過外框時等比例縮小，手機上也要看得到兩座主堡。
+4. **手機戰鬥版面**：召喚欄在手機上更精簡；魚不夠時召喚格要看得出來。
+5. **結算視窗**：EG-012 的勝敗結算畫面（全螢幕對話框，按鈕見 EG-012）；畫布上的「返回大廳中…」文字要拿掉。
+6. **轉蛋空池**：池子是空的時顯示「準備中」並停用按鈕，不要按了沒反應。
+7. **隊伍編成**：存檔裡有不存在的貓 key 時不要崩潰；至少保留 1 隻；滿 5 隻時提示。
+8. `index.html` 補 favicon、description、theme-color、manifest（路徑要符合 `/battleCat/`）；`public/ui-redesign.html` 移到 `tools/`（不要被部署）。
+
+**完成條件**
+- `npm run build`、`npm test` 通過；Playwright 桌面與手機截圖確認。
+
+### 回報（負責角色填寫）
+- 修改檔案：`index.html`、`public/manifest.webmanifest`、`public/ui-redesign.html` → `tools/ui-redesign.html`（`git mv`）、`tools/generate_ui.py`（輸出路徑）、`src/styles.css`、`tailwind.config.js`（`fontFamily`）、`src/ui/HeroBanner.jsx`、`src/ui/SlotTray.jsx`、`src/scenes/Battle.jsx`（畫面部分）、`src/game/draw.js`（一行文字）、`src/scenes/Gacha.jsx`、`src/scenes/Lineup.jsx`、`src/utils/number.js`。
+- 做了什麼：
+  1. **字型（首次載入少約 1.25 MB）**：移除 Inter（48 KB）與 Noto Sans TC（約 1.2 MB、20 個分段檔）網路字型；粉圓（Huninn）從 `styles.css` 的 `@import` 改成 `index.html` 的 `<link>`（不必等 CSS 下載解析完才開始抓字型）。`--font-sans` 改為系統字型（`-apple-system, "Segoe UI", "PingFang TC", "Noto Sans TC", "Noto Sans CJK TC", "Microsoft JhengHei"…`），`--font-display` 維持粉圓優先。Tailwind 的 `font-sans` / `font-display` 改成 `var(--font-sans)` / `var(--font-display)`（原本 `<main className="font-sans">` 會用 Inter 蓋掉 CSS 變數）。
+  2. **主題閃爍**：`<body>` 預設改 `theme-minimal`，並在 `<body>` 開頭加一段內嵌腳本，React 掛載前就從 `localStorage.theme` 套用主題 class（只接受四種合法值）。實測存 `warm` 後重新整理，第一個畫面就是 `theme-warm`。
+  3. **戰場縮放**：`forceResize()` 的畫布顯示尺寸改為 `width: <targetW>px; max-width: 100%; height: auto`，比外框寬時等比例縮小。戰鬥座標（`c.width / dpr`）不變，只有顯示尺寸改變，不影響戰鬥邏輯。手機 390×844：畫布 750px → 455px，**兩座主堡都看得到**（原本被裁掉右側約 300px，看不到敵堡與來襲的敵人）。桌面不變。順帶修正：原本固定高度＋`border-box` 讓畫面有約 1% 的變形，現在是等比例。
+  4. **手機戰鬥版面**（≤640px）：
+     - `HeroBanner` 新增 `compact` prop（只有戰鬥畫面使用）：窄螢幕縮小招牌、隱藏鍵盤操作說明；觸控裝置（`hover: none` 且 `pointer: coarse`）也隱藏鍵盤說明。
+     - 召喚欄改為 5 格並排（`SlotTray` 由 2/3/5 欄改成固定 5 欄），手機上隱藏名字（按鈕有 `aria-label="召喚 白喵"`）、頭像 40px、按鈕內距縮小。冷卻文字由「冷卻 2.3s」改為「2.3s」（所有尺寸）。
+     - **魚不夠時召喚格變暗**（`.slot-card.is-poor`：頭像與價格變灰、價格變紅）。所有尺寸都有。
+     - 窄螢幕直向時，戰場下方顯示「📱 橫放手機，戰場會更大」。
+     - 環境指示（晝夜 / 潮汐膠囊）在窄螢幕縮小，不要蓋住縮小後的戰場。
+     - 「已暫停」對話框改成單行（文字＋「▶️ 繼續（P）」按鈕），手機上戰場只有約 150px 高也放得下；觸控裝置也能從對話框直接繼續。
+  5. **結算視窗**（EG-012 的畫面）：全螢幕對話框（`Dialog` 預設 portal 到 body），勝利顯示「🎉 勝利！」＋金幣徽章（`.battle-result-reward`）＋「下一關 ▶（第 N 關）」主按鈕＋「再玩一次 / 返回大廳」；戰敗顯示「😿 戰敗…」＋建議文字＋「再試一次」＋「去升級 / 返回大廳」。`draw.js` 畫布上的「返回大廳中…」已拿掉（勝敗遮罩與「勝利！+X 金幣」保留）。
+  6. **轉蛋空池**：`GACHA_CHARACTERS` 為空時按鈕顯示「🎰 轉蛋準備中」並停用，下方說明「轉蛋角色即將登場，敬請期待！金幣不會被扣除。」；金幣不足、這次沒抽到（`drawGacha` 回傳失敗）也都會顯示提示，不再按了沒反應。抽池有角色後自動恢復正常按鈕。
+  7. **隊伍編成**：顯示名稱改用 `tplAll[k]?.name ?? k`（存檔裡有已不存在的貓 key 時，原本 `tplAll[k].name` 會讓整個畫面崩潰）；至少保留 1 隻（避免進戰鬥沒有貓可以召喚）；滿 5 隻時提示「請先點選要換下的貓咪」；顯示「目前編成（N/5）」。
+  8. **`index.html` / manifest**：補 `description`、`theme-color`、`favicon`、`manifest` 連結（Vite 建置後自動變成 `/battleCat/...`，已檢查 `dist/index.html`）；`<title>` 由「貓咪之戰 v5.9」改為「貓咪之戰」。manifest 的圖示原本寫 `/favicon.svg`（在 GitHub Pages 上會指到網域根目錄而 404），改為相對路徑，並補 `start_url` / `scope` / `lang`。
+  9. **`public/ui-redesign.html` 移到 `tools/`**：與遊戲無關的草稿不再被部署公開；`tools/generate_ui.py` 改寫到新位置（重新執行產生的檔案與搬移的檔案完全相同）。
+  10. `fmt()` 共用同一個 `Intl.NumberFormat`（原本每次呼叫都新建，HUD 每 0.12 秒呼叫數次）。
+- 如何驗證：
+  - `npm run build`、`npm test`（47 項）通過。
+  - Playwright（正式建置，桌面 1280×800、手機 390×844 觸控、DPR 2）截圖檢查大廳、關卡選擇、戰鬥、暫停、結算、轉蛋、隊伍編成、1-4 晝夜關；console 沒有錯誤。
+  - **同一流程（大廳 → 1-1 戰鬥）的總下載量：改版前 8.27 MB／71 個請求 → 改版後 5.56 MB／50 個請求（−33%）**（含 AU-006 的音檔縮小）。
+- 新增給其他角色的請求：無
+- 收尾：與 EG-012 共用驗證環境，收尾見 EG-012（所有 vite 程序已 kill，Playwright 瀏覽器在腳本結束時關閉）。
+- 給 CEO 的注意事項：
+  - **commit 範圍**：上列檔案。
+  - **需要使用者看過的視覺改動**：(a) 內文字型改用系統字型（Mac / iPhone 是蘋方、Windows 是微軟正黑體、Android 是 Noto Sans CJK），標題與按鈕的粉圓不變。若想恢復 Noto Sans TC，在 `index.html` 把它加回 Google Fonts 連結、`--font-sans` 移回第一位即可。(b) 手機戰鬥畫面：5 格召喚欄、隱藏名字、縮小招牌。(c) 結算視窗。
+  - 截圖只檢查了 `minimal` 主題（主題閃爍測試用了 `warm`）；新加的樣式全部使用主題 CSS 變數，理論上四個主題都會跟著變，但沒有逐一截圖。
+  - `index.html` 的主題清單、`App.jsx` 的 `THEME_KEYS`、`SettingsDialog.jsx` 的 `THEMES` 三處要一致，新增主題時要一起改（已寫在註解）。
+  - `viewport` 的 `initial-scale=0.8` 沒有動（可能影響所有畫面的手機排版，未在本任務範圍內評估）。
+  - PROJECT_MAP §0、§2 需要更新。
+
+### 審核（CEO 填寫）
+- 2026-11-02 通過。改動都在授權範圍；`Battle.jsx` 畫面部分只改畫布顯示尺寸（戰鬥座標不變）、召喚格與對話框排版；`draw.js` 只刪一行文字。Playwright 桌面／手機截圖確認：手機看得到兩座主堡、結算／暫停視窗放得下、轉蛋與編成提示正常、開頁主題不閃。`dist/index.html` 的 favicon / manifest 路徑已確認為 `/battleCat/...`。
+- **內文字型改為系統字型是外觀變更**，請使用者上線後看一下是否接受（恢復方法寫在回報）。四個主題只截了 minimal / warm。PROJECT_MAP §0、§2 已更新。

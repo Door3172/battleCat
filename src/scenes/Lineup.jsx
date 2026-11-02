@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import HeroBanner from '../ui/HeroBanner.jsx';
 import Card from '../ui/Card.jsx';
 import Button from '../ui/Button.jsx';
@@ -7,15 +7,19 @@ import { buildCatsTpl } from '../game/world.js';
 
 export default function Lineup({ unlocks, lineup, catLevels, setLineup, addCatName, onBack }){
   const tplAll = buildCatsTpl(unlocks, catLevels);
+  const [hint, setHint] = useState('');
+  const nameOf = (k) => tplAll[k]?.name ?? k; // 存檔裡可能有已不存在的貓 key，不要崩潰（UI-014）
   const toggle=(key)=>{
     const idx = lineup.indexOf(key);
-    let next;
     if (idx >= 0) {
-      next = lineup.filter(k => k !== key);
+      if (lineup.length <= 1) { setHint('隊伍至少要有 1 隻貓咪。'); return; }
+      setLineup(lineup.filter(k => k !== key));
+      setHint('');
     } else {
-      next = lineup.length < 5 ? [...lineup, key] : lineup;
+      if (lineup.length >= 5) { setHint('隊伍最多 5 隻，請先點選要換下的貓咪。'); return; }
+      setLineup([...lineup, key]);
+      setHint('');
     }
-    setLineup(next);
     if (tplAll[key]) addCatName(tplAll[key].name);
  };
 
@@ -36,7 +40,8 @@ export default function Lineup({ unlocks, lineup, catLevels, setLineup, addCatNa
             </Button>
           ))}
         </div>
-          <div className="mt-3 text-sub text-sm">目前編成：{lineup.map(k=>tplAll[k].name).join('、') || '（尚未選擇）'}</div>
+          <div className="mt-3 text-sub text-sm">目前編成（{lineup.length}/5）：{lineup.map(nameOf).join('、') || '（尚未選擇）'}</div>
+          {hint && <div className="mt-1 text-sm text-highlight" role="status">{hint}</div>}
         </Card>
     </div>
   );

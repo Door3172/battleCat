@@ -10,7 +10,9 @@ import Upgrade from './scenes/Upgrade.jsx';
 import Battle from './scenes/Battle.jsx';
 import { useAudio } from './audio/useAudio.js';
 import SettingsDialog from './ui/SettingsDialog.jsx';
-import { getMaxStage } from './data/stages.js';
+import { ENV_TYPES, hasSeenEnvTip } from './ui/envInfo.js';
+import { getMaxStage, stageConfig } from './data/stages.js';
+import { readSaved, writeSaved, parseNumber, parseObject, parseArray, parseString } from './utils/storage.js';
 
 // 本地存檔版本，用於重大更新時清除舊資料
 const SAVE_VERSION = '1';
@@ -18,130 +20,88 @@ const SAVE_VERSION = '1';
 // 清除存檔時要保留的玩家設定 key（音量、主題）；以後新增設定 key 加在這裡
 const PRESERVED_KEYS = ['audioVolumes', 'theme'];
 
+// 合法的主題（與 SettingsDialog 的 THEMES、index.html 的開機腳本一致）
+const THEME_KEYS = ['minimal', 'modern', 'warm', 'neon'];
+
+// 各存檔 key 的預設值（新遊戲 / 清除存檔共用）
+const DEFAULTS = {
+  coins: 300,
+  unlocks: { ninja: false, knight: false, mage: false, samurai: false, sumo: false, viking: false, cow: false },
+  codexCats: ['白喵', '坦喵', '射喵'],
+  codexEnemies: [],
+  lineup: ['white', 'tank', 'archer'],
+  catLevels: { white: 1, tank: 1, archer: 1 },
+  researchLv: 1,
+  cannonLv: 1,
+  castleLv: 1,
+  currentChapter: 1,
+  currentStage: 1,
+  highestUnlocked: { 1: 1, 2: 1 },
+};
+
 // 清除遊戲進度：保留 PRESERVED_KEYS，其餘清空，並寫回 saveVersion
 function clearSaveData() {
-  const kept = PRESERVED_KEYS
-    .map(key => [key, localStorage.getItem(key)])
-    .filter(([, value]) => value !== null);
-  localStorage.clear();
-  kept.forEach(([key, value]) => localStorage.setItem(key, value));
-  localStorage.setItem('saveVersion', SAVE_VERSION);
+  try {
+    const kept = PRESERVED_KEYS
+      .map(key => [key, localStorage.getItem(key)])
+      .filter(([, value]) => value !== null);
+    localStorage.clear();
+    kept.forEach(([key, value]) => localStorage.setItem(key, value));
+    localStorage.setItem('saveVersion', SAVE_VERSION);
+  } catch {}
 }
 
 // 檢查存檔版本並在不一致時清除
 (function checkSaveVersion() {
-  const stored = localStorage.getItem('saveVersion');
-  if (stored !== SAVE_VERSION) {
+  if (readSaved('saveVersion', null, parseString) !== SAVE_VERSION) {
     clearSaveData();
   }
 })();
 
+// 舊存檔的 highestUnlocked 可能是單一數字（只有第一章時代），或缺少新章節的 key
+const parseHighestUnlocked = (raw) => {
+  const parsed = JSON.parse(raw);
+  if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return { ...DEFAULTS.highestUnlocked, ...parsed };
+  const num = Number(parsed);
+  return Number.isFinite(num) ? { ...DEFAULTS.highestUnlocked, 1: num } : null;
+};
+
+const parseTheme = (raw) => (THEME_KEYS.includes(raw) ? raw : null);
+
+// 讀檔失敗（資料損毀）時退回預設值；值改變時自動寫回 localStorage（格式與舊版相同，不影響既有存檔）
+function usePersistentState(key, parse, serialize = JSON.stringify) {
+  const [value, setValue] = useState(() => readSaved(key, DEFAULTS[key], parse));
+  useEffect(() => { writeSaved(key, value, serialize); }, [key, value]);
+  return [value, setValue];
+}
+
 export default function App() {
   const [scene, setScene] = useState('lobby');
-  const [coins, setCoins] = useState(() => {
-    const saved = localStorage.getItem('coins');
-    return saved ? JSON.parse(saved) : 300;
-  });
-  const [unlocks, setUnlocks] = useState(() => {
-    const saved = localStorage.getItem('unlocks');
-    return saved ? JSON.parse(saved) : { ninja:false, knight:false, mage:false, samurai:false, sumo:false, viking:false, cow:false };
-  });
-  const [codexCats, setCodexCats] = useState(() => {
-    const saved = localStorage.getItem('codexCats');
-    return saved ? JSON.parse(saved) : ['白喵','坦喵','射喵'];
-  });
-  const [codexEnemies, setCodexEnemies] = useState(() => {
-    const saved = localStorage.getItem('codexEnemies');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [lineup, setLineup] = useState(() => {
-    const saved = localStorage.getItem('lineup');
-    return saved ? JSON.parse(saved) : ['white','tank','archer'];
-  });
-  const [catLevels, setCatLevels] = useState(() => {
-    const saved = localStorage.getItem('catLevels');
-    return saved ? JSON.parse(saved) : { white:1, tank:1, archer:1 };
-  });
-  const [researchLv, setResearchLv] = useState(() => {
-    const saved = localStorage.getItem('researchLv');
-    return saved ? Number(saved) : 1;
-  });
-  const [cannonLv, setCannonLv] = useState(() => {
-    const saved = localStorage.getItem('cannonLv');
-    return saved ? Number(saved) : 1;
-  });
-    const [castleLv, setCastleLv] = useState(() => {
-      const saved = localStorage.getItem('castleLv');
-      return saved ? Number(saved) : 1;
-    });
-    const [currentChapter, setCurrentChapter] = useState(() => {
-      const saved = localStorage.getItem('currentChapter');
-      return saved ? Number(saved) : 1;
-    });
-    const [currentStage, setCurrentStage] = useState(() => {
-      const saved = localStorage.getItem('currentStage');
-      return saved ? Number(saved) : 1;
-    });
-    const [highestUnlocked, setHighestUnlocked] = useState(() => {
-      const saved = localStorage.getItem('highestUnlocked');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (typeof parsed === 'object' && parsed !== null) return parsed;
-          const num = Number(parsed);
-          if (!Number.isNaN(num)) return { 1: num, 2: 1 };
-        } catch {}
-      }
-      return { 1: 1, 2: 1 };
-    });
+  const [coins, setCoins] = usePersistentState('coins', parseNumber);
+  const [unlocks, setUnlocks] = usePersistentState('unlocks', parseObject);
+  const [codexCats, setCodexCats] = usePersistentState('codexCats', parseArray);
+  const [codexEnemies, setCodexEnemies] = usePersistentState('codexEnemies', parseArray);
+  const [lineup, setLineup] = usePersistentState('lineup', parseArray);
+  const [catLevels, setCatLevels] = usePersistentState('catLevels', parseObject);
+  const [researchLv, setResearchLv] = usePersistentState('researchLv', parseNumber, String);
+  const [cannonLv, setCannonLv] = usePersistentState('cannonLv', parseNumber, String);
+  const [castleLv, setCastleLv] = usePersistentState('castleLv', parseNumber, String);
+  const [currentChapter, setCurrentChapter] = usePersistentState('currentChapter', parseNumber, String);
+  const [currentStage, setCurrentStage] = usePersistentState('currentStage', parseNumber, String);
+  const [highestUnlocked, setHighestUnlocked] = usePersistentState('highestUnlocked', parseHighestUnlocked);
   const [showSettings, setShowSettings] = useState(false);
-  const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    return saved ? saved : 'minimal';
-  });
+  const [theme, setTheme] = useState(() => readSaved('theme', 'minimal', parseTheme));
+  // 「下一關」遇到首次出現的環境：先到關卡選擇顯示說明視窗（EG-012）
+  const [pendingStage, setPendingStage] = useState(null);
+  // 同一關「再玩一次」以外的重新進場（例如從大廳重進同一關）用這個 key 讓 Battle 重新掛載
+  const [battleRun, setBattleRun] = useState(0);
 
   const audio = useAudio();
 
   useEffect(() => {
-    localStorage.setItem('coins', JSON.stringify(coins));
-  }, [coins]);
-  useEffect(() => {
-    localStorage.setItem('unlocks', JSON.stringify(unlocks));
-  }, [unlocks]);
-  useEffect(() => {
-    localStorage.setItem('codexCats', JSON.stringify(codexCats));
-  }, [codexCats]);
-  useEffect(() => {
-    localStorage.setItem('codexEnemies', JSON.stringify(codexEnemies));
-  }, [codexEnemies]);
-  useEffect(() => {
-    localStorage.setItem('lineup', JSON.stringify(lineup));
-  }, [lineup]);
-  useEffect(() => {
-    localStorage.setItem('catLevels', JSON.stringify(catLevels));
-  }, [catLevels]);
-  useEffect(() => {
-    localStorage.setItem('researchLv', String(researchLv));
-  }, [researchLv]);
-  useEffect(() => {
-    localStorage.setItem('cannonLv', String(cannonLv));
-  }, [cannonLv]);
-  useEffect(() => {
-    localStorage.setItem('castleLv', String(castleLv));
-  }, [castleLv]);
-    useEffect(() => {
-      localStorage.setItem('currentStage', String(currentStage));
-    }, [currentStage]);
-    useEffect(() => {
-      localStorage.setItem('currentChapter', String(currentChapter));
-    }, [currentChapter]);
-    useEffect(() => {
-      localStorage.setItem('highestUnlocked', JSON.stringify(highestUnlocked));
-    }, [highestUnlocked]);
-  useEffect(() => {
-    document.body.classList.remove('theme-modern', 'theme-warm', 'theme-minimal', 'theme-neon');
+    document.body.classList.remove(...THEME_KEYS.map(t => `theme-${t}`));
     document.body.classList.add(`theme-${theme}`);
-    localStorage.setItem('theme', theme);
+    writeSaved('theme', theme, String);
   }, [theme]);
 
   // ✅ 一次性自動解鎖音訊（任意互動就解鎖）
@@ -162,29 +122,43 @@ export default function App() {
     };
   }, [audio]);
 
-  // ⚠️ 不要在這裡主動播 bgm_lobby，讓各場景自己播
-  const handleEnter = async () => {
-    await audio.resume();
-    setScene('lobby');
-  };
-
   const addCatName = (name) => setCodexCats(prev => prev.includes(name) ? prev : [...prev, name]);
   const addEnemyName = (name) => setCodexEnemies(prev => prev.includes(name) ? prev : [...prev, name]);
 
   const handleReset = () => {
     clearSaveData();
-    setCoins(300);
-    setUnlocks({ ninja:false, knight:false, mage:false, samurai:false, sumo:false, viking:false, cow:false });
-    setCodexCats(['白喵','坦喵','射喵']);
-    setCodexEnemies([]);
-    setLineup(['white','tank','archer']);
-    setCatLevels({ white:1, tank:1, archer:1 });
-    setResearchLv(1);
-    setCannonLv(1);
-    setCastleLv(1);
-    setCurrentChapter(1);
-    setCurrentStage(1);
-    setHighestUnlocked({ 1:1, 2:1 });
+    setCoins(DEFAULTS.coins);
+    setUnlocks(DEFAULTS.unlocks);
+    setCodexCats(DEFAULTS.codexCats);
+    setCodexEnemies(DEFAULTS.codexEnemies);
+    setLineup(DEFAULTS.lineup);
+    setCatLevels(DEFAULTS.catLevels);
+    setResearchLv(DEFAULTS.researchLv);
+    setCannonLv(DEFAULTS.cannonLv);
+    setCastleLv(DEFAULTS.castleLv);
+    setCurrentChapter(DEFAULTS.currentChapter);
+    setCurrentStage(DEFAULTS.currentStage);
+    setHighestUnlocked(DEFAULTS.highestUnlocked);
+  };
+
+  const startStage = (n) => {
+    setCurrentStage(n);
+    setBattleRun(r => r + 1);
+    setScene('battle');
+  };
+
+  // 結算視窗「下一關」：首次遇到的環境要先看說明（LevelSelect 的 autoStage 會直接打開說明視窗）
+  const goNextStage = () => {
+    const next = currentStage + 1;
+    if (next > getMaxStage(currentChapter)) return;
+    const envType = stageConfig(next, currentChapter).env?.type;
+    if (envType && ENV_TYPES[envType] && !hasSeenEnvTip(envType)) {
+      setCurrentStage(next);
+      setPendingStage(next);
+      setScene('level');
+      return;
+    }
+    startStage(next);
   };
 
   const scenes = {
@@ -211,9 +185,11 @@ export default function App() {
       <LevelSelect
         chapter={currentChapter}
         maxStage={getMaxStage(currentChapter)}
-        highestUnlocked={highestUnlocked[currentChapter]}
+        highestUnlocked={highestUnlocked[currentChapter] ?? 1}
+        autoStage={pendingStage}
+        onAutoStageHandled={() => setPendingStage(null)}
         onBack={() => setScene('chapter')}
-        onChoose={(n) => { setCurrentStage(n); setScene('battle'); }}
+        onChoose={startStage}
       />
     ),
     shop: (
@@ -254,7 +230,7 @@ export default function App() {
         unlocks={unlocks}
         lineup={lineup}
         catLevels={catLevels}
-        setLineup={(arr)=>{ setLineup(arr); }}
+        setLineup={setLineup}
         addCatName={addCatName}
         onBack={() => setScene('lobby')}
       />
@@ -275,24 +251,25 @@ export default function App() {
         onBack={()=>setScene('lobby')}
       />
     ),
-      battle: (
-        <Battle
-          coins={coins}
-          setCoins={setCoins}
-          currentStage={currentStage}
-          currentChapter={currentChapter}
-          setScene={setScene}
-          highestUnlocked={highestUnlocked}
-          setHighestUnlocked={setHighestUnlocked}
-          lineup={lineup}
-          unlocks={unlocks}
-          catLevels={catLevels}
-          addEnemyName={addEnemyName}
-          researchLv={researchLv}
-          cannonLv={cannonLv}
-          castleLv={castleLv}
-        />
-      ),
+    battle: (
+      <Battle
+        // 換關（下一關）或重新進場時重新掛載，戰鬥狀態從頭開始
+        key={`${currentChapter}-${currentStage}-${battleRun}`}
+        setCoins={setCoins}
+        currentStage={currentStage}
+        currentChapter={currentChapter}
+        setScene={setScene}
+        setHighestUnlocked={setHighestUnlocked}
+        onNextStage={goNextStage}
+        lineup={lineup}
+        unlocks={unlocks}
+        catLevels={catLevels}
+        addEnemyName={addEnemyName}
+        researchLv={researchLv}
+        cannonLv={cannonLv}
+        castleLv={castleLv}
+      />
+    ),
   };
 
   return (

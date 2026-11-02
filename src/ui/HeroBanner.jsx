@@ -1,8 +1,9 @@
 import React from 'react';
 
-export default function HeroBanner({ title, subtitle, right }){
+// compact：戰鬥畫面用，手機上縮小招牌、觸控裝置隱藏鍵盤說明（UI-014）
+export default function HeroBanner({ title, subtitle, right, compact = false }){
   return (
-    <div className="hero-banner">
+    <div className={compact ? 'hero-banner is-compact' : 'hero-banner'}>
       <div className="p-5 md:p-7">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>

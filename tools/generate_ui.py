@@ -121,4 +121,4 @@ html_lines.append('</script>')
 html_lines.append('</body>\n</html>')
 
 html_output = css_block_full + "\n".join(html_lines)
-open('public/ui-redesign.html','w').write(html_output)
+open('tools/ui-redesign.html','w').write(html_output)

@@ -470,3 +470,90 @@ UI 端（UI-012）會先讓召喚區的懸停效果不使用位移動畫作為�
 
 ### 審核（CEO 填寫）
 - 2026-09-28 通過。歸屬確認屬引擎：只改呼叫方式（元件 → 函式呼叫），畫面內容未動。修正前後用 MutationObserver 比對（22 次 → 0 次），功能實測正常；build、test（37 項）通過。UI 直接在引擎任務檔提出請求，符合規則 2。
+
+## [EG-012] 戰鬥流程修正、結算畫面邏輯、存檔讀取防呆
+- 狀態：已完成
+- 優先度：高
+- 來自：使用者（2026-11-02，整體網站優化；CEO-005 派工）
+- 依賴：無（結算視窗的畫面由 UI-014 負責）
+
+**授權**：本任務可修改 `src/scenes/Battle.jsx`（邏輯）、`src/App.jsx`（CEO 授權）、`src/game/*`。
+
+**需求**
+1. 按「重開」（R）後要能在觸控裝置上開始：重開後與進場一樣 300ms 自動開始；`ready` / `prestart` 狀態下按召喚也能直接開打。
+2. 勝敗後**不再自動回大廳**，改為停在結算視窗，提供：勝利 → 下一關（本章最後一關則不顯示）/ 再玩一次 / 返回大廳；戰敗 → 再試一次 / 去升級 / 返回大廳。金幣與解鎖在勝利當下立即發放（不等音樂淡出）。
+3. 「下一關」：若下一關是首次遇到的環境類型，要先經過關卡選擇的環境說明視窗（不可跳過 UI-007 的首次說明）。
+4. 修正 StrictMode 下 `abortedRef` 被模擬卸載設成 true、開發模式打贏拿不到金幣。
+5. 不要在 render 期間呼叫 `setUi`（`ensureWorld()` 第一次建立世界時會 setState）。
+6. 切到背景分頁時自動暫停（回來顯示「已暫停」）。
+7. `App.jsx`：存檔讀取改為共用 hook，`JSON.parse` 失敗時退回預設值，不再白屏。
+
+**完成條件**
+- `npm run build`、`npm test` 通過；新增邏輯有測試。
+- Playwright 實測：重開後自動開始、勝利後結算視窗與「下一關」可用。
+
+### 回報（負責角色填寫）
+- 修改檔案：`src/scenes/Battle.jsx`（邏輯部分；畫面部分見 UI-014）、`src/App.jsx`（CEO 授權）、`src/scenes/LevelSelect.jsx`（只新增 `autoStage` / `onAutoStageHandled` 兩個 props 與一個 effect，CEO-005 授權）；新增 `src/utils/storage.js`、`src/utils/storage.test.js`、`src/scenes/Battle.test.jsx`。
+- 做了什麼：
+  1. **重開後自動開始**：`resetWorld()` 與進場相同，世界狀態設為 `prestart`，並由新的 `scheduleAutoStart()` 在 300ms 後自動開始（計時器存在 `autoStartRef`，離場 / 再次重開會清掉）。召喚按鈕在 `prestart` / `ready` 也可以按（`spawnCat` 原本就會先 `startGame`）。暫停鈕只在 `running` / `paused` 可按。
+     - 舊版實測重現：按「重開」後 1.5 秒，三個召喚按鈕都是停用，「戰鬥即將自動開始」對話框一直掛著，觸控裝置無法開打。
+  2. **勝敗結算不再自動回大廳**：`awardWin(w)` 在勝利當下立即 `setCoins` 與 `setHighestUnlocked`（改用函式更新，讀 `h[章]` 的最新值，不再依賴閉包裡進場時的 `highestUnlocked`），再淡出音樂、播勝利音效；刪除 300ms 後 `setScene('lobby')`。戰敗同理。結算視窗按鈕：勝利 → 下一關（本章最後一關不顯示）/ 再玩一次 / 返回大廳；戰敗 → 再試一次 / 去升級 / 返回大廳。新增 `leaveTo(scene)`（先 `exitBattle` 再切場景）。重開時呼叫 `audio.playMusic('bgm_battle')`：勝敗後音樂已淡出停止，要重新播；同一首正在播時 `playMusic` 本來就不會重播。
+  3. **下一關**：`Battle` 新增 prop `onNextStage`。`App.goNextStage()`：下一關的環境類型若還沒看過說明（`hasSeenEnvTip`），就把 `currentStage` 設為下一關、`pendingStage` 設好、切到關卡選擇；`LevelSelect` 收到 `autoStage` 會直接選那一關 → 跳出 UI-007 的首次環境說明視窗，按「知道了，開始戰鬥」才進場（不會跳過說明）。否則直接 `startStage(next)`。`Battle` 加上 `key={章-關-battleRun}`，換關時重新掛載、狀態從頭開始。
+  4. **StrictMode 拿不到金幣**：掛載 effect 一開始設 `abortedRef.current = false`。舊版實測重現：`npm run dev` 打贏 1-1 會停在勝利畫面、金幣維持 300、`highestUnlocked` 不變（模擬卸載把 `abortedRef` 設成 true 後沒有復原，`awardWin` 直接 return）。修正後 dev 模式打贏 1-1：金幣 300 → 420。
+  5. **render 期間不再 setState**：`ensureWorld()` 只建立 world、不呼叫 `setUi`；初始 HUD 由 `useState(() => snapshotUi(ensureWorld()))` 取得。順帶修正初始 HUD 的魚量原本是 0（要等 render 中的 setState 才變 150）。
+  6. **切到背景自動暫停**：監聽 `visibilitychange`，`document.hidden` 且戰鬥中 → `togglePause()`。
+  7. **召喚後 HUD 立即更新**：`spawnCat` 成功後馬上 `setUi`，魚量與冷卻秒數不必等下一次 0.12 秒的 HUD 更新。
+  8. **`App.jsx` 存檔讀取防呆**：新增 `src/utils/storage.js`（`readSaved` / `writeSaved` / `parseNumber` / `parseObject` / `parseArray` / `parseString`，全部 try/catch，型別不符或 JSON 損毀 → 預設值），`App.jsx` 改用 `usePersistentState(key, parse, serialize)`，13 組重複的 `useState` + `useEffect` 合併。**讀寫格式與舊版完全相同**（coins / 物件 / 陣列用 JSON，各 Lv 與章節關卡用 `String`，theme 存原字串），**存檔結構沒有改變，不需要提升 `SAVE_VERSION`**。
+     - 另外修正：舊存檔的 `highestUnlocked` 若缺少第 2 章的 key，原本 `LevelSelect` 會拿到 `undefined`，`s.n > undefined` 為 false → **第 2 章全部關卡變成已解鎖**；現在讀檔時與預設值 `{1:1, 2:1}` 合併，`App` 傳給 `LevelSelect` 時也加上 `?? 1`。
+     - 主題值不在 `minimal / modern / warm / neon` 內時退回 `minimal`。預設值集中在 `DEFAULTS`，`handleReset` 共用。
+- 刪了什麼 / 留了什麼（規則 13）：
+  - 刪除：勝敗後 300ms 自動回大廳（被結算視窗取代）；`App.jsx` 的 `handleEnter`（沒有任何地方使用）；`Battle` 沒用到的 `coins`、`highestUnlocked` props。
+  - 保留：`ready` 狀態的對話框與鍵盤判斷。目前流程（進場、重開都是 `prestart`）不會進入 `ready`，但 `createWorld` 的預設狀態就是 `ready`，留著當保險，行為無害。
+- 如何驗證：
+  - `npm test`：47 項全過（原 37 項 + 新增 `Battle.test.jsx` 6 項 + `storage.test.js` 4 項）。`Battle.test.jsx` 用假計時器模擬 60fps、假 Canvas context、mock 一個「兩堡距離 100、敵堡 1 HP、不出怪」的關卡，測：進場自動開始、重開後自動開始且召喚鈕可按、開始前按召喚直接開打、切背景自動暫停、勝利後停在結算視窗（金幣與解鎖各只發一次、不會自動回大廳、下一關 / 再玩一次可用）、最後一關沒有「下一關」。
+  - Playwright（`vite preview` 正式建置，桌面 1280×800、手機 390×844 觸控）：1-1 實際打贏 → 結算視窗 → 金幣 300 → 420、`highestUnlocked` `{1:2}` → 按「下一關」進第 2 關 → 按「重開」後自動開始。另以 `highestUnlocked {1:3}`、`envTipsSeen []` 打贏 1-3 → 按「下一關」→ 先跳出晝夜說明（沒有直接進戰鬥）→ 按「開始戰鬥」進 1-4、`envTipsSeen` 記錄 `dayNight`。全程 console 沒有錯誤。
+  - 舊版重現：用 `git worktree` 開 HEAD 版本的 dev server，確認上面第 1、4 點的 bug 確實存在。
+- 新增給其他角色的請求：無（畫面部分由 UI-014 一起完成）。
+- 收尾：本次在雲端環境執行，沒有 `preview_*` / `tabs_*` 工具；驗證用的是 Playwright 腳本（headless，每個腳本結束時關閉瀏覽器）。自己開的 `vite preview`（4173）、`vite`（5179、舊版 5180）都已 kill，`ps` 確認沒有殘留的 vite 程序；暫存的 `git worktree` 已 `remove` 並 `prune`（`git worktree list` 只剩主目錄）。
+- 給 CEO 的注意事項：
+  - **commit 範圍**：上列檔案。
+  - **遊戲流程改變**：勝敗後不再自動回大廳，停在結算視窗。PROJECT_MAP §1 場景流程圖、§4.2 第 5 點需要更新。
+  - `Battle` 的 props 有變：新增 `onNextStage`，移除 `coins`、`highestUnlocked`。
+
+### 審核（CEO 填寫）
+- 2026-11-02 通過。diff 只動到授權範圍（`Battle.jsx`、`App.jsx`、`LevelSelect.jsx` 的 `autoStage`、新增 `utils/storage.js` 與兩個測試檔）。存檔讀寫格式逐一比對與舊版相同，**不需提升 `SAVE_VERSION`**。兩個 bug（重開卡住、dev 模式拿不到金幣）有在舊版實際重現，修正後有自動測試與 Playwright 實測；「下一關」遇首次環境會先顯示說明，沒有繞過 UI-007。`npm test` 47 項、`npm run build` 通過。
+- 遊戲流程改變（不再自動回大廳）已寫入 PROJECT_MAP §1、§4.2。
+
+## [EG-013] 建置與部署設定整理
+- 狀態：已完成
+- 優先度：中
+- 來自：使用者（2026-11-02，整體網站優化；CEO-005 派工）
+- 依賴：無
+
+**授權**：建置設定沒有角色負責，CEO 授權引擎修改 `package.json`、`vite.config.js`、`postcss.config.js`、`tailwind.config.js` 的模組格式（`tailwind.config.js` 的內容屬 UI，不要動設定值）、`.github/workflows/deploy-pages.yml`。
+
+**需求**
+1. 部署流程：移除「Ensure vite present」補丁，改用 `npm ci`；部署前先跑 `npm test`，測試失敗就不部署。
+2. 把 React 拆成獨立的 vendor chunk：遊戲更新時玩家不必重新下載 React。
+3. 消除 build 時「The CJS build of Vite's Node API is deprecated」警告。
+
+**完成條件**
+- `npm ci`、`npm run build`、`npm test` 都成功，`dist/` 內容正常。
+
+### 回報（負責角色填寫）
+- 修改檔案：`.github/workflows/deploy-pages.yml`、`package.json`、`package-lock.json`、`vite.config.js`、`postcss.config.js`、`tailwind.config.js`（只改 `module.exports` → `export default`；字型設定的改動屬 UI-014）。
+- 做了什麼：
+  1. **部署流程**：`Install deps` 改為單純 `npm ci`（原本 `npm ci || npm install --include=dev`）；刪除「Ensure vite present」（`npm i -D vite@... @vitejs/plugin-react@...`，是 node_modules 還在 git 裡時的補丁，每次部署都會重裝一次並可能改到 lock 檔）；新增 `Test` 步驟 `npm test`，**測試失敗就不會部署**；`Build` 改用 `npm run build`。
+  2. **React 拆成獨立 chunk**：`vite.config.js` 加 `build.rollupOptions.output.manualChunks: { react: ['react', 'react-dom'] }`。build 結果：遊戲程式 `index-*.js` 89 KB（gzip 30 KB）＋ `react-*.js` 141 KB（gzip 45 KB）。之後只改遊戲程式時 React 的檔名不變，玩家瀏覽器可沿用快取，每次更新少下載約 45 KB（gzip）。
+  3. **消除 CJS 警告**：`package.json` 加 `"type": "module"`，`postcss.config.js`、`tailwind.config.js` 改成 ESM。build 不再出現「The CJS build of Vite's Node API is deprecated」，用 Node 直接 import `src/` 模組也不再有 `MODULE_TYPELESS_PACKAGE_JSON` 警告。
+  4. **更新 browserslist 資料**：`npx update-browserslist-db@latest`（`caniuse-lite` 更新，`package-lock.json` 變動 3 行；工具回報「No target browser changes」，產出的 CSS 前綴不變），build 不再出現「caniuse-lite is 15 months old」警告。
+- 如何驗證：`rm -rf node_modules && npm ci` 成功；`npm test` 47 項通過；`npm run build` 沒有任何警告；`npm run dev`、`vite preview` 都正常；備用的 `npm run spa-404`（`node -e` + `require`，`-e` 預設仍是 CommonJS）正常產生 `dist/404.html`；`python3 tools/generate_ui.py` 正常。
+- 新增給其他角色的請求：無
+- 收尾：沒有另外開 server（與 EG-012 共用驗證，收尾見 EG-012）。
+- 給 CEO 的注意事項：
+  - **commit 範圍**：上列檔案。
+  - 新的部署流程**還沒有在 GitHub Actions 上實際跑過**（push 到 `main` 才會觸發）。本機是 Node 22 + npm 10，CI 是 Node 20，`package-lock.json` 為 lockfileVersion 3，兩者都相容。合併到 `main` 後請看一次 Actions 是否成功。
+  - PROJECT_MAP §10 需要更新（測試數、部署流程、vendor chunk）。
+
+### 審核（CEO 填寫）
+- 2026-11-02 通過。`npm ci` → `npm test` → `npm run build` 本機依序成功，build 無警告；`tailwind.config.js` 的格式改動與 UI-014 的字型改動分開說明清楚。部署流程要等合併到 `main` 才會實際在 Actions 跑，**合併後請確認 Actions 成功**。PROJECT_MAP §10 已更新。
